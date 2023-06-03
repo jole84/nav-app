@@ -1,0 +1,108 @@
+
+<html lang="en">
+  <head>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.1.0/mdb.min.css" rel="stylesheet" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="icon" type="image/x-icon" href="https://openlayers.org/favicon.ico" />
+    <link rel="stylesheet" href="node_modules/ol/ol.css">
+    <style>
+      html, body, #map{
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        font-family: arial;
+        overscroll-behavior-y: contain !important;
+        background-color: #bfe6ff;
+      }
+      .infoGroup {
+        position: absolute;
+        border-radius: 5px;
+        font-size: 1em;
+        font-family: 'Droid Sans Mono', 'monospace', monospace;
+        top: 5px;
+        right: 5px;
+        padding-left: 5px;
+        padding-right: 5px;
+        border: 1px solid rgb(32,32,32);
+        color: rgb(32,32,32);
+        background-color: rgba(251, 251, 251, 0.6);
+        backdrop-filter: blur(5px);
+        line-height: 1.4;
+      }
+      #centerButton {
+        position: absolute;
+        text-align: center;
+        height: 36px;
+        width: 95px;
+        bottom: 5px;
+        left: 5px;
+        font-weight: bold;
+      }
+      #switchMapButton {
+        position: absolute;
+        text-align: center;
+        white-space: nowrap;
+        height: 36px;
+        width: 130px;
+        bottom: 5px;
+        left: 105px;
+        font-weight: bold;
+      }
+      #saveLogButton {
+        position: absolute;
+        text-align: center;
+        white-space: nowrap;
+        height: 36px;
+        width: 130px;
+        bottom: 46px;
+        left: 5px;
+        font-weight: bold;
+      }
+      #customFileButton {
+        position: absolute;
+        height: 36px;
+        width: 80px;
+        bottom: 5px;
+        left: 240px;
+      }
+      #map .ol-rotate {
+        display: none;
+      }
+    </style>
+    <script>
+      let wakeLock;
+      const acquireWakeLock = async () => {
+        if ('wakeLock' in navigator) {
+          try {
+            wakeLock = await navigator.wakeLock.request('screen');
+          } catch (err) {
+            console.log(err);
+          }
+        }
+      };
+      acquireWakeLock();
+      document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState === 'visible') {
+          acquireWakeLock();
+        }
+      });
+    </script>
+  <script type="module" src="./main.js"></script>
+  </head>
+  <body oncontextmenu="return false;">
+    <div id="map"></div>
+    <div class="infoGroup" id="infoGroup">
+      <div id="info"></div>
+      <div id="info2"></div>
+    </div>
+    <button style="opacity: 0.9;" class="btn btn-danger" id="centerButton">Center</button>
+    <button style="opacity: 0.9;" class="btn btn-warning" id="saveLogButton">Spara GPX</button>
+    <button style="opacity: 0.9;" class="btn btn-primary" id="switchMapButton">Växla karta</button>
+    <input style="opacity: 0.9;" type="file" class="form-control" id="customFileButton" multiple accept=".gpx"/>
+    <img id="geolocation_marker" src="https://openlayers.org/en/latest/examples/data/geolocation_marker.png" />
+  </body>
+</html>

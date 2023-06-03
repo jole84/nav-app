@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <!-- Latest compiled and minified CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="filesList.js"></script>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <meta charset="utf-8">
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <title>Live-track</title>
+    <style>
+      #linkButton {
+        width: 50%;
+      }
+      #kartbild {
+        height: 150px;
+        overflow: hidden;
+        white-space: nowrap;
+        font-size: 0;
+        background-color: #bfe6ff;
+      }
+      #objectpreview {
+        width: 100%;
+        height: 350px;
+        border-radius: 5px;
+      }
+      #webbkarta, #ruttplanering {
+        width: 300px;
+      }
+      #legend {
+        height: 100px;
+      }
+      #brouter-img {
+        max-width: 100%;
+      }
+      #selectFile {
+        max-width: 300px;
+      }
+    </style>
+  </head>
+  <body>
+    <header id="kartbild">
+      <img src="https://jole84.se/slitlagerkarta/14/8834/4935.jpg">
+      <img src="https://jole84.se/slitlagerkarta/14/8835/4935.jpg">
+      <img src="https://jole84.se/slitlagerkarta/14/8836/4935.jpg">
+    </header>
+    
+    <div class="container pt-5">
+
+      <h1>
+        Live-track webapp<br>
+      </h1>
+      <p class="lead text-muted">Baserad på Lantmäteriet Topografi 50. Geografisk täckning omfattar hela Sverige.</p>
+      <img id="legend" class="rounded" src="https://jole84.github.io/legend.svg"><br>
+      <hr>
+      <h4>
+        Start-alternativ:
+      </h4>
+
+      <form onchange="myFunction()" id="theForm">
+        <input type="checkbox" id="Lnt"> Aktivera Lantmäteriets kartor<br>
+        <input type="checkbox" id="onunload"> Varna vid avstängning<br>
+          <label for="defaultZoom">Zoom-nivå:</label>
+        <input type="number" id="defaultZoom" name="defaultZoom" step="0.1" required min="6" max="20" size="5" placeholder="14.0"><br>
+          <label for="infoText">Storlek på inforuta:</label>
+        <input id="infoText" name="infoText" required minlength="1" maxlength="50" size="10" placeholder="1em, x-large"><br>
+          <label for="karta">Vald karta:</label>
+        <select name="karta" id="karta">
+          <option value="terräng">Terrängkarta</option>
+          <option value="vägkarta">Vägkarta</option>
+          <option value="darkmode">Mörk vägkarta</option>
+          <option value="satellit">Satellit</option>
+          <option value="topografisk">Topografisk</option>
+        </select><br>
+          <label for="gpxUrl">Url till gpxfil:</label>
+        <a href="https://jole84.se/rutter" target="_blank">(Tillängliga rutter)</a>
+        <input id="gpxUrl" name="gpxUrl" size="20" placeholder=".gpx"><br>
+        <select id="selectFile">
+          <option>välj gpxfil</option>
+        </select>
+      </form>
+
+      <button id="createLink" class="btn btn-primary my-2" onclick="myFunction()">Uppdatera länk</button><br>
+      
+      <code id="linkCode"></code><br>
+      
+      <a id="linkButton" href="https://jole84.se/live-track/index.html" class="btn btn-danger my-2">Live-track webapp</a><br>
+      
+      <object id="objectpreview" data="https://jole84.se/live-track/index.html">Your browser doesn’t support the object tag.</object>
+
+      <!-- <hr> -->
+      
+
+      
+      <hr>
+      
+      <a href="https://jole84.github.io/brouter-web/index.html" class="btn btn-primary my-2" id="ruttplanering">Ruttplanerare</a> <a href="https://jole84.github.io/webmap.html" class="btn btn-warning my-2" id="webbkarta">Webbkarta</a><br>
+      <a href="https://jole84.github.io/brouter-web/index.html"><img id="brouter-img" class="rounded" src="https://jole84.github.io/brouter-web.jpg"></a>
+
+      <hr>
+
+      <a href="https://github.com/jole84">Jole84 Github</a>
+    </div>
+
+    <script>
+      var Lnt = document.getElementById('Lnt');
+      var onUnload = document.getElementById('onunload');
+      var defaultZoom = document.getElementById('defaultZoom');
+      var infoText = document.getElementById('infoText');
+      var karta = document.getElementById('karta');
+      var linkUrl = document.getElementById('linkUrl');
+      var linkCode = document.getElementById('linkCode');
+      var linkButton= document.getElementById('linkButton');
+      var gpxUrl = document.getElementById('gpxUrl');
+      var selectFile = document.getElementById('selectFile');
+      
+      var linkUrl = "https://jole84.se/live-track/index.html"
+      
+      function myFunction() {
+        for (var i = 0; i < filesList.length; i++) {
+          var opt = filesList[i];
+          var el = document.createElement("option");
+          el.textContent = opt;
+          el.value = opt;
+          selectFile.appendChild(el);
+        }
+
+        
+        var newLinkUrl = linkUrl + '?';
+        if (karta.value == 'topografisk' || karta.value == 'satellit') {
+          Lnt.checked = true;
+        };
+        
+        if (Lnt.checked) {
+          newLinkUrl += 'Lnt'
+        };
+
+        if (karta.value == 'vägkarta') {
+          newLinkUrl += '&switchMap';
+        }
+        
+        if (karta.value == 'darkmode') {
+          newLinkUrl += '&switchMap'.repeat(2);
+        }
+
+        if (karta.value == 'satellit') {
+          newLinkUrl += '&switchMap'.repeat(3);
+        }
+        
+        if (karta.value == 'topografisk') {
+          newLinkUrl += '&switchMap'.repeat(4);
+        }
+        
+        if (onUnload.checked) {
+          newLinkUrl += "&onunload";
+        };
+        
+        if (gpxUrl.value) {
+          newLinkUrl += '&' + gpxUrl.value;
+        }
+
+        if (selectFile.value != 'välj gpxfil') {
+          newLinkUrl += '&' + selectFile.value;
+        }
+
+        if (infoText.value) {
+          newLinkUrl += '&info=' + infoText.value;
+        }
+
+        if (defaultZoom.value) {
+          newLinkUrl += '&zoom=' + defaultZoom.value;
+        }
+        
+        if (newLinkUrl == linkUrl + '?') {
+          linkCode.innerHTML = linkUrl;
+          linkButton.setAttribute("href", linkUrl);
+        } else {
+          linkCode.innerHTML = newLinkUrl;
+          linkButton.setAttribute("href", newLinkUrl);
+        }
+        document.getElementById('objectpreview').setAttribute("data", newLinkUrl);
+      }
+
+      myFunction();
+    </script>
+  </body>
+  </html>
