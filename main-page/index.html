@@ -139,19 +139,19 @@
         };
 
         if (karta.value == 'vägkarta') {
-          newLinkUrl += '&switchMap';
+          newLinkUrl += '&mapMode=1';
         }
         
         if (karta.value == 'darkmode') {
-          newLinkUrl += '&switchMap'.repeat(2);
+          newLinkUrl += '&mapMode=2';
         }
 
         if (karta.value == 'satellit') {
-          newLinkUrl += '&switchMap'.repeat(3);
+          newLinkUrl += '&mapMode=3';
         }
         
         if (karta.value == 'topografisk') {
-          newLinkUrl += '&switchMap'.repeat(4);
+          newLinkUrl += '&mapMode=4';
         }
         
         if (onUnload.checked) {

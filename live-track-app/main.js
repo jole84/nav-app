@@ -21,9 +21,16 @@ var preferredFontSize;
 const startTime = new Date();
 var trackLog = [];
 var maxSpeed = 0;
-document.getElementById("saveLogButton").onclick = saveLogButtonFunction;
-document.getElementById("centerButton").onclick = centerFunction;
-document.getElementById('switchMapButton').onclick = switchMap;
+var mapDiv = document.getElementById("map");
+var infoGroup = document.getElementById("infoGroup");
+var centerButton = document.getElementById("centerButton");
+var saveLogButton = document.getElementById("saveLogButton");
+var switchMapButton = document.getElementById("switchMapButton");
+var customFileButton = document.getElementById("customFileButton");
+saveLogButton.onclick = saveLogButtonFunction;
+centerButton.onclick = centerFunction;
+switchMapButton.onclick = switchMap;
+
 
 const view = new View({
   center: center,
@@ -89,7 +96,8 @@ var slitlagerkarta = new TileLayer({
     url: 'https://jole84.se/slitlagerkarta/{z}/{x}/{y}.jpg',
       minZoom: 6,
       maxZoom: 14,
-  })
+  }),
+  visible: false
 });
  
 var slitlagerkarta_nedtonad = new TileLayer({
@@ -184,7 +192,7 @@ function removeOld(featureToRemove) {
 // gpx loader
 var gpxFormat = new GPX();
 var gpxFeatures;
-document.getElementById('customFileButton').addEventListener('change', handleFileSelect, false);
+customFileButton.addEventListener('change', handleFileSelect, false);
 function handleFileSelect(evt) {
   var files = evt.target.files; // FileList object
   // remove previously loaded gpx files
@@ -379,64 +387,59 @@ geolocation.once('change', function() {
 });
 
 // switch map logic
-// mapMode 0: slitlagerkarta_nedtonad
-// mapMode 1: slitlagerkarta_nedtonad + night mode
-// mapMode 2: orto
-// mapMode 3: topo
-// mapMode 4: slitlagerkarta
+const mapModes = [
+  slitlagerkarta_nedtonad,
+  slitlagerkarta,
+  ortofoto,
+  topoweb,
+]
 var mapMode = 0;
+
 function switchMap() {
-  var mapDiv = document.getElementById("map");
-  var infoDiv = document.getElementById("infoGroup");
-  var centerButton = document.getElementById("centerButton");
-  var saveLogButton = document.getElementById("saveLogButton");
-  var switchMapButton = document.getElementById("switchMapButton");
-  var customFileButton = document.getElementById("customFileButton");
-  if (mapMode == 0) {
-    slitlagerkarta.setVisible(false);
+  mapModes.forEach(function(mapMode) {
+    mapMode.setVisible(false);
+  });
+  mapDiv.setAttribute(            "style", "-webkit-filter: initial;filter: initial;background-color: initial;");
+  infoGroup.setAttribute(         "style", "-webkit-filter: initial;filter: initial;background: rgba(251, 251, 251, 0.6);");
+  centerButton.setAttribute(      "style", "filter: initial");
+  saveLogButton.setAttribute(     "style", "filter: initial");
+  switchMapButton.setAttribute(   "style", "filter: initial");
+  customFileButton.setAttribute(  "style", "filter: initial");
+
+  if (mapMode == 0) { // mapMode 0: slitlagerkarta
+    slitlagerkarta.setVisible(true);
+  }
+
+  if (mapMode == 1) { // mapMode 1: slitlagerkarta_nedtonad
     slitlagerkarta_nedtonad.setVisible(true);
-    mapMode++;
   }
   
-  else if (mapMode == 1) {
+  else if (mapMode == 2) { // mapMode 2: slitlagerkarta_nedtonad + night mode
+    slitlagerkarta_nedtonad.setVisible(true)
     mapDiv.setAttribute(            "style", "filter: invert(1) hue-rotate(180deg);");
-    infoDiv.setAttribute(           "style", "filter: invert(1) hue-rotate(180deg);background: rgba(251, 251, 251, 0.8);");
+    infoGroup.setAttribute(         "style", "filter: invert(1) hue-rotate(180deg);background: rgba(251, 251, 251, 0.8);");
     centerButton.setAttribute(      "style", "filter: brightness(65%)");
     saveLogButton.setAttribute(     "style", "filter: brightness(65%)");
     switchMapButton.setAttribute(   "style", "filter: brightness(65%)");
     customFileButton.setAttribute(  "style", "filter: invert(1)");
-    mapMode++;
   }
   
-  else if (mapMode == 2) {
-    mapDiv.setAttribute(            "style", "-webkit-filter: initial;filter: initial;background-color: initial;");
-    infoDiv.setAttribute(           "style", "-webkit-filter: initial;filter: initial;background: rgba(251, 251, 251, 0.6);");
-    centerButton.setAttribute(      "style", "filter: initial");
-    saveLogButton.setAttribute(     "style", "filter: initial");
-    switchMapButton.setAttribute(   "style", "filter: initial");
-    customFileButton.setAttribute(  "style", "filter: initial");
-    slitlagerkarta_nedtonad.setVisible(false);
-    if (enableLnt) {
-      ortofoto.setVisible(true);
-      mapMode++;
-    } else {
-      slitlagerkarta.setVisible(true);
-      mapMode = 0;
-    }
+  else if (enableLnt && mapMode == 3) { // mapMode 3: ortofoto
+    ortofoto.setVisible(true);
   } 
   
-  else if (mapMode == 3) {
-    ortofoto.setVisible(false);
+  else if (enableLnt && mapMode == 4) { // mapMode 4: topoweb
     topoweb.setVisible(true);
-    mapMode++;
   }
 
-  else if (mapMode == 4) {
-    topoweb.setVisible(false);
-    slitlagerkarta.setVisible(true);
+  mapMode++;
+
+  if (enableLnt && mapMode > 4) {
+    mapMode = 0;
+  } else if (!enableLnt && mapMode > 2) {
     mapMode = 0;
   }
-  infoDiv.style.fontSize = preferredFontSize;
+  infoGroup.style.fontSize = preferredFontSize;
 };
 
 // logic for saveLogButton
@@ -601,18 +604,21 @@ for (var i = 0; i < urlParams.length; i++){
       gpxLayer.getSource().addFeatures(gpxFeatures);
     });
   } else if (urlParams[i].includes("switchMap")) {
-    switchMap();
+    mapMode++;
   } else if (urlParams[i].includes("zoom=")) {
     defaultZoom = urlParams[i].split('=').pop();
+  } else if(urlParams[i].includes("mapMode=")) {
+    mapMode = urlParams[i].split('=').pop();
   } else if (urlParams[i].includes("info=")) {
     preferredFontSize = urlParams[i].split('=').pop();
-    document.getElementById("infoGroup").style.fontSize = preferredFontSize;
+    infoGroup.style.fontSize = preferredFontSize;
   } else if (urlParams[i].includes("onunload")) {
     window.onunload = window.onbeforeunload = function() {
       return "";
     };
   }
-}
+};
+switchMap();
 
 // add keyboard controls
 document.addEventListener('keydown', function(event) {
