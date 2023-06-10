@@ -387,18 +387,13 @@ geolocation.once('change', function() {
 });
 
 // switch map logic
-const mapModes = [
-  slitlagerkarta_nedtonad,
-  slitlagerkarta,
-  ortofoto,
-  topoweb,
-]
-var mapMode = 0;
+var mapMode = 0; // default map
 
 function switchMap() {
-  mapModes.forEach(function(mapMode) {
-    mapMode.setVisible(false);
-  });
+  slitlagerkarta_nedtonad.setVisible(false);
+  slitlagerkarta.setVisible(false);
+  ortofoto.setVisible(false);
+  topoweb.setVisible(false);
   mapDiv.setAttribute(            "style", "-webkit-filter: initial;filter: initial;background-color: initial;");
   infoGroup.setAttribute(         "style", "-webkit-filter: initial;filter: initial;background: rgba(251, 251, 251, 0.6);");
   centerButton.setAttribute(      "style", "filter: initial");
