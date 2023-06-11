@@ -450,7 +450,7 @@ function saveLogButtonFunction() {
     saveLog();
   } else {
     setExtraInfo([
-      "zoomLevel = " + view.getZoom(),
+      "zoomLevel = " + view.getZoom().toFixed(2),
       "trackLog.length = " + trackLog.length,
       "Spår för kort!"
     ]);
@@ -645,7 +645,7 @@ if (urlParams.includes("hybrid")) {
   var hybridOverlay = new TileLayer({
     maxZoom: 12,
     source: new XYZ({
-      url: 'https://map01.eniro.no/geowebcache/service/tms1.0.0/hybrid/{z}/{x}/{-y}.png',
+      url: 'https://map.eniro.se/geowebcache/service/tms1.0.0/hybrid/{z}/{x}/{-y}.png',
     }),
     visible: true,
   });
