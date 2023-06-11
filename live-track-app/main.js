@@ -176,7 +176,14 @@ const routeLayer = new VectorLayer({
 
 // creating the map
 const map = new Map({
-  layers: [slitlagerkarta_nedtonad, slitlagerkarta, ortofoto, topoweb, gpxLayer, routeLayer, trackLayer],
+  layers: [
+    slitlagerkarta,
+    slitlagerkarta_nedtonad,
+    ortofoto,
+    topoweb,
+    gpxLayer,
+    routeLayer,
+    trackLayer],
   target: 'map',
   view: view,
   keyboardEventTarget: document,
@@ -642,7 +649,7 @@ if (urlParams.includes("hybrid")) {
     }),
     visible: true,
   });
-  map.addLayer(hybridOverlay);
+  map.getLayers().insertAt(3, hybridOverlay);
 };
 
 // add keyboard controls
