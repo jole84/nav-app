@@ -619,7 +619,7 @@ switchMap();
 if (urlParams.includes("nautical")) {
   var nautical = new TileLayer({
       source: new XYZ({
-        url: 'http://map.eniro.se/geowebcache/service/tms1.0.0/nautical2x/{z}/{x}/{-y}.png',
+        url: 'https://map.eniro.se/geowebcache/service/tms1.0.0/nautical2x/{z}/{x}/{-y}.png',
         maxZoom: 17
       }),
       visible: true,
@@ -627,8 +627,7 @@ if (urlParams.includes("nautical")) {
     topoweb.setVisible(false);
     map.removeLayer(slitlagerkarta);
     map.removeLayer(slitlagerkarta_nedtonad);
-    var layers = map.getLayers();
-    layers.insertAt(0, nautical);
+    map.getLayers().insertAt(0, nautical);
     geolocation.on('change', function () {
       const knots = ((geolocation.getSpeed() * 1.94388) || 0).toFixed(1);
       document.getElementById('info2').innerHTML = `<b style="font-size:150%">${knots}</b> knop`;
