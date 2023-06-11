@@ -615,6 +615,25 @@ for (var i = 0; i < urlParams.length; i++){
 };
 switchMap();
 
+// nautical map
+if (urlParams.includes("nautical")) {
+  var nautical = new TileLayer({
+      source: new XYZ({
+        url: 'http://map.eniro.se/geowebcache/service/tms1.0.0/nautical2x/{z}/{x}/{-y}.png',
+        maxZoom: 17
+      }),
+      visible: true,
+    });
+    topoweb.setVisible(false);
+    map.removeLayer(slitlagerkarta);
+    map.removeLayer(slitlagerkarta_nedtonad);
+    map.addLayer(nautical);
+    geolocation.on('change', function () {
+      const knots = ((geolocation.getSpeed() * 1.94388) || 0).toFixed(1);
+      document.getElementById('info2').innerHTML = `<b style="font-size:150%">${knots}</b> knop`;
+    });
+};
+
 // add keyboard controls
 document.addEventListener('keydown', function(event) {
   const zoomStep = 0.2;
