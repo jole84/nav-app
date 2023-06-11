@@ -176,7 +176,7 @@ var trackLayer = new VectorLayer({
   },
 });
 
-const routeLayer = new VectorLayer({
+var routeLayer = new VectorLayer({
   source: new VectorSource(),
   style: function (feature) {
     return trackStyle[feature.get('type')];
@@ -192,7 +192,8 @@ const map = new Map({
     topoweb,
     gpxLayer,
     routeLayer,
-    trackLayer],
+    trackLayer
+  ],
   target: 'map',
   view: view,
   keyboardEventTarget: document,
@@ -341,6 +342,7 @@ geolocation.on('error', function () {
 
 // Geolocation marker
 const markerEl = document.getElementById('geolocation_marker');
+markerEl.style.display = "unset";
 const marker = new Overlay({
   positioning: 'center-center',
   element: markerEl,
