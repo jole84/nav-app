@@ -634,6 +634,17 @@ if (urlParams.includes("nautical")) {
     });
 };
 
+if (urlParams.includes("hybrid")) {
+  var hybridOverlay = new TileLayer({
+    maxZoom: 12,
+    source: new XYZ({
+      url: 'https://map01.eniro.no/geowebcache/service/tms1.0.0/hybrid/{z}/{x}/{-y}.png',
+    }),
+    visible: true,
+  });
+  map.addLayer(hybridOverlay);
+};
+
 // add keyboard controls
 document.addEventListener('keydown', function(event) {
   const zoomStep = 0.2;
