@@ -121,6 +121,15 @@ var ortofoto = new TileLayer({
   visible:false
 });
 
+var hybridOverlay = new TileLayer({
+  maxZoom: 12,
+  source: new XYZ({
+    maxZoom: 17,
+    url: 'https://map.eniro.se/geowebcache/service/tms1.0.0/hybrid/{z}/{x}/{-y}.png',
+  }),
+  visible: false,
+});
+
 // var topoweb = new TileLayer({
 //   source: new TileWMS({
 //     url: 'https://minkarta.lantmateriet.se/map/topowebb',
@@ -407,6 +416,7 @@ function switchMap() {
   saveLogButton.setAttribute(     "style", "filter: initial");
   switchMapButton.setAttribute(   "style", "filter: initial");
   customFileButton.setAttribute(  "style", "filter: initial");
+  hybridOverlay.setMaxZoom(12);
 
   if (mapMode == 0) { // mapMode 0: slitlagerkarta
     slitlagerkarta.setVisible(true);
@@ -428,6 +438,7 @@ function switchMap() {
   
   else if (enableLnt && mapMode == 3) { // mapMode 3: ortofoto
     ortofoto.setVisible(true);
+    hybridOverlay.setMaxZoom(18);
   } 
   
   else if (enableLnt && mapMode == 4) { // mapMode 4: topoweb
@@ -642,13 +653,7 @@ if (urlParams.includes("nautical")) {
 };
 
 if (urlParams.includes("hybrid")) {
-  var hybridOverlay = new TileLayer({
-    maxZoom: 12,
-    source: new XYZ({
-      url: 'https://map.eniro.se/geowebcache/service/tms1.0.0/hybrid/{z}/{x}/{-y}.png',
-    }),
-    visible: true,
-  });
+  hybridOverlay.setVisible(true);
   map.getLayers().insertAt(3, hybridOverlay);
 };
 
