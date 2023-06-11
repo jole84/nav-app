@@ -627,7 +627,8 @@ if (urlParams.includes("nautical")) {
     topoweb.setVisible(false);
     map.removeLayer(slitlagerkarta);
     map.removeLayer(slitlagerkarta_nedtonad);
-    map.addLayer(nautical);
+    var layers = map.getLayers();
+    layers.insertAt(0, nautical);
     geolocation.on('change', function () {
       const knots = ((geolocation.getSpeed() * 1.94388) || 0).toFixed(1);
       document.getElementById('info2').innerHTML = `<b style="font-size:150%">${knots}</b> knop`;
