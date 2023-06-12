@@ -464,7 +464,6 @@ function saveLogButtonFunction() {
   } else {
     setExtraInfo([
       "zoomLevel = " + view.getZoom().toFixed(2),
-      "trackLog.length = " + trackLog.length,
       "Spår för kort!"
     ]);
   }

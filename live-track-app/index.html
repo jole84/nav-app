@@ -33,46 +33,22 @@
         backdrop-filter: blur(5px);
         line-height: 1.4;
       }
-      #centerButton {
+      #btn-group {
         position: absolute;
-        text-align: center;
-        height: 36px;
-        width: 95px;
-        bottom: 5px;
-        left: 5px;
-        font-weight: bold;
-      }
-      #switchMapButton {
-        position: absolute;
-        text-align: center;
         white-space: nowrap;
-        height: 36px;
-        width: 130px;
-        bottom: 5px;
-        left: 105px;
-        font-weight: bold;
-      }
-      #saveLogButton {
-        position: absolute;
-        text-align: center;
-        white-space: nowrap;
-        height: 36px;
-        width: 130px;
-        bottom: 46px;
         left: 5px;
+        bottom: 0px;
+        /* opacity: 0.9; */
+      }
+      #centerButton, #switchMapButton, #saveLogButton {
         font-weight: bold;
+        margin-bottom: 5px;
       }
       #customFileButton {
-        position: absolute;
-        height: 36px;
-        width: 80px;
-        bottom: 5px;
-        left: 240px;
+        width: 83px;
+        margin-bottom: 5px;
       }
-      #map .ol-rotate {
-        display: none;
-      }
-      #geolocation_marker {
+      #map .ol-rotate, #geolocation_marker{
         display: none;
       }
     </style>
@@ -102,10 +78,13 @@
       <div id="info"></div>
       <div id="info2"></div>
     </div>
-    <button style="opacity: 0.9;" class="btn btn-danger" id="centerButton">Center</button>
-    <button style="opacity: 0.9;" class="btn btn-warning" id="saveLogButton">Spara GPX</button>
-    <button style="opacity: 0.9;" class="btn btn-primary" id="switchMapButton">Växla karta</button>
-    <input style="opacity: 0.9;" type="file" class="form-control" id="customFileButton" multiple accept=".gpx"/>
+    <div id="btn-group">
+      <button class="btn btn-warning" id="saveLogButton">Spara GPX</button>
+      <br>
+      <button class="btn btn-danger" id="centerButton">Center</button>
+      <button class="btn btn-primary" id="switchMapButton">Växla karta</button>
+      <label><input type="file" class="form-control" id="customFileButton" multiple accept=".gpx"/></label>
+    </div>
     <img id="geolocation_marker" src="https://openlayers.org/en/latest/examples/data/geolocation_marker.png" />
   </body>
 </html>
