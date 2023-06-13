@@ -189,6 +189,7 @@ const map = new Map({
     slitlagerkarta,
     slitlagerkarta_nedtonad,
     ortofoto,
+    hybridOverlay,
     topoweb,
     gpxLayer,
     routeLayer,
@@ -420,11 +421,15 @@ function switchMap() {
   customFileButton.setAttribute(  "style", "filter: initial");
   hybridOverlay.setMaxZoom(12);
 
+  if (enableHybrid && mapMode != 4) {
+    hybridOverlay.setVisible(true);
+  };
+
   if (mapMode == 0) { // mapMode 0: slitlagerkarta
     slitlagerkarta.setVisible(true);
   }
 
-  if (mapMode == 1) { // mapMode 1: slitlagerkarta_nedtonad
+  else if (mapMode == 1) { // mapMode 1: slitlagerkarta_nedtonad
     slitlagerkarta_nedtonad.setVisible(true);
   }
   
@@ -445,6 +450,7 @@ function switchMap() {
   
   else if (enableLnt && mapMode == 4) { // mapMode 4: topoweb
     topoweb.setVisible(true);
+    hybridOverlay.setVisible(false);
   }
 
   mapMode++;
@@ -596,6 +602,7 @@ map.on('pointerdrag', function() {
 // checks url parameters and loads gpx file from url:
 // "https://jole84.se/live-track/index.html?../MC_rutter/<filename>.gpx"
 var urlParams = window.location.href.split('?').pop().split('&');
+var enableHybrid = urlParams.includes('hybrid');
 var enableLnt = urlParams.includes('Lnt');
 for (var i = 0; i < urlParams.length; i++){
   console.log(decodeURIComponent(urlParams[i]));
@@ -625,7 +632,6 @@ for (var i = 0; i < urlParams.length; i++){
     mapMode = urlParams[i].split('=').pop();
   } else if (urlParams[i].includes("info=")) {
     preferredFontSize = urlParams[i].split('=').pop();
-    infoGroup.style.fontSize = preferredFontSize;
   } else if (urlParams[i].includes("onunload")) {
     window.onunload = window.onbeforeunload = function() {
       return "";
@@ -651,11 +657,6 @@ if (urlParams.includes("nautical")) {
       const knots = ((geolocation.getSpeed() * 1.94388) || 0).toFixed(1);
       document.getElementById('info2').innerHTML = `<b style="font-size:150%">${knots}</b> knop`;
     });
-};
-
-if (urlParams.includes("hybrid")) {
-  hybridOverlay.setVisible(true);
-  map.getLayers().insertAt(3, hybridOverlay);
 };
 
 // add keyboard controls
