@@ -48,7 +48,8 @@ const gpxStyle = {
       src: 'https://jole84.se/default-marker.png',
     }),
     text: new Text({
-      font: 'bold 13px Arial,sans-serif',
+      // font: 'bold 13px Arial,sans-serif',
+      font: '14px Droid Sans Mono,monospace',
       textAlign: 'left',
       offsetX: 10,
       fill: new Fill({
