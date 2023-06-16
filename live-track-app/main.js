@@ -338,8 +338,7 @@ geolocation.on('change', function () {
 
 // alert user if geolocation fails
 geolocation.on('error', function () {
-  alert('Aktivera platsjänster för att se din position på kartan!');
-  document.getElementById('info').innerHTML = "? &#128543"; // sadface
+  setExtraInfo(["&#128543 Aktivera platsjänster för <br>att se din position på kartan!"]);
 });
 
 // Geolocation marker
