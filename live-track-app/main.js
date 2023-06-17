@@ -641,7 +641,7 @@ for (var i = 0; i < urlParams.length; i++){
 switchMap();
 
 // nautical map
-if (urlParams.includes("nautical")) {
+if (urlParams.includes("sea")) {
   var nautical = new TileLayer({
       source: new XYZ({
         url: 'https://map.eniro.se/geowebcache/service/tms1.0.0/nautical2x/{z}/{x}/{-y}.png',
@@ -653,9 +653,11 @@ if (urlParams.includes("nautical")) {
     map.removeLayer(slitlagerkarta);
     map.removeLayer(slitlagerkarta_nedtonad);
     map.getLayers().insertAt(0, nautical);
+    var directions = ["N", "NÖ", "Ö", "SÖ", "S", "SV", "V", "NV"]
     geolocation.on('change', function () {
       const knots = ((geolocation.getSpeed() * 1.94388) || 0).toFixed(1);
-      document.getElementById('info2').innerHTML = `<b style="font-size:150%">${knots}</b> knop`;
+      var heading = Math.round(geolocation.getHeading() * (180 / Math.PI)) || 0;
+      document.getElementById('info2').innerHTML = `<b style="font-size:150%">${knots}</b> knop<br>${heading}° ${directions[Math.round(((heading %= 360) < 0 ? heading + 360 : heading) / 45) % 8]}`;
     });
 };
 
