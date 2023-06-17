@@ -185,9 +185,7 @@ var routeLayer = new VectorLayer({
 });
 
 // creating the map
-import {FullScreen, defaults as defaultControls} from 'ol/control.js';
 const map = new Map({
-  controls: defaultControls().extend([new FullScreen()]),
   layers: [
     slitlagerkarta,
     slitlagerkarta_nedtonad,
