@@ -35,12 +35,14 @@
         position: absolute;
         right: 5px;
         top: 5px;
+        z-index: 10;
       }
       #btn-group {
         bottom: 0px;
         left: 5px;
         position: absolute;
         white-space: nowrap;
+        z-index: 10;
       }
       #centerButton, #switchMapButton, #saveLogButton, #customFileButton {
         margin-bottom: 5px;
@@ -73,17 +75,18 @@
   <script type="module" src="./main.js"></script>
   </head>
   <body oncontextmenu="return false;">
-    <div id="map"></div>
-    <div class="infoGroup" id="infoGroup">
-      <div id="info"></div>
-      <div id="info2"></div>
-    </div>
-    <div id="btn-group">
-      <button class="btn btn-warning" id="saveLogButton">Spara GPX</button>
-      <br>
-      <button class="btn btn-danger" id="centerButton">Center</button>
-      <button class="btn btn-primary" id="switchMapButton">Växla karta</button>
-      <label><input type="file" class="form-control" id="customFileButton" multiple accept=".gpx"/></label>
+    <div id="map">
+      <div class="infoGroup" id="infoGroup">
+        <div id="info"></div>
+        <div id="info2"></div>
+      </div>
+      <div id="btn-group">
+        <button class="btn btn-warning" id="saveLogButton">Spara GPX</button>
+        <br>
+        <button class="btn btn-danger" id="centerButton">Center</button>
+        <button class="btn btn-primary" id="switchMapButton">Växla karta</button>
+        <label><input type="file" class="form-control" id="customFileButton" multiple accept=".gpx"/></label>
+      </div>
     </div>
     <img id="geolocation_marker" src="https://openlayers.org/en/latest/examples/data/geolocation_marker.png" />
   </body>
