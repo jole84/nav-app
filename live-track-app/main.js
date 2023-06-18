@@ -202,9 +202,9 @@ const map = new Map({
 });
 
 // clear layer when new feature is added
-function removeOld(featureToRemove) {
-  featureToRemove.getSource().getFeatures().forEach(function(layer) {
-    featureToRemove.getSource().removeFeature(layer);
+function clearLayer(layerToClear) {
+  layerToClear.getSource().getFeatures().forEach(function(feature) {
+    layerToClear.getSource().removeFeature(feature);
   });
 }
 
@@ -215,7 +215,7 @@ customFileButton.addEventListener('change', handleFileSelect, false);
 function handleFileSelect(evt) {
   var files = evt.target.files; // FileList object
   // remove previously loaded gpx files
-  removeOld(gpxLayer);
+  clearLayer(gpxLayer);
   var fileNames = [];
   for (var i = 0; i < files.length; i++) {
     console.log(files[i]);
@@ -569,7 +569,7 @@ function routeMe(startLonLat, endLonLat) {
       });
 
       // remove previus route
-      removeOld(routeLayer);
+      clearLayer(routeLayer);
 
       // finally add route to map
       routeLayer.getSource().addFeature(routeFeature);
@@ -587,7 +587,7 @@ map.on('contextmenu', function(event) {
   lastInteraction = new Date();
   // if click less than 0.2km from current position clear route else start route
   if (getDistanceFromLatLonInKm(currentPostition, destinationCoordinate) < 0.2) {
-    removeOld(routeLayer);
+    clearLayer(routeLayer);
     setExtraInfo([getDistanceFromLatLonInKm(currentPostition, destinationCoordinate).toFixed(3)*1000 + " m"]);
   }else {
     routeMe(currentPostition, destinationCoordinate);
