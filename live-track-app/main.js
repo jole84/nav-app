@@ -122,15 +122,6 @@ var ortofoto = new TileLayer({
   visible:false
 });
 
-var hybridOverlay = new TileLayer({
-  maxZoom: 12,
-  source: new XYZ({
-    maxZoom: 17,
-    url: 'https://map.eniro.se/geowebcache/service/tms1.0.0/hybrid/{z}/{x}/{-y}.png',
-  }),
-  visible: false,
-});
-
 // var topoweb = new TileLayer({
 //   source: new TileWMS({
 //     url: 'https://minkarta.lantmateriet.se/map/topowebb',
@@ -190,7 +181,6 @@ const map = new Map({
     slitlagerkarta,
     slitlagerkarta_nedtonad,
     ortofoto,
-    hybridOverlay,
     topoweb,
     gpxLayer,
     routeLayer,
@@ -419,11 +409,6 @@ function switchMap() {
   saveLogButton.setAttribute(     "style", "filter: initial");
   switchMapButton.setAttribute(   "style", "filter: initial");
   customFileButton.setAttribute(  "style", "filter: initial");
-  hybridOverlay.setMaxZoom(12);
-
-  if (enableHybrid && mapMode != 4) {
-    hybridOverlay.setVisible(true);
-  };
 
   if (mapMode == 0) { // mapMode 0: slitlagerkarta
     slitlagerkarta.setVisible(true);
@@ -445,12 +430,10 @@ function switchMap() {
   
   else if (enableLnt && mapMode == 3) { // mapMode 3: ortofoto
     ortofoto.setVisible(true);
-    hybridOverlay.setMaxZoom(18);
   } 
   
   else if (enableLnt && mapMode == 4) { // mapMode 4: topoweb
     topoweb.setVisible(true);
-    hybridOverlay.setVisible(false);
   }
 
   mapMode++;
@@ -602,7 +585,6 @@ map.on('pointerdrag', function() {
 // checks url parameters and loads gpx file from url:
 // "https://jole84.se/live-track/index.html?../MC_rutter/<filename>.gpx"
 var urlParams = window.location.href.split('?').pop().split('&');
-var enableHybrid = urlParams.includes('hybrid');
 var enableLnt = urlParams.includes('Lnt');
 for (var i = 0; i < urlParams.length; i++){
   console.log(decodeURIComponent(urlParams[i]));

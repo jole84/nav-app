@@ -61,7 +61,6 @@
 
       <form onchange="myFunction()" id="theForm">
         <input type="checkbox" id="Lnt"> Aktivera Lantmäteriets kartor<br>
-        <input type="checkbox" id="hybrid"> Aktivera hybridkarta<br>
         <input type="checkbox" id="onunload"> Varna vid avstängning<br>
           <label for="defaultZoom">Zoom-nivå:</label>
         <input type="number" id="defaultZoom" name="defaultZoom" step="0.1" required min="6" max="20" size="5" placeholder="14.0"><br>
@@ -107,7 +106,6 @@
 
     <script>
       var Lnt = document.getElementById('Lnt');
-      var hybrid = document.getElementById('hybrid');
       var onUnload = document.getElementById('onunload');
       var defaultZoom = document.getElementById('defaultZoom');
       var infoText = document.getElementById('infoText');
@@ -138,10 +136,6 @@
         if (Lnt.checked) {
           newLinkUrl += 'Lnt'
         };
-
-        if (hybrid.checked) {
-          newLinkUrl += '&hybrid'
-        }
 
         if (karta.value == 'vägkarta') {
           newLinkUrl += '&mapMode=1';
