@@ -645,7 +645,7 @@ if (urlParams.includes("sea")) {
 
 // add keyboard controls
 document.addEventListener('keydown', function(event) {
-  const zoomStep = 0.2;
+  const zoomStep = 0.5;
   if (event.key != 'a' && event.key != 'Escape') { // store time of last interaction
     lastInteraction = new Date();
   }
