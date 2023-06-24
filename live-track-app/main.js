@@ -503,8 +503,9 @@ function setExtraInfo(infoText) {
 // Function to download data to a file
 function download(data, filename) {
   var file = new Blob([data], {type: 'application/gpx+xml'});
-  if (window.navigator.msSaveOrOpenBlob) // IE10+
+  if (window.navigator.msSaveOrOpenBlob) {// IE10+
       window.navigator.msSaveOrOpenBlob(file, filename);
+    }
   else { // Others
       var a = document.createElement("a"),
               url = URL.createObjectURL(file);
@@ -583,7 +584,6 @@ map.on('pointerdrag', function() {
 });
 
 // checks url parameters and loads gpx file from url:
-// "https://jole84.se/live-track/index.html?../MC_rutter/<filename>.gpx"
 var urlParams = window.location.href.split('?').pop().split('&');
 var enableLnt = urlParams.includes('Lnt');
 for (var i = 0; i < urlParams.length; i++){
@@ -621,27 +621,6 @@ for (var i = 0; i < urlParams.length; i++){
   }
 };
 switchMap();
-
-// nautical map
-if (urlParams.includes("sea")) {
-  var nautical = new TileLayer({
-      source: new XYZ({
-        url: 'https://map.eniro.se/geowebcache/service/tms1.0.0/nautical2x/{z}/{x}/{-y}.png',
-        maxZoom: 17
-      }),
-      visible: true,
-    });
-    topoweb.setVisible(false);
-    map.removeLayer(slitlagerkarta);
-    map.removeLayer(slitlagerkarta_nedtonad);
-    map.getLayers().insertAt(0, nautical);
-    var directions = ["N", "NÖ", "Ö", "SÖ", "S", "SV", "V", "NV"]
-    geolocation.on('change', function () {
-      const knots = ((geolocation.getSpeed() * 1.94388) || 0).toFixed(1);
-      var heading = Math.round(geolocation.getHeading() * (180 / Math.PI)) || 0;
-      document.getElementById('info2').innerHTML = `<b style="font-size:150%">${knots}</b> knop<br>${heading}° ${directions[Math.round(((heading %= 360) < 0 ? heading + 360 : heading) / 45) % 8]}`;
-    });
-};
 
 // add keyboard controls
 document.addEventListener('keydown', function(event) {
