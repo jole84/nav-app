@@ -11,7 +11,7 @@
     <meta name='viewport' content='width=device-width, initial-scale=1'>
     <title>jole84.se</title>
     <style>
-      #linkButton {
+      #linkButton, #linkButton2 {
         width: 50%;
       }
       #kartbild {
@@ -30,7 +30,7 @@
         width: 300px;
       }
       #legend {
-        height: 100px;
+        height: 150px;
       }
       #brouter-img {
         max-width: 100%;
@@ -50,18 +50,21 @@
     <div class="container pt-5">
 
       <h1>
-        Live-track webbapp<br>
+        Jole84 terräng/vägkarta<br>
       </h1>
-      <p class="lead text-muted">Baserad på Lantmäteriet Topografi 50. Geografisk täckning omfattar hela Sverige.</p>
+      <p class="lead text-muted">Skräddarsydd karta baserad på öppna data från Lantmäteriet (Topografi 50) och vägdata från Trafikverket. Geografisk täckning omfattar hela Sverige. Enkel webbaserad applikation för navigering utan behov av app-installation samt oberoende av operativsystem.</p>
       <a href="https://jole84.github.io/legend.svg"><img id="legend" class="rounded" src="https://jole84.github.io/legend.svg"></a><br>
       <hr>
-      <h4>
-        Start-alternativ:
-      </h4>
+
+      <a id="linkButton" href="https://jole84.se/live-track/index.html" class="btn btn-danger my-2">Webbaserad navigation</a>
+      
+      <object id="objectpreview" data="https://jole84.se/live-track/index.html">Your browser doesn’t support the object tag.</object>
+      
+      <h4>Start-alternativ:</h4>
 
       <form onchange="myFunction()" id="theForm">
         <input type="checkbox" id="Lnt"> Aktivera Lantmäteriets kartor<br>
-        <input type="checkbox" id="onunload"> Varna vid avstängning<br>
+        <input type="checkbox" id="onunload"> Varna vid stängning<br>
           <label for="defaultZoom">Zoom-nivå:</label>
         <input type="number" id="defaultZoom" name="defaultZoom" step="0.1" required min="6" max="20" size="5" placeholder="14.0"><br>
           <label for="infoText">Storlek på inforuta:</label>
@@ -74,21 +77,20 @@
           <option value="satellit">Satellit</option>
           <option value="topografisk">Topografisk</option>
         </select><br>
-          <label for="gpxUrl">Url till gpxfil:</label>
-        <a href="https://jole84.se/rutter" target="_blank">(Tillängliga rutter)</a>
-        <input id="gpxUrl" name="gpxUrl" size="20" placeholder=".gpx"><br>
+          <label for="gpxUrl">Ladda GPX-fil automatiskt:</label>
+        <a href="https://jole84.se/rutter" target="_blank">(Tillängliga rutter)</a><br>
         <select id="selectFile">
           <option>välj gpxfil</option>
-        </select>
+        </select><br>
+        <input id="gpxUrl" name="gpxUrl" size="20" placeholder=".gpx"><br>
       </form>
 
       <button id="createLink" class="btn btn-primary my-2" onclick="myFunction()">Uppdatera länk</button><br>
-      
-      <code id="linkCode"></code><br>
-      
-      <a id="linkButton" href="https://jole84.se/live-track/index.html" class="btn btn-danger my-2">Live-track webapp</a><br>
-      
-      <object id="objectpreview" data="https://jole84.se/live-track/index.html">Your browser doesn’t support the object tag.</object>
+      <p>Länk för delning:<br>
+        <code id="linkCode"></code><br>
+      </p>
+
+      <a id="linkButton2" href="https://jole84.se/live-track/index.html" class="btn btn-danger my-2">Webbaserad navigation</a>
 
       <!-- <hr> -->
       
@@ -176,9 +178,11 @@
         if (newLinkUrl == linkUrl + '?') {
           linkCode.innerHTML = linkUrl;
           linkButton.setAttribute("href", linkUrl);
+          linkButton2.setAttribute("href", linkUrl);
         } else {
           linkCode.innerHTML = newLinkUrl;
           linkButton.setAttribute("href", newLinkUrl);
+          linkButton2.setAttribute("href", newLinkUrl);
         }
         document.getElementById('objectpreview').setAttribute("data", newLinkUrl);
       }
