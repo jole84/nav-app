@@ -157,6 +157,7 @@ var gpxLayer = new VectorLayer({
     gpxStyle['Point'].getText().setText(feature.get('name'));
     return gpxStyle[feature.getGeometry().getType()];
   },
+  declutter: true
 });
 
 var trackLayer = new VectorLayer({

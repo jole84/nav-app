@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="sv">
+  <head>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <!-- MDB -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.css" rel="stylesheet" />
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="https://openlayers.org/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- ol -->
+    <script src="https://cdn.jsdelivr.net/npm/ol/dist/ol.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol/ol.css">
+    <title>Sea-nav test</title>
+    <style>
+      html, body, #map{
+        height: 100%;
+        margin: 0;
+        overscroll-behavior-y: contain !important;
+        padding: 0;
+        width: 100%;
+      }
+      .infoGroup {
+        backdrop-filter: blur(5px);
+        background-color: rgba(251, 251, 251, 0.6);
+        border-radius: 5px;
+        border: 1px solid rgb(32,32,32);
+        color: rgb(32,32,32);
+        font-size: 1.5em;
+        letter-spacing: 1.3px;
+        line-height: 1.4;
+        padding-left: 5px;
+        padding-right: 5px;
+        position: absolute;
+        right: 5px;
+        top: 5px;
+        z-index: 10;
+        margin-left: 40px;
+      }
+      #btn-group {
+        bottom: 0px;
+        left: 5px;
+        position: absolute;
+        /* white-space: nowrap; */
+        z-index: 10;
+      }
+      #centerButton, #saveLogButton, #plusButton, #customFileButton {
+        margin-bottom: 5px;
+      }
+      #customFileButton {
+        width: 83px;
+      }
+      #map .ol-rotate, #geolocation_marker{
+        display: none;
+      }
+      /* #myCanvas {
+        width: 100px;
+        height: 100px;
+        bottom: 5px;
+        right: 5px;
+        position: absolute;
+        z-index: 10;
+      } */
+    </style>
+  </head>
+  <body oncontextmenu="return false;">
+    <div id="map">
+      <div class="infoGroup" id="infoGroup">
+        <div id="info">info</div>
+        <div id="info2"></div>
+      </div>
+      <div id="btn-group">
+        <button class="btn btn-danger" id="centerButton">Center</button>
+        <button class="btn btn-warning" id="saveLogButton">Spara GPX</button>
+        <button class="btn btn-danger" id="plusButton">+</button>
+        <label><input type="file" class="form-control" id="customFileButton" multiple accept=".gpx"/></label>
+      </div>
+      <!-- <canvas id="myCanvas" style="border:1px solid #000000;"></canvas> -->
+    </div>
+    <img id="geolocation_marker" src="https://openlayers.org/en/latest/examples/data/geolocation_marker.png" />
+
+    <script>
+
+
+let wakeLock;
+const acquireWakeLock = async () => {
+  if ('wakeLock' in navigator) {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+    } catch (err) {
+      console.log(err);
+    }
+  }
+};
+acquireWakeLock();
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState === 'visible') {
+    acquireWakeLock();
+  }
+});
+
+// import './style.css';
+// import {Feature, Map, View} from 'ol';
+// import TileLayer from 'ol/layer/Tile';
+// import XYZ from 'ol/source/XYZ.js';
+// import {fromLonLat, toLonLat} from 'ol/proj.js';
+// import VectorSource from 'ol/source/Vector.js';
+// import {Vector as VectorLayer} from 'ol/layer.js';
+// import Geolocation from 'ol/Geolocation.js';
+// import {Geometry, LineString, Point } from 'ol/geom';
+// import {Stroke, Style, Icon, Fill, Text, Circle} from 'ol/style.js';
+// import Overlay from 'ol/Overlay.js'; 
+// import GPX from 'ol/format/GPX.js';
+// import {Draw, Modify, Snap} from 'ol/interaction.js';
+// import {getLength} from 'ol/sphere';
+
+var center = ol.proj.fromLonLat([14.18, 57.786]);
+var info = document.getElementById('info');
+var info2 = document.getElementById('info2');
+var lastInteraction = new Date() - 5000;
+let distanceTraveled = 0;
+const startTime = new Date();
+var trackLog = [];
+var startPostition;
+var positionLog = [];
+var defaultZoom = 14;
+var destinationCoordinate = [];
+var saveLogButton = document.getElementById("saveLogButton");
+var centerButton = document.getElementById("centerButton");
+var plusButton = document.getElementById("plusButton");
+saveLogButton.onclick = saveLogButtonFunction;
+centerButton.onclick = centerFunction;
+plusButton.onclick = plusButtonFunction;
+
+const courseStyle = {
+  'Point': new ol.style.Style({
+    image: new ol.style.Icon({
+      anchor: [0.5, 1],
+      src: 'https://jole84.se/default-marker.png',
+      color: 'blue'
+    }),
+  }),
+  'LineString': new ol.style.Style({
+    stroke: new ol.style.Stroke({
+      color: [0, 255, 0, 0.8],
+      width: 10,
+    }),
+  })
+};
+
+const navigationStyle = {
+  'Point': new ol.style.Style({
+    image: new ol.style.Icon({
+      anchor: [0.5, 1],
+      src: 'https://jole84.se/default-marker.png',
+      color: 'blue'
+    }),
+  }),
+  'LineString': new ol.style.Style({
+    stroke: new ol.style.Stroke({
+      color: [255, 0, 255, 0.6],
+      width: 10,
+    }),
+  })
+};
+
+const gpxStyle = {
+  'Point': new ol.style.Style({
+    image: new ol.style.Icon({
+      anchor: [0.5, 1],
+      src: 'https://jole84.se/default-marker.png',
+    }),
+    text: new ol.style.Text({
+      // font: 'bold 13px Arial,sans-serif',
+      font: '14px Droid Sans Mono,monospace',
+      textAlign: 'left',
+      offsetX: 15,
+      fill: new ol.style.Fill({
+        color: '#b41412',
+      }),
+      stroke: new ol.style.Stroke({
+        color: 'white',
+        width: 4,
+      }),
+    }),
+  }),
+  'LineString': new ol.style.Style({
+    stroke: new ol.style.Stroke({
+      color: [0, 0, 255, 0.6],
+      width: 10,
+    }),
+  })
+};
+gpxStyle['MultiLineString'] = gpxStyle['LineString'];
+
+var navigationLayer = new ol.layer.Vector({
+  source: new ol.source.Vector(),
+  style: function (feature) {
+    return navigationStyle[feature.getGeometry().getType()];
+  },
+});
+
+var courseLayer = new ol.layer.Vector({
+  source: new ol.source.Vector(),
+  style: function (feature) {
+    return courseStyle[feature.getGeometry().getType()];
+  },
+});
+
+var line = new ol.geom.LineString([]);
+var trackLayer = new ol.layer.Vector({
+  source: new ol.source.Vector({
+    features: [new ol.Feature({
+      geometry: line,
+    })]
+  }),
+  style: new ol.style.Style({
+    stroke: new ol.style.Stroke({
+      color: [255, 0, 0, 0.8],
+      width: 6,
+    }),
+  }),
+});
+
+const view = new ol.View({
+  center: center,
+  zoom: 8,
+  // minZoom: 6,
+  maxZoom: 20,
+  constrainRotation: false,
+});
+
+
+var nautical = new ol.layer.Tile({
+  source: new ol.source.XYZ({
+    url: 'https://map.eniro.se/geowebcache/service/tms1.0.0/nautical2x/{z}/{x}/{-y}.png',
+    maxZoom: 17
+  })
+});
+
+var gpxLayer = new ol.layer.Vector({
+  source: new ol.source.Vector(),
+  style: function (feature) {
+    gpxStyle['Point'].getText().setText(feature.get('name'));
+    return gpxStyle[feature.getGeometry().getType()];
+  },
+});
+
+const map = new ol.Map({
+  target: 'map',
+  layers: [nautical, courseLayer, navigationLayer, gpxLayer, trackLayer],
+  view: view
+});
+
+// clear layer when new feature is added
+function clearLayer(layerToClear, featureType) {
+  layerToClear.getSource().getFeatures().forEach(function(feature) {
+    if (feature.getGeometry().getType() == featureType) {
+      layerToClear.getSource().removeFeature(feature);
+    }
+  });
+}
+
+// Converts from degrees to radians.
+function degToRad(degrees) {
+  return degrees * Math.PI / 180;
+};
+ 
+// Converts from radians to degrees.
+function radToDeg(radians) {
+  return radians * 180 / Math.PI;
+}
+
+function getBearing([lon1, lat1], [lon2, lat2]){
+  lat1 = degToRad(lat1);
+  lon1 = degToRad(lon1);
+  lat2 = degToRad(lat2);
+  lon2 = degToRad(lon2);
+
+  var y = Math.sin(lon2 - lon1) * Math.cos(lat2);
+  var x = Math.cos(lat1) * Math.sin(lat2) -
+        Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1);
+  var brng = Math.atan2(y, x);
+  brng = radToDeg(brng);
+  return (brng + 360) % 360;
+}
+
+function getDistanceFromLatLonInM([lon1, lat1], [lon2, lat2]) {
+  var R = 6371; // Radius of the earth in km
+  var dLat = degToRad(lat2-lat1);  // deg2rad below
+  var dLon = degToRad(lon2-lon1); 
+  var a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(degToRad(lat1)) * Math.cos(degToRad(lat2)) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2)
+    ; 
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    var d = R * c * 1000; // Distance in m
+    return d;
+  }
+
+// start geolocation
+const geolocation = new ol.Geolocation({
+  projection: view.getProjection(),
+  trackingOptions: {
+    maximumAge: 10000,
+    enableHighAccuracy: true,
+    timeout: 600000,
+  },
+  tracking: true
+});
+
+const markerEl = document.getElementById('geolocation_marker');
+markerEl.style.display = "unset";
+const marker = new ol.Overlay({
+  positioning: 'center-center',
+  element: markerEl,
+  stopEvent: false,
+});
+map.addOverlay(marker);
+
+// run once when first position is recieved
+geolocation.once('change', function() {
+  centerFunction();
+});
+
+var prevCoordinate = geolocation.getPosition();
+geolocation.on('change', function () {
+  const position = geolocation.getPosition();
+  const heading = geolocation.getHeading() || 0;
+  const altitude = geolocation.getAltitude() || 0;
+  const speed = geolocation.getSpeed() || 0;
+  const lonlat = ol.proj.toLonLat(position);
+  // const timestamp = new Date(position.timestamp);
+  // const accuracy = geolocation.getAccuracy();
+  const currentTime = new Date();
+  // currentPostition.setCoordinates(position);
+  updateInfo();
+  marker.setPosition(position); // move marker to current location
+
+  if (prevCoordinate !== undefined) {
+    if (getDistanceFromLatLonInM(lonlat, ol.proj.toLonLat(prevCoordinate)) > 5) {
+      trackLog.push([lonlat[0].toFixed(6), lonlat[1].toFixed(6), altitude.toFixed(2), currentTime]);
+      line.appendCoordinate(position);
+      prevCoordinate = position;
+      distanceTraveled += getDistanceFromLatLonInM(prevCoordinate, lonlat);
+    }
+  } else {
+    prevCoordinate = position;
+  }
+
+  if (speed > 0.5 && currentTime - lastInteraction > 5000) {
+    // change view if no interaction occurred last 5 seconds
+    updateView(position, heading);
+  }
+
+  clearLayer(navigationLayer, 'LineString');
+  
+  // bearing line
+  navigationLayer.getSource().addFeature(new ol.Feature({
+    geometry: new ol.geom.LineString([position, destinationCoordinate])
+  }));
+});
+
+map.on('contextmenu', function(event) {
+  startPostition = geolocation.getPosition();
+  destinationCoordinate = event.coordinate;
+  console.log(ol.proj.toLonLat(destinationCoordinate).reverse());
+  clearLayer(courseLayer, 'Point');
+  clearLayer(courseLayer, 'LineString');
+
+  if (getDistanceFromLatLonInM(ol.proj.toLonLat(startPostition), ol.proj.toLonLat(destinationCoordinate)) > 200) {
+    // course line
+    courseLayer.getSource().addFeature(new ol.Feature({
+      geometry: new ol.geom.Point(event.coordinate),
+    }));
+  
+    courseLayer.getSource().addFeature(new ol.Feature({
+      geometry: new ol.geom.LineString([startPostition, destinationCoordinate])
+    }))
+    updateInfo();
+  } else {
+    clearLayer(navigationLayer, 'LineString');
+    destinationCoordinate = [];
+  }
+});
+
+// gpx loader
+var gpxFormat = new ol.format.GPX();
+var gpxFeatures;
+customFileButton.addEventListener('change', handleFileSelect, false);
+function handleFileSelect(evt) {
+  var files = evt.target.files; // FileList object
+  // remove previously loaded gpx files
+  clearLayer(gpxLayer, 'Point');
+  clearLayer(gpxLayer, 'LineString');
+  clearLayer(gpxLayer, 'MultiLineString');
+  for (var i = 0; i < files.length; i++) {
+    console.log(files[i]);
+    var reader = new FileReader();
+    reader.readAsText(files[i], "UTF-8");
+    reader.onload = function (evt) {
+      gpxFeatures = gpxFormat.readFeatures(evt.target.result,{
+        dataProjection:'EPSG:4326',
+        featureProjection:'EPSG:3857'
+      });
+      gpxLayer.getSource().addFeatures(gpxFeatures);
+    }
+  }
+  // reaquire wake lock again after file select
+  acquireWakeLock();
+}
+
+function saveLog() {
+  let gpxFile = `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<gpx version="1.1" creator="jole84 webapp">
+<metadata>
+  <desc>GPX log created by jole84 webapp</desc>
+  <time>${startTime.toISOString()}</time>
+</metadata>`;
+
+  for (let i = 0; i < positionLog.length; i++){
+    const lon = positionLog[i][0];
+    const lat = positionLog[i][1];
+    const ele = positionLog[i][2];
+    const isoTime = positionLog[i][3].toISOString();
+    const trkpt = `
+  <wpt lat="${lat}" lon="${lon}"><ele>${ele}</ele><time>${isoTime}</time><name>wpt ${positionLog[i][3].toLocaleString()}</name></wpt>`;
+    gpxFile += trkpt;
+  }
+
+gpxFile += 
+`<trk>
+  <name>${startTime.toLocaleString()}, total ${distanceTraveled.toFixed(2)} km}</name>
+  <trkseg>`;
+
+    for (let i = 0; i < trackLog.length; i++){
+      const lon = trackLog[i][0];
+      const lat = trackLog[i][1];
+      const ele = trackLog[i][2];
+      const isoTime = trackLog[i][3].toISOString();
+      const trkpt = `
+    <trkpt lat="${lat}" lon="${lon}"><ele>${ele}</ele><time>${isoTime}</time></trkpt>`;
+      gpxFile += trkpt;
+    }
+
+    gpxFile += `
+</trkseg>
+</trk>
+</gpx>`;
+
+  const filename = startTime.toLocaleString().replace(/ /g, '_').replace(/:/g, '.') + '.gpx';
+  download(gpxFile, filename);
+}
+
+// Function to download data to a file
+function download(data, filename) {
+  var file = new Blob([data], {type: 'application/gpx+xml'});
+  if (window.navigator.msSaveOrOpenBlob) // IE10+
+      window.navigator.msSaveOrOpenBlob(file, filename);
+  else { // Others
+      var a = document.createElement("a"),
+              url = URL.createObjectURL(file);
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function() {
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);  
+      }, 0); 
+  }
+}
+
+function calculateTrack(heading, bearing) {
+  var heading = parseFloat(heading);
+  var bearing = parseFloat(bearing);
+  var riktning = bearing - heading;
+  if (riktning < 0) {
+    riktning += 360
+  }
+  if (riktning > 180) {
+    riktning -= 360
+  }
+  return riktning
+}
+
+// var c = document.getElementById("myCanvas");
+function updateInfo() {
+  const lonlat = ol.proj.toLonLat(geolocation.getPosition());
+  const destinationCoordinateLonlat = ol.proj.toLonLat(destinationCoordinate);
+  // const position = geolocation.getPosition();
+  // const accuracy = geolocation.getAccuracy();
+  const speed = (geolocation.getSpeed() || 0).toFixed(1); // m/s
+  const currentTime = new Date();
+  var heading = Math.round(radToDeg(geolocation.getHeading())) || 0;
+  var bearing = getBearing(lonlat, destinationCoordinateLonlat).toFixed(0) || 0;
+
+  var riktning = calculateTrack(heading, bearing);
+  
+  var distanceToDest = Math.round(getDistanceFromLatLonInM(lonlat, destinationCoordinateLonlat)) || 0;
+  const timeToDest = Math.round(distanceToDest / speed || 0);
+  const arrivalTime = addSeconds(currentTime, timeToDest) || 0;
+  var infoString = `Kurs: ${heading}° Bäring: ${bearing}° Riktn: ${riktning}° Dist: ${distanceToDest}m Fart: ${(speed * 1.94388).toFixed(1)}kn ETA: ${timeToDest}sek ${arrivalTime}`
+  info.innerHTML = infoString;
+
+  // var ctx = c.getContext("2d");
+  // ctx.beginPath();
+  // ctx.fillRect(0,0,c.width, c.height);
+  // ctx.fill();
+  // ctx.lineWidth = 20;
+  // ctx.moveTo(c.width / 2, c.height); // move to half width, bottom
+  // ctx.lineTo(c.width / 2 - -(riktning * 5), 0);
+  // ctx.stroke();
+  // ctx.fillStyle = "white";
+};
+
+// var ctx = c.getContext("2d");
+// ctx.clearRect(0, 0, c.width, c.height);
+
+function updateView(position, heading) {
+  view.setCenter(getCenterWithHeading(position, -heading));
+  view.setRotation(-heading);
+  map.render(); 
+}
+
+function addSeconds(date, seconds) {
+  date.setSeconds(date.getSeconds() + seconds);
+  return date.toLocaleTimeString('sv-SE');
+}
+
+// recenters the view by putting the given coordinates at 3/4 from the top of the screen
+function getCenterWithHeading(position, rotation) {
+  const resolution = view.getResolution()
+  const size = map.getSize();
+  const height = size[1];
+  
+  return [
+    position[0] - (Math.sin(rotation) * height * resolution * 1) / 4,
+    position[1] + (Math.cos(rotation) * height * resolution * 1) / 4,
+  ];
+}
+
+// center map function
+function centerFunction() {
+  const position = geolocation.getPosition() || center;
+  const heading = geolocation.getHeading() || 0;
+  const speed = geolocation.getSpeed() || 0;
+  const duration = 500;
+  info2.innerHTML = "";
+  if (speed > 0.5){
+    view.setZoom(defaultZoom);
+    if (new Date() - lastInteraction < 5000) {
+      view.setRotation(0);
+      lastInteraction = new Date();
+    } else {
+      updateView(position, heading);
+    }
+  } else {
+    view.animate({
+      center: position,
+      duration: duration
+    });
+    view.animate({
+      zoom: defaultZoom,
+      duration: duration
+    });
+    view.animate({
+      rotation: 0,
+      duration: duration
+    });
+  }
+}
+
+// store time of last interaction
+map.on('pointerdrag', function() {
+  lastInteraction = new Date();
+});
+
+function saveLogButtonFunction() {
+  info2.innerHTML = trackLog.length;
+  console.log(positionLog);
+  console.log(trackLog);
+  saveLog();
+}
+
+function plusButtonFunction() {
+  const position = geolocation.getPosition();
+  const altitude = geolocation.getAltitude() || 0;
+  const lonlat = ol.proj.toLonLat(position);
+  const currentTime = new Date();
+  const feature = new ol.Feature({
+    geometry: new ol.style.Point(position),
+    name: currentTime.toLocaleString()
+  })
+  gpxLayer.getSource().addFeature(feature);
+  positionLog.push([lonlat[0].toFixed(6), lonlat[1].toFixed(6), altitude.toFixed(2), currentTime]);
+  info2.innerHTML = positionLog.length;
+
+
+
+//   let gpxFile = `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+// <gpx version="1.1" creator="jole84 webapp">
+// <metadata>
+//   <desc>GPX log created by jole84 webapp</desc>
+//   <time>${startTime.toISOString()}</time>
+// </metadata>
+// <wpt lat="${lonlat[1].toFixed(6)}" lon="${lonlat[0].toFixed(6)}"><ele>${altitude.toFixed(2)}</ele><time>${currentTime.toISOString()}</time><name>wpt ${currentTime.toLocaleString()}</name></wpt>
+// </gpx>`;
+//   const filename = 'wpt-' + startTime.toLocaleString().replace(/ /g, '_').replace(/:/g, '.') + '.gpx';
+//   download(gpxFile, filename);
+}
+
+</script>
+
+
+  </body>
+</html>
