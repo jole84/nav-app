@@ -51,6 +51,10 @@
       #centerButton, #switchMapButton, #saveLogButton, #customFileButton {
         margin-bottom: 5px;
       }
+      #saveRouteButton {
+        display: none;
+        margin-bottom: 5px;
+      }
       #customFileButton {
         width: 83px;
       }
@@ -68,6 +72,7 @@
       </div>
       <div id="btn-group">
         <button class="btn btn-warning" id="saveLogButton">Spara GPX</button>
+        <button class="btn btn-warning" id="saveRouteButton" onclick="route2gpx()">Exportera Rutt</button>
         <br>
         <button class="btn btn-danger" id="centerButton">Center</button>
         <button class="btn btn-primary" id="switchMapButton">Växla karta</button>
@@ -109,12 +114,13 @@ var mapDiv = document.getElementById("map");
 var infoGroup = document.getElementById("infoGroup");
 var centerButton = document.getElementById("centerButton");
 var saveLogButton = document.getElementById("saveLogButton");
+var saveRouteButton = document.getElementById("saveRouteButton");
 var switchMapButton = document.getElementById("switchMapButton");
 var customFileButton = document.getElementById("customFileButton");
 saveLogButton.onclick = saveLogButtonFunction;
 centerButton.onclick = centerFunction;
 switchMapButton.onclick = switchMap;
-
+// saveRouteButton.onclick = route2gpx;
 
 const view = new ol.View({
   center: center,
@@ -588,14 +594,23 @@ function download(data, filename) {
   }
 }
 
+function route2gpx() {
+  if (destinationCoordinates.length >= 2) {
+    window.location = 
+    'https://brouter.de/brouter' +
+    '?lonlats=' + destinationCoordinates.join('|') +
+    '&profile=car-fast&alternativeidx=0&format=gpx' +
+    '&trackname=Route_' + new Date().toLocaleString().replace(/ /g, '_').replace(/:/g, '.');
+  }
+}
+
 // brouter routing
 // import GeoJSON from 'ol/format/GeoJSON.js';
-function routeMe(startLonLat, endLonLat) {
-  console.log(endLonLat);
+function routeMe(destinationCoordinates) {
+  console.log(destinationCoordinates);
   fetch('https://brouter.de/brouter' +
   // fetch('https://jole84.se:17777/brouter' +
-  '?lonlats=' + startLonLat +
-  '|' + endLonLat.join('|') +
+  '?lonlats=' + destinationCoordinates.join('|') +
   '&profile=car-fast&alternativeidx=0&format=geojson'
   ).then(function (response) {
     response.json().then(function (result) {
@@ -612,8 +627,8 @@ function routeMe(startLonLat, endLonLat) {
         "Avstånd: " + trackLength.toFixed(2) + " km", 
         "Restid: " + toHHMMSS(totalTime),
         "Ankomsttid: " + new Date(new Date().valueOf() + totalTime).toString().slice(16,25),
-        `<a href="http://maps.google.com/maps?q=${endLonLat[1]},${endLonLat[0]}" target="_blank">Gmap</a>`,
-        `<a href="http://maps.google.com/maps?layer=c&cbll=${endLonLat[1]},${endLonLat[0]}" target="_blank">Streetview</a>`
+        // `<a href="http://maps.google.com/maps?q=${endLonLat[1]},${endLonLat[0]}" target="_blank">Gmap</a>`,
+        // `<a href="http://maps.google.com/maps?layer=c&cbll=${endLonLat[1]},${endLonLat[0]}" target="_blank">Streetview</a>`
       ]);
 
       const routeFeature = new ol.Feature({
@@ -634,15 +649,20 @@ var destinationCoordinates = [];
 // right click/long press to route from current position to clicked
 map.on('contextmenu', function(event) {
   var currentPostition = ol.proj.toLonLat(geolocation.getPosition());
-  if (destinationCoordinates.length > 1 && getDistanceFromLatLonInKm(ol.proj.toLonLat(event.coordinate), destinationCoordinates[destinationCoordinates.length - 1]) < 0.2) {
+  if (destinationCoordinates.length == 0) {
+    destinationCoordinates.push(currentPostition);
+  }
+
+  if (destinationCoordinates.length > 2 && getDistanceFromLatLonInKm(ol.proj.toLonLat(event.coordinate), destinationCoordinates[destinationCoordinates.length - 1]) < 0.2) {
     destinationCoordinates.pop();
   } 
-  else if (destinationCoordinates.length == 1 && getDistanceFromLatLonInKm(ol.proj.toLonLat(event.coordinate), destinationCoordinates[destinationCoordinates.length - 1]) < 0.2) {
+  else if (destinationCoordinates.length == 2 && getDistanceFromLatLonInKm(ol.proj.toLonLat(event.coordinate), destinationCoordinates[destinationCoordinates.length - 1]) < 0.2) {
     clearLayer(routeLayer);
-    setExtraInfo([getDistanceFromLatLonInKm(currentPostition, ol.proj.toLonLat(event.coordinate)).toFixed(3)*1000 + " m"]);
+    setExtraInfo([""]);
     destinationCoordinates = [];
   } 
   else {
+    saveRouteButton.setAttribute("style", "display: unset;")
     destinationCoordinates.push(ol.proj.toLonLat(event.coordinate));
   }
   console.log(ol.proj.toLonLat(event.coordinate)[1]);
@@ -651,11 +671,12 @@ map.on('contextmenu', function(event) {
   lastInteraction = new Date();
   // if click less than 0.2km from current position clear route else start route
   if (getDistanceFromLatLonInKm(currentPostition, ol.proj.toLonLat(event.coordinate)) < 0.2) {
+    saveRouteButton.setAttribute("style", "display: none;");
     clearLayer(routeLayer);
     setExtraInfo([getDistanceFromLatLonInKm(currentPostition, ol.proj.toLonLat(event.coordinate)).toFixed(3)*1000 + " m"]);
     destinationCoordinates = [];
-  }else if (destinationCoordinates.length >= 1){
-    routeMe(currentPostition, destinationCoordinates);
+  }else if (destinationCoordinates.length >= 2){
+    routeMe(destinationCoordinates);
   }
 });
 
@@ -820,7 +841,7 @@ function getDeviations() {
 
 getDeviations();
 
-setInterval(getDeviations, 60000);
+setInterval(getDeviations, 300000);
 
 
 </script>
