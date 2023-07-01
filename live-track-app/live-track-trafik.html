@@ -591,10 +591,11 @@ function download(data, filename) {
 // brouter routing
 // import GeoJSON from 'ol/format/GeoJSON.js';
 function routeMe(startLonLat, endLonLat) {
+  console.log(endLonLat);
   fetch('https://brouter.de/brouter' +
   // fetch('https://jole84.se:17777/brouter' +
   '?lonlats=' + startLonLat +
-  '|' + endLonLat +
+  '|' + endLonLat.join('|') +
   '&profile=car-fast&alternativeidx=0&format=geojson'
   ).then(function (response) {
     response.json().then(function (result) {
@@ -629,20 +630,31 @@ function routeMe(startLonLat, endLonLat) {
   });
 }
 
+var destinationCoordinates = [];
 // right click/long press to route from current position to clicked
 map.on('contextmenu', function(event) {
   var currentPostition = ol.proj.toLonLat(geolocation.getPosition());
-  var destinationCoordinate = ol.proj.toLonLat(event.coordinate);
-  console.log(destinationCoordinate[1]);
-  console.log(destinationCoordinate[0]);
-  console.log(getDistanceFromLatLonInKm(currentPostition, destinationCoordinate).toFixed(3)*1000 + " m");
+  if (destinationCoordinates.length > 1 && getDistanceFromLatLonInKm(ol.proj.toLonLat(event.coordinate), destinationCoordinates[destinationCoordinates.length - 1]) < 0.2) {
+    destinationCoordinates.pop();
+  } 
+  else if (destinationCoordinates.length == 1 && getDistanceFromLatLonInKm(ol.proj.toLonLat(event.coordinate), destinationCoordinates[destinationCoordinates.length - 1]) < 0.2) {
+    destinationCoordinates = [];
+    clearLayer(routeLayer);
+  } 
+  else {
+    destinationCoordinates.push(ol.proj.toLonLat(event.coordinate));
+  }
+  console.log(ol.proj.toLonLat(event.coordinate)[1]);
+  console.log(ol.proj.toLonLat(event.coordinate)[0]);
+  console.log(getDistanceFromLatLonInKm(currentPostition, ol.proj.toLonLat(event.coordinate)).toFixed(3)*1000 + " m");
   lastInteraction = new Date();
   // if click less than 0.2km from current position clear route else start route
-  if (getDistanceFromLatLonInKm(currentPostition, destinationCoordinate) < 0.2) {
+  if (getDistanceFromLatLonInKm(currentPostition, ol.proj.toLonLat(event.coordinate)) < 0.2) {
     clearLayer(routeLayer);
-    setExtraInfo([getDistanceFromLatLonInKm(currentPostition, destinationCoordinate).toFixed(3)*1000 + " m"]);
-  }else {
-    routeMe(currentPostition, destinationCoordinate);
+    setExtraInfo([getDistanceFromLatLonInKm(currentPostition, ol.proj.toLonLat(event.coordinate)).toFixed(3)*1000 + " m"]);
+    destinationCoordinates = [];
+  }else if (destinationCoordinates.length >= 1){
+    routeMe(currentPostition, destinationCoordinates);
   }
 });
 
