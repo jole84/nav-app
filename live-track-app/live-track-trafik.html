@@ -638,8 +638,9 @@ map.on('contextmenu', function(event) {
     destinationCoordinates.pop();
   } 
   else if (destinationCoordinates.length == 1 && getDistanceFromLatLonInKm(ol.proj.toLonLat(event.coordinate), destinationCoordinates[destinationCoordinates.length - 1]) < 0.2) {
-    destinationCoordinates = [];
     clearLayer(routeLayer);
+    setExtraInfo([getDistanceFromLatLonInKm(currentPostition, ol.proj.toLonLat(event.coordinate)).toFixed(3)*1000 + " m"]);
+    destinationCoordinates = [];
   } 
   else {
     destinationCoordinates.push(ol.proj.toLonLat(event.coordinate));
