@@ -628,7 +628,7 @@ function routeMe(destinationCoordinates) {
   fetch('https://brouter.de/brouter' +
   // fetch('https://jole84.se:17777/brouter' +
   '?lonlats=' + destinationCoordinates.join('|') +
-  '&profile=car-eco&alternativeidx=0&format=geojson'
+  '&profile=car-fast&alternativeidx=0&format=geojson'
   ).then(function (response) {
     response.json().then(function (result) {
       const route = new ol.format.GeoJSON().readFeature((result).features[0], {
