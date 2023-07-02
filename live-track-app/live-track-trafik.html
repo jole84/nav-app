@@ -173,6 +173,18 @@ const trackStyle = {
       color: [255, 0, 255, 0.6],
     }),
   }),
+  'icon': new ol.style.Style({
+    image: new ol.style.Circle({
+      fill: new ol.style.Fill({
+        color: 'rgba(255,0,0,0.5)',
+      }),
+      radius: 10,
+      stroke: new ol.style.Stroke({
+        color: 'rgb(255,0,0)',
+        width: 2,
+      }),
+    }),
+  }),
 };
 trackStyle['MultiLineString'] = trackStyle['LineString'];
 
@@ -607,7 +619,6 @@ function route2gpx() {
 // brouter routing
 // import GeoJSON from 'ol/format/GeoJSON.js';
 function routeMe(destinationCoordinates) {
-  console.log(destinationCoordinates);
   fetch('https://brouter.de/brouter' +
   // fetch('https://jole84.se:17777/brouter' +
   '?lonlats=' + destinationCoordinates.join('|') +
@@ -627,8 +638,8 @@ function routeMe(destinationCoordinates) {
         "Avstånd: " + trackLength.toFixed(2) + " km", 
         "Restid: " + toHHMMSS(totalTime),
         "Ankomsttid: " + new Date(new Date().valueOf() + totalTime).toString().slice(16,25),
-        // `<a href="http://maps.google.com/maps?q=${endLonLat[1]},${endLonLat[0]}" target="_blank">Gmap</a>`,
-        // `<a href="http://maps.google.com/maps?layer=c&cbll=${endLonLat[1]},${endLonLat[0]}" target="_blank">Streetview</a>`
+        `<a href="http://maps.google.com/maps?q=${destinationCoordinates[destinationCoordinates.length - 1][1]},${destinationCoordinates[destinationCoordinates.length - 1][0]}" target="_blank">Gmap</a>`,
+        `<a href="http://maps.google.com/maps?layer=c&cbll=${destinationCoordinates[destinationCoordinates.length - 1][1]},${destinationCoordinates[destinationCoordinates.length - 1][0]}" target="_blank">Streetview</a>`
       ]);
 
       const routeFeature = new ol.Feature({
@@ -636,38 +647,48 @@ function routeMe(destinationCoordinates) {
         geometry: route,
       });
 
+      const endMarker = new ol.Feature({
+        type: 'icon',
+        geometry: new ol.geom.Point(route.getLastCoordinate().splice(0,2)),
+      });
+
       // remove previus route
       clearLayer(routeLayer);
 
       // finally add route to map
-      routeLayer.getSource().addFeature(routeFeature);
+      routeLayer.getSource().addFeatures([routeFeature, endMarker]);
     });
   });
 }
 
 var destinationCoordinates = [];
-// right click/long press to route from current position to clicked
+// right click/long press to route
 map.on('contextmenu', function(event) {
   var currentPostition = ol.proj.toLonLat(geolocation.getPosition());
-  if (destinationCoordinates.length == 0) {
+  console.log(ol.proj.toLonLat(event.coordinate)[1]);
+  console.log(ol.proj.toLonLat(event.coordinate)[0]);
+  console.log(getDistanceFromLatLonInKm(currentPostition, ol.proj.toLonLat(event.coordinate)).toFixed(3)*1000 + " m");
+
+  if (destinationCoordinates.length == 0) { // set start position
     destinationCoordinates.push(currentPostition);
   }
 
+  // remove last coord if < 0.2 km if click on last coord
   if (destinationCoordinates.length > 2 && getDistanceFromLatLonInKm(ol.proj.toLonLat(event.coordinate), destinationCoordinates[destinationCoordinates.length - 1]) < 0.2) {
     destinationCoordinates.pop();
   } 
+  // clear route if click < 0.2 km if coord is last
   else if (destinationCoordinates.length == 2 && getDistanceFromLatLonInKm(ol.proj.toLonLat(event.coordinate), destinationCoordinates[destinationCoordinates.length - 1]) < 0.2) {
+    saveRouteButton.setAttribute("style", "display: none;");
     clearLayer(routeLayer);
     setExtraInfo([""]);
     destinationCoordinates = [];
   } 
-  else {
+  else { // else push clicked coord do route
     saveRouteButton.setAttribute("style", "display: unset;")
     destinationCoordinates.push(ol.proj.toLonLat(event.coordinate));
   }
-  console.log(ol.proj.toLonLat(event.coordinate)[1]);
-  console.log(ol.proj.toLonLat(event.coordinate)[0]);
-  console.log(getDistanceFromLatLonInKm(currentPostition, ol.proj.toLonLat(event.coordinate)).toFixed(3)*1000 + " m");
+
   lastInteraction = new Date();
   // if click less than 0.2km from current position clear route else start route
   if (getDistanceFromLatLonInKm(currentPostition, ol.proj.toLonLat(event.coordinate)) < 0.2) {
