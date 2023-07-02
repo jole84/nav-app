@@ -619,6 +619,12 @@ function route2gpx() {
 // brouter routing
 // import GeoJSON from 'ol/format/GeoJSON.js';
 function routeMe(destinationCoordinates) {
+  const endMarker = new ol.Feature({
+    type: 'icon',
+    geometry: new ol.geom.Point(ol.proj.fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))
+  });
+  routeLayer.getSource().addFeature(endMarker);
+
   fetch('https://brouter.de/brouter' +
   // fetch('https://jole84.se:17777/brouter' +
   '?lonlats=' + destinationCoordinates.join('|') +
