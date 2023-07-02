@@ -870,6 +870,29 @@ getDeviations();
 
 setInterval(getDeviations, 300000);
 
+geolocation.on('change', function () {
+  $.ajax({
+    url:
+      'https://www.overpass-api.de/api/interpreter?data=' + 
+      '[out:json][timeout:60];' + 
+      '(' +
+        'way["maxspeed"](around:7.0, ' + ol.proj.toLonLat(geolocation.getPosition()).reverse() + ' );' +
+      ');' + 
+      'out;',
+    dataType: 'json',
+    type: 'GET',
+    async: true,
+    crossDomain: true
+  }).done(function(response) {
+    // console.log(response.elements[0].tags.maxspeed);
+    if (response.elements.length != 0) {
+      document.getElementById('info2').innerHTML = response.elements[0].tags.maxspeed;
+    } else {
+      document.getElementById('info2').innerHTML = "";
+    }
+
+  });
+})
 
 </script>
 
