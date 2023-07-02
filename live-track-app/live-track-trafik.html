@@ -69,6 +69,7 @@
       <div class="infoGroup" id="infoGroup">
         <div id="info"></div>
         <div id="info2"></div>
+        <div id="info3"></div>
       </div>
       <div id="btn-group">
         <button class="btn btn-warning" id="saveLogButton">Spara GPX</button>
@@ -886,9 +887,9 @@ geolocation.on('change', function () {
   }).done(function(response) {
     // console.log(response.elements[0].tags.maxspeed);
     if (response.elements.length != 0) {
-      document.getElementById('info2').innerHTML = response.elements[0].tags.maxspeed + " km/h";
+      document.getElementById('info3').innerHTML = response.elements[0].tags.maxspeed + " km/h";
     } else {
-      document.getElementById('info2').innerHTML = "";
+      document.getElementById('info3').innerHTML = "";
     }
 
   });
