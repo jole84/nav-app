@@ -849,13 +849,14 @@ function getDeviations() {
               "<EQ name='Deviation.MessageType' value='Olycka' />" +
             "</ELEMENTMATCH>" +
             "<ELEMENTMATCH>" +
-              "<EQ name='Deviation.MessageType' value='Vägarbete' />" +
               "<GTE name='Deviation.SeverityCode' value='5' />" +
+            "</ELEMENTMATCH>" +
+            "<ELEMENTMATCH>" +
+              "<EQ name='Deviation.IconId' value='roadClosed' />" +
             "</ELEMENTMATCH>" +
           "</OR>" +
         "</FILTER>" +
           "<INCLUDE>Deviation.Message</INCLUDE>" +
-          // "<INCLUDE>Deviation.MessageCode</INCLUDE>" +
           "<INCLUDE>Deviation.IconId</INCLUDE>" +
           "<INCLUDE>Deviation.Geometry.WGS84</INCLUDE>" +
           "<INCLUDE>Deviation.RoadNumber</INCLUDE>" +
