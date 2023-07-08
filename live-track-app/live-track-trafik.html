@@ -51,10 +51,10 @@
       #centerButton, #switchMapButton, #saveLogButton, #customFileButton {
         margin-bottom: 5px;
       }
-      #saveRouteButton {
+      /* #saveRouteButton {
         display: none;
         margin-bottom: 5px;
-      }
+      } */
       #customFileButton {
         width: 83px;
       }
@@ -73,7 +73,7 @@
       </div>
       <div id="btn-group">
         <button class="btn btn-warning" id="saveLogButton">Spara GPX</button>
-        <button class="btn btn-warning" id="saveRouteButton" onclick="route2gpx()">Exportera Rutt</button>
+        <!-- <button class="btn btn-warning" id="saveRouteButton" onclick="route2gpx()">Exportera Rutt</button> -->
         <br>
         <button class="btn btn-danger" id="centerButton">Center</button>
         <button class="btn btn-primary" id="switchMapButton">Växla karta</button>
@@ -115,7 +115,7 @@ var mapDiv = document.getElementById("map");
 var infoGroup = document.getElementById("infoGroup");
 var centerButton = document.getElementById("centerButton");
 var saveLogButton = document.getElementById("saveLogButton");
-var saveRouteButton = document.getElementById("saveRouteButton");
+// var saveRouteButton = document.getElementById("saveRouteButton");
 var switchMapButton = document.getElementById("switchMapButton");
 var customFileButton = document.getElementById("customFileButton");
 saveLogButton.onclick = saveLogButtonFunction;
@@ -607,15 +607,15 @@ function download(data, filename) {
   }
 }
 
-function route2gpx() {
-  if (destinationCoordinates.length >= 2) {
-    window.location = 
-    'https://brouter.de/brouter' +
-    '?lonlats=' + destinationCoordinates.join('|') +
-    '&profile=car-fast&alternativeidx=0&format=gpx' +
-    '&trackname=Route_' + new Date().toLocaleString().replace(/ /g, '_').replace(/:/g, '.');
-  }
-}
+// function route2gpx() {
+//   if (destinationCoordinates.length >= 2) {
+//     window.location = 
+//     'https://brouter.de/brouter' +
+//     '?lonlats=' + destinationCoordinates.join('|') +
+//     '&profile=car-fast&alternativeidx=0&format=gpx' +
+//     '&trackname=Route_' + new Date().toLocaleString().replace(/ /g, '_').replace(/:/g, '.');
+//   }
+// }
 
 // brouter routing
 // import GeoJSON from 'ol/format/GeoJSON.js';
@@ -686,13 +686,13 @@ map.on('contextmenu', function(event) {
   } 
   // clear route if click < 0.2 km if coord is last
   else if (destinationCoordinates.length == 2 && getDistanceFromLatLonInKm(ol.proj.toLonLat(event.coordinate), destinationCoordinates[destinationCoordinates.length - 1]) < 0.2) {
-    saveRouteButton.setAttribute("style", "display: none;");
+    // saveRouteButton.setAttribute("style", "display: none;");
     clearLayer(routeLayer);
     setExtraInfo([""]);
     destinationCoordinates = [];
   } 
   else { // else push clicked coord do route
-    saveRouteButton.setAttribute("style", "display: unset;")
+    // saveRouteButton.setAttribute("style", "display: unset;")
     destinationCoordinates.push(ol.proj.toLonLat(event.coordinate));
   }
 
