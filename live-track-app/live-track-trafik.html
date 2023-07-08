@@ -51,10 +51,6 @@
       #centerButton, #switchMapButton, #saveLogButton, #customFileButton {
         margin-bottom: 5px;
       }
-      #saveRouteButton {
-        display: none;
-        margin-bottom: 5px;
-      }
       #customFileButton {
         width: 83px;
       }
@@ -69,10 +65,10 @@
       <div class="infoGroup" id="infoGroup">
         <div id="info"></div>
         <div id="info2"></div>
+        <div id="info3"></div>
       </div>
       <div id="btn-group">
         <button class="btn btn-warning" id="saveLogButton">Spara GPX</button>
-        <button class="btn btn-warning" id="saveRouteButton" onclick="route2gpx()">Exportera Rutt</button>
         <br>
         <button class="btn btn-danger" id="centerButton">Center</button>
         <button class="btn btn-primary" id="switchMapButton">Växla karta</button>
@@ -114,13 +110,11 @@ var mapDiv = document.getElementById("map");
 var infoGroup = document.getElementById("infoGroup");
 var centerButton = document.getElementById("centerButton");
 var saveLogButton = document.getElementById("saveLogButton");
-var saveRouteButton = document.getElementById("saveRouteButton");
 var switchMapButton = document.getElementById("switchMapButton");
 var customFileButton = document.getElementById("customFileButton");
 saveLogButton.onclick = saveLogButtonFunction;
 centerButton.onclick = centerFunction;
 switchMapButton.onclick = switchMap;
-// saveRouteButton.onclick = route2gpx;
 
 const view = new ol.View({
   center: center,
@@ -138,7 +132,6 @@ const gpxStyle = {
       src: 'https://jole84.se/default-marker.png',
     }),
     text: new ol.style.Text({
-      // font: 'bold 13px Arial,sans-serif',
       font: '14px Droid Sans Mono,monospace',
       textAlign: 'left',
       offsetX: 10,
@@ -403,7 +396,6 @@ geolocation.on('change', function () {
   }
 
   // send text to info box
-  // style="font-size:120%"
   const html = [
     lonlat[1].toFixed(5) + ', ' + lonlat[0].toFixed(5),
     distanceTraveled.toFixed(2) + ' km / ' + Math.round(accuracy) + ' m',
@@ -490,11 +482,6 @@ function switchMap() {
   ortofoto.setVisible(false);
   topoweb.setVisible(false);
   mapDiv.setAttribute(            "style", "-webkit-filter: initial;filter: initial;background-color: initial;");
-  // infoGroup.setAttribute(         "style", "-webkit-filter: initial;filter: initial;background: rgba(251, 251, 251, 0.6);");
-  // centerButton.setAttribute(      "style", "filter: initial");
-  // saveLogButton.setAttribute(     "style", "filter: initial");
-  // switchMapButton.setAttribute(   "style", "filter: initial");
-  // customFileButton.setAttribute(  "style", "filter: initial");
 
   if (mapMode == 0) { // mapMode 0: slitlagerkarta
     slitlagerkarta.setVisible(true);
@@ -507,11 +494,6 @@ function switchMap() {
   else if (mapMode == 2) { // mapMode 2: slitlagerkarta_nedtonad + night mode
     slitlagerkarta_nedtonad.setVisible(true)
     mapDiv.setAttribute(            "style", "filter: invert(1) hue-rotate(180deg);");
-    // infoGroup.setAttribute(         "style", "filter: invert(1) hue-rotate(180deg);background: rgba(251, 251, 251, 0.8);");
-    // centerButton.setAttribute(      "style", "filter: brightness(65%)");
-    // saveLogButton.setAttribute(     "style", "filter: brightness(65%)");
-    // switchMapButton.setAttribute(   "style", "filter: brightness(65%)");
-    // customFileButton.setAttribute(  "style", "filter: invert(1)");
   }
   
   else if (enableLnt && mapMode == 3) { // mapMode 3: ortofoto
@@ -606,18 +588,7 @@ function download(data, filename) {
   }
 }
 
-function route2gpx() {
-  if (destinationCoordinates.length >= 2) {
-    window.location = 
-    'https://brouter.de/brouter' +
-    '?lonlats=' + destinationCoordinates.join('|') +
-    '&profile=car-fast&alternativeidx=0&format=gpx' +
-    '&trackname=Route_' + new Date().toLocaleString().replace(/ /g, '_').replace(/:/g, '.');
-  }
-}
-
 // brouter routing
-// import GeoJSON from 'ol/format/GeoJSON.js';
 function routeMe(destinationCoordinates) {
   const endMarker = new ol.Feature({
     type: 'icon',
@@ -685,20 +656,17 @@ map.on('contextmenu', function(event) {
   } 
   // clear route if click < 0.2 km if coord is last
   else if (destinationCoordinates.length == 2 && getDistanceFromLatLonInKm(ol.proj.toLonLat(event.coordinate), destinationCoordinates[destinationCoordinates.length - 1]) < 0.2) {
-    saveRouteButton.setAttribute("style", "display: none;");
     clearLayer(routeLayer);
     setExtraInfo([""]);
     destinationCoordinates = [];
   } 
   else { // else push clicked coord do route
-    saveRouteButton.setAttribute("style", "display: unset;")
     destinationCoordinates.push(ol.proj.toLonLat(event.coordinate));
   }
 
   lastInteraction = new Date();
   // if click less than 0.2km from current position clear route else start route
   if (getDistanceFromLatLonInKm(currentPostition, ol.proj.toLonLat(event.coordinate)) < 0.2) {
-    saveRouteButton.setAttribute("style", "display: none;");
     clearLayer(routeLayer);
     setExtraInfo([getDistanceFromLatLonInKm(currentPostition, ol.proj.toLonLat(event.coordinate)).toFixed(3)*1000 + " m"]);
     destinationCoordinates = [];
@@ -896,6 +864,29 @@ getDeviations();
 
 setInterval(getDeviations, 300000);
 
+// geolocation.on('change', function () {
+//   $.ajax({
+//     url:
+//       'https://www.overpass-api.de/api/interpreter?data=' + 
+//       '[out:json][timeout:60];' + 
+//       '(' +
+//         'way["maxspeed"](around:7.0, ' + ol.proj.toLonLat(geolocation.getPosition()).reverse() + ' );' +
+//       ');' + 
+//       'out;',
+//     dataType: 'json',
+//     type: 'GET',
+//     async: true,
+//     crossDomain: true
+//   }).done(function(response) {
+//     // console.log(response.elements[0].tags.maxspeed);
+//     if (response.elements.length != 0) {
+//       document.getElementById('info3').innerHTML = response.elements[0].tags.maxspeed + " km/h";
+//     } else {
+//       document.getElementById('info3').innerHTML = "";
+//     }
+
+//   });
+// })
 
 </script>
 
