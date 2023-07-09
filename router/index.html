@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <!-- MDB -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.css" rel="stylesheet" />
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="https://openlayers.org/favicon.ico" />
+    <meta name="HandheldFriendly" content="true" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>jole84 Ruttplanerare</title>
+    <style>
+      html, body, #map{
+        background-color: #bfe6ff;
+        height: 100%;
+        margin: 0;
+        overscroll-behavior-y: contain !important;
+        padding: 0;
+        width: 100%;
+      }
+      .destinationButtons {
+        position: absolute;
+        z-index: 10;
+        bottom: 5px;
+        right: 5px;
+        text-align: right;
+      }
+      .optionButtons {
+        position: absolute;
+        z-index: 10;
+        bottom: 5px;
+        left: 5px;
+      }
+      #saveRouteButton {
+        margin-bottom: 5px;
+      }
+      #crosshair {
+        pointer-events: none;
+        color: rgba(255, 0, 0, 0.8);
+        -ms-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+        position: absolute;
+        z-index: 10;
+        top: 50%;
+        left: 50%;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+      .infoGroup {
+        backdrop-filter: blur(5px);
+        background-color: rgba(251, 251, 251, 0.6);
+        border-radius: 5px;
+        border: 1px solid rgb(32,32,32);
+        color: rgb(32,32,32);
+        font-size: 1.1em;
+        letter-spacing: 1.3px;
+        line-height: 1.4;
+        padding-left: 5px;
+        padding-right: 5px;
+        position: absolute;
+        right: 5px;
+        top: 5px;
+        z-index: 10;
+        max-width: 90%;
+        word-wrap: break-word;
+      }
+      .ol-popup {
+        position: absolute;
+        background-color: white;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid #cccccc;
+        bottom: 12px;
+        left: -50px;
+        min-width: 280px;
+      }
+      .ol-popup:after, .ol-popup:before {
+        top: 100%;
+        border: solid transparent;
+        content: " ";
+        height: 0;
+        width: 0;
+        position: absolute;
+        pointer-events: none;
+      }
+      .ol-popup:after {
+        border-top-color: white;
+        border-width: 10px;
+        left: 48px;
+        margin-left: -10px;
+      }
+      .ol-popup:before {
+        border-top-color: #cccccc;
+        border-width: 11px;
+        left: 48px;
+        margin-left: -11px;
+      }
+      .ol-popup-closer {
+        text-decoration: none;
+        position: absolute;
+        top: 2px;
+        right: 8px;
+      }
+      .ol-popup-closer:after {
+        content: "✖";
+      }
+      #savePoiButton {
+        margin-bottom: 30px;
+      }
+      #savePoiNameButton {
+        margin: 8px;
+        right: 5px;
+      }
+    </style>
+  </head>
+  <body oncontextmenu="return false;">
+    <script type="module" src="./main.js"></script>
+    <div id="map">
+      <div class="infoGroup" id="infoGroup">
+        <div id="info"></div>
+        <div id="info2"></div>
+        <div id="info3"></div>
+      </div>
+      <div class="destinationButtons">
+        <button class="btn btn-danger btn-lg" id="savePoiButton">spara waypoint</button><br>
+        <button class="btn btn-warning btn-lg" id="removeLastButton">-</button>
+        <button class="btn btn-danger btn-lg" id="addPositionButton">+</button>
+      </div>
+      <div class="optionButtons">
+        <button class="btn btn-warning" id="saveRouteButton">Exportera Rutt</button><br>
+        <button class="btn btn-primary" id="switchMapButton">Växla karta</button>
+      </div>
+    </div>
+    <div id="popup" class="ol-popup">
+      <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+      <form id="fileNameForm">
+        <input type="submit" style="display: none" />
+        <div id="popup-content">Ange waypointnamn:</div>
+        <input type="text" id="fileNameInput" class="form-control" />
+        <a href="#" class="btn btn-primary" id="savePoiNameButton">Spara</button>
+      </form>
+    </div>
+    <h1 class="display-1" id="crosshair">+</h1>
+  </body>
+</html>
