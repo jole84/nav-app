@@ -320,13 +320,6 @@ function routeMe() {
           dataProjection: 'EPSG:4326',
           featureProjection: 'EPSG:3857'
         }).getGeometry();
-
-        const turnMessages = result.features[0].properties.messages;
-
-        for (var i = 1; i < turnMessages.length - 1; i++) {
-          console.log(parseFloat(turnMessages[i][0]) / 1000000);
-        }
-
         
         const trackLength = result.features[0].properties['track-length'] / 1000; // track-length in km
         const totalTime = result.features[0].properties['total-time'] * 1000; // track-time in milliseconds
