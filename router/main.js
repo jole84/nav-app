@@ -34,7 +34,7 @@ savePoiButton.onclick = savePoiPopup;
 removeLastButton.onclick = removeLastMapCenter;
 addPositionButton.onclick = addPositionMapCenter;
 
-
+var poiCoordinate;
 
 const overlay = new Overlay({
   element: popupContainer,
@@ -45,10 +45,6 @@ const overlay = new Overlay({
   },
 });
 
-/**
- * Add a click handler to hide the popup.
- * @return {boolean} Don't follow the href.
- */
 popupCloser.onclick = function () {
   overlay.setPosition(undefined);
   popupCloser.blur();
@@ -58,7 +54,7 @@ popupCloser.onclick = function () {
 var poiList = [];
 
 savePoiNameButton.onclick = function() {
-  const coordinate = toLonLat(map.getView().getCenter());
+  const coordinate = toLonLat(poiCoordinate);
   var fileName = fileNameInput.value;
   poiList.push([coordinate, fileName]);
   overlay.setPosition(undefined);
@@ -66,24 +62,11 @@ savePoiNameButton.onclick = function() {
 
   const poiMarker = new Feature({
     name: fileNameInput.value,
-    geometry: new Point(map.getView().getCenter())
+    geometry: new Point(poiCoordinate)
   });
   poiLayer.getSource().addFeature(poiMarker);
   return false;
 };
-
-// save POI function
-function savePoiPopup() {
-  const coordinate = map.getView().getCenter();
-  fileNameInput.value = new Date().toLocaleString();
-  overlay.setPosition(coordinate);
-}
-
-function isTouchDevice() {
-  return (('ontouchstart' in window) ||
-     (navigator.maxTouchPoints > 0) ||
-     (navigator.msMaxTouchPoints > 0));
-}
 
 var slitlagerkarta = new TileLayer({
   source: new XYZ({
@@ -230,6 +213,24 @@ const map = new Map({
   overlays: [overlay],
 });
 
+const modify = new Modify({source: vectorLayer.getSource()});
+map.addInteraction(modify);
+
+const keyboardPan = new KeyboardPan({pixelDelta: 32,})
+map.addInteraction(keyboardPan);
+
+function savePoiPopup() { // save POI function
+  poiCoordinate = map.getView().getCenter();
+  fileNameInput.value = new Date().toLocaleString();
+  overlay.setPosition(poiCoordinate);
+}
+
+function isTouchDevice() {
+  return (('ontouchstart' in window) ||
+     (navigator.maxTouchPoints > 0) ||
+     (navigator.msMaxTouchPoints > 0));
+}
+
 function addPositionMapCenter() {
   addPosition(map.getView().getCenter());
 }
@@ -266,7 +267,7 @@ function removeLast(coordinate) {
   routeMe();
 };
 
-map.on('click', function(event){
+map.on('singleclick', function(event){
   if (!isTouchDevice()) {
     addPosition(event.coordinate);
   }
@@ -293,12 +294,6 @@ function switchMap() {
   }
 }
 
-const modify = new Modify({source: vectorLayer.getSource()});
-map.addInteraction(modify);
-
-const keyboardPan = new KeyboardPan({pixelDelta: 32,})
-map.addInteraction(keyboardPan);
-
 modify.on('modifyend', function() {
   routeMe();
 })
@@ -311,7 +306,6 @@ function clearLayer(layerToClear) {
 
 function routeMe() {
   if (lineArray.length >= 2) {
-
     var coordsString = [];
     for (var i = 0; i < lineArray.length; i++) {
       coordsString.push(toLonLat(lineArray[i]))
@@ -354,8 +348,8 @@ function routeMe() {
         clearLayer(routeLayer);
         
         // finally add route to map
-        // routeLayer.getSource().addFeature(routeFeature);
         routeLayer.getSource().addFeatures([routeFeature, startMarker, endMarker]);
+        // add markers at waypoints
         for (var i = 1; i < lineArray.length - 1; i++) {
           const marker = new Feature({
             type: 'endPoint',
@@ -371,7 +365,6 @@ function routeMe() {
 function route2gpx() {
   var poiString = [];
   for (var i = 0; i < poiList.length; i++) {
-    console.log(poiList[i][0]);
     poiString.push((poiList[i][0]) + "," + poiList[i][1]);
   }
 
@@ -391,15 +384,6 @@ function route2gpx() {
   if (lineArray.length >= 2) {
     window.location = brouterUrl;
   }
-
-  // if (lineArray.length >= 2 || poiList.length >= 1) {
-  //   window.location = 
-  //   'https://brouter.de/brouter?' +
-  //   'lonlats=' + coordsString.join('|') +
-  //   '&profile=car-fast&alternativeidx=0&format=gpx' +
-  //   '&trackname=Route_' + new Date().toLocaleString().replace(/ /g, '_').replace(/:/g, '.') +
-  //   '&pois=' + poiString.join('|');
-  // }
 }
 
 // // add keyboard controls
