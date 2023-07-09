@@ -73,12 +73,12 @@
         position: absolute;
         background-color: white;
         box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-        padding: 15px;
+        padding: 12px;
         border-radius: 10px;
         border: 1px solid #cccccc;
         bottom: 12px;
         left: -50px;
-        min-width: 280px;
+        min-width: 250px;
       }
       .ol-popup:after, .ol-popup:before {
         top: 100%;
@@ -110,12 +110,17 @@
       .ol-popup-closer:after {
         content: "✖";
       }
+      .popup-content {
+        margin-bottom: 8px;
+      }
       #savePoiButton {
         margin-bottom: 30px;
       }
       #savePoiNameButton {
-        margin: 8px;
-        right: 5px;
+        margin-top: 12px;
+      }
+      #fileNameForm {
+        text-align: right;
       }
     </style>
   </head>
@@ -139,9 +144,9 @@
     </div>
     <div id="popup" class="ol-popup">
       <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+      <div id="popup-content">Ange waypointnamn:</div>
       <form id="fileNameForm">
         <input type="submit" style="display: none" />
-        <div id="popup-content">Ange waypointnamn:</div>
         <input type="text" id="fileNameInput" class="form-control" />
         <a href="#" class="btn btn-primary" id="savePoiNameButton">Spara</button>
       </form>

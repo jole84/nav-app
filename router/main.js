@@ -213,11 +213,15 @@ const map = new Map({
   overlays: [overlay],
 });
 
+const keyboardPan = new KeyboardPan({pixelDelta: 64,})
+map.addInteraction(keyboardPan);
+
 const modify = new Modify({source: vectorLayer.getSource()});
 map.addInteraction(modify);
 
-const keyboardPan = new KeyboardPan({pixelDelta: 32,})
-map.addInteraction(keyboardPan);
+modify.on('modifyend', function() {
+  routeMe();
+})
 
 function savePoiPopup() { // save POI function
   poiCoordinate = map.getView().getCenter();
@@ -294,10 +298,6 @@ function switchMap() {
   }
 }
 
-modify.on('modifyend', function() {
-  routeMe();
-})
-
 function clearLayer(layerToClear) {
   layerToClear.getSource().getFeatures().forEach(function(feature) {
     layerToClear.getSource().removeFeature(feature);
@@ -320,6 +320,13 @@ function routeMe() {
           dataProjection: 'EPSG:4326',
           featureProjection: 'EPSG:3857'
         }).getGeometry();
+
+        const turnMessages = result.features[0].properties.messages;
+
+        for (var i = 1; i < turnMessages.length - 1; i++) {
+          console.log(parseFloat(turnMessages[i][0]) / 1000000);
+        }
+
         
         const trackLength = result.features[0].properties['track-length'] / 1000; // track-length in km
         const totalTime = result.features[0].properties['total-time'] * 1000; // track-time in milliseconds
