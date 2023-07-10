@@ -7,9 +7,32 @@ import LineString from 'ol/geom/LineString';
 import Geolocation from 'ol/Geolocation.js';
 import VectorSource from 'ol/source/Vector.js';
 import GPX from 'ol/format/GPX.js';
-import {Stroke, Style, Icon, Fill, Text} from 'ol/style.js';
+import {Stroke, Style, Icon, Fill, Text, Circle} from 'ol/style.js';
 import {Vector as VectorLayer} from 'ol/layer.js';
 import TileWMS from 'ol/source/TileWMS.js';
+import WMTS from 'ol/source/WMTS.js';
+import WMTSTileGrid from 'ol/tilegrid/WMTS.js';
+import Point from 'ol/geom/Point.js';
+import GeoJSON from 'ol/format/GeoJSON.js';
+import WKT from 'ol/format/WKT.js';
+import {getDistance} from 'ol/sphere';
+
+let wakeLock;
+const acquireWakeLock = async () => {
+  if ('wakeLock' in navigator) {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+    } catch (err) {
+      console.log(err);
+    }
+  }
+};
+acquireWakeLock();
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState === 'visible') {
+    acquireWakeLock();
+  }
+});
 
 var center = fromLonLat([14.18, 57.786]);
 const documentTitle = "Live-track";
@@ -31,7 +54,6 @@ saveLogButton.onclick = saveLogButtonFunction;
 centerButton.onclick = centerFunction;
 switchMapButton.onclick = switchMap;
 
-
 const view = new View({
   center: center,
   zoom: 8,
@@ -48,7 +70,6 @@ const gpxStyle = {
       src: 'https://jole84.se/default-marker.png',
     }),
     text: new Text({
-      // font: 'bold 13px Arial,sans-serif',
       font: '14px Droid Sans Mono,monospace',
       textAlign: 'left',
       offsetX: 10,
@@ -83,6 +104,18 @@ const trackStyle = {
       color: [255, 0, 255, 0.6],
     }),
   }),
+  'icon': new Style({
+    image: new Circle({
+      fill: new Fill({
+        color: 'rgba(255,0,0,0.5)',
+      }),
+      radius: 10,
+      stroke: new Stroke({
+        color: 'rgb(255,0,0)',
+        width: 2,
+      }),
+    }),
+  }),
 };
 trackStyle['MultiLineString'] = trackStyle['LineString'];
 
@@ -92,7 +125,6 @@ var trackLine = new Feature({
 })
 
 var slitlagerkarta = new TileLayer({
-//  preload: Infinity,
   source: new XYZ({
     url: 'https://jole84.se/slitlagerkarta/{z}/{x}/{y}.jpg',
       minZoom: 6,
@@ -102,7 +134,6 @@ var slitlagerkarta = new TileLayer({
 });
  
 var slitlagerkarta_nedtonad = new TileLayer({
-//  preload: Infinity,
   source: new XYZ({
     url: 'https://jole84.se/slitlagerkarta_nedtonad/{z}/{x}/{y}.jpg',
       minZoom: 6,
@@ -122,20 +153,6 @@ var ortofoto = new TileLayer({
   visible:false
 });
 
-// var topoweb = new TileLayer({
-//   source: new TileWMS({
-//     url: 'https://minkarta.lantmateriet.se/map/topowebb',
-//     params: {
-//       'layers': 'topowebbkartan',
-//       'TILED': true,
-//       'TRANSPARENT': false,
-//     },
-//   }),
-//   visible: false
-// });
-
-import WMTS from 'ol/source/WMTS.js';
-import WMTSTileGrid from 'ol/tilegrid/WMTS.js';
 var topoweb = new TileLayer({
   source: new WMTS({
     url: 'https://minkarta.lantmateriet.se/map/topowebbcache',
@@ -157,7 +174,6 @@ var gpxLayer = new VectorLayer({
     gpxStyle['Point'].getText().setText(feature.get('name'));
     return gpxStyle[feature.getGeometry().getType()];
   },
-  declutter: true
 });
 
 var trackLayer = new VectorLayer({
@@ -252,21 +268,6 @@ function toHHMMSS(milliSecondsInt) {
   return hours+':'+minutes+':'+seconds;
 }
 
-// calculate distance between two positions
-function getDistanceFromLatLonInKm([lon1, lat1], [lon2, lat2]) {
-  var R = 6371; // Radius of the earth in km
-  var dLat = degToRad(lat2-lat1);  // deg2rad below
-  var dLon = degToRad(lon2-lon1); 
-  var a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(degToRad(lat1)) * Math.cos(degToRad(lat2)) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2)
-    ; 
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-    var d = R * c; // Distance in km
-    return d;
-  }
-
 // start geolocation
 const geolocation = new Geolocation({
   projection: view.getProjection(),
@@ -298,7 +299,7 @@ geolocation.on('change', function () {
     }
     // measure distance
     if (prevCoordinate !== undefined) {
-      distanceTraveled += getDistanceFromLatLonInKm(prevCoordinate, lonlat);
+      distanceTraveled += getDistance(prevCoordinate, lonlat);
     }
     prevCoordinate = lonlat;
     // tracklogger
@@ -318,7 +319,6 @@ geolocation.on('change', function () {
   }
 
   // send text to info box
-  // style="font-size:120%"
   const html = [
     lonlat[1].toFixed(5) + ', ' + lonlat[0].toFixed(5),
     distanceTraveled.toFixed(2) + ' km / ' + Math.round(accuracy) + ' m',
@@ -405,11 +405,6 @@ function switchMap() {
   ortofoto.setVisible(false);
   topoweb.setVisible(false);
   mapDiv.setAttribute(            "style", "-webkit-filter: initial;filter: initial;background-color: initial;");
-  infoGroup.setAttribute(         "style", "-webkit-filter: initial;filter: initial;background: rgba(251, 251, 251, 0.6);");
-  centerButton.setAttribute(      "style", "filter: initial");
-  saveLogButton.setAttribute(     "style", "filter: initial");
-  switchMapButton.setAttribute(   "style", "filter: initial");
-  customFileButton.setAttribute(  "style", "filter: initial");
 
   if (mapMode == 0) { // mapMode 0: slitlagerkarta
     slitlagerkarta.setVisible(true);
@@ -422,11 +417,6 @@ function switchMap() {
   else if (mapMode == 2) { // mapMode 2: slitlagerkarta_nedtonad + night mode
     slitlagerkarta_nedtonad.setVisible(true)
     mapDiv.setAttribute(            "style", "filter: invert(1) hue-rotate(180deg);");
-    infoGroup.setAttribute(         "style", "filter: invert(1) hue-rotate(180deg);background: rgba(251, 251, 251, 0.8);");
-    centerButton.setAttribute(      "style", "filter: brightness(65%)");
-    saveLogButton.setAttribute(     "style", "filter: brightness(65%)");
-    switchMapButton.setAttribute(   "style", "filter: brightness(65%)");
-    customFileButton.setAttribute(  "style", "filter: invert(1)");
   }
   
   else if (enableLnt && mapMode == 3) { // mapMode 3: ortofoto
@@ -522,12 +512,16 @@ function download(data, filename) {
 }
 
 // brouter routing
-import GeoJSON from 'ol/format/GeoJSON.js';
-function routeMe(startLonLat, endLonLat) {
+function routeMe(destinationCoordinates) {
+  const endMarker = new Feature({
+    type: 'icon',
+    geometry: new Point(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))
+  });
+  routeLayer.getSource().addFeature(endMarker);
+
   fetch('https://brouter.de/brouter' +
   // fetch('https://jole84.se:17777/brouter' +
-  '?lonlats=' + startLonLat +
-  '|' + endLonLat +
+  '?lonlats=' + destinationCoordinates.join('|') +
   '&profile=car-fast&alternativeidx=0&format=geojson'
   ).then(function (response) {
     response.json().then(function (result) {
@@ -544,8 +538,8 @@ function routeMe(startLonLat, endLonLat) {
         "Avstånd: " + trackLength.toFixed(2) + " km", 
         "Restid: " + toHHMMSS(totalTime),
         "Ankomsttid: " + new Date(new Date().valueOf() + totalTime).toString().slice(16,25),
-        `<a href="http://maps.google.com/maps?q=${endLonLat[1]},${endLonLat[0]}" target="_blank">Gmap</a>`,
-        `<a href="http://maps.google.com/maps?layer=c&cbll=${endLonLat[1]},${endLonLat[0]}" target="_blank">Streetview</a>`
+        `<a href="http://maps.google.com/maps?q=${destinationCoordinates[destinationCoordinates.length - 1][1]},${destinationCoordinates[destinationCoordinates.length - 1][0]}" target="_blank">Gmap</a>`,
+        `<a href="http://maps.google.com/maps?layer=c&cbll=${destinationCoordinates[destinationCoordinates.length - 1][1]},${destinationCoordinates[destinationCoordinates.length - 1][0]}" target="_blank">Streetview</a>`
       ]);
 
       const routeFeature = new Feature({
@@ -553,29 +547,54 @@ function routeMe(startLonLat, endLonLat) {
         geometry: route,
       });
 
+      const endMarker = new Feature({
+        type: 'icon',
+        geometry: new Point(route.getLastCoordinate().splice(0,2)),
+      });
+
       // remove previus route
       clearLayer(routeLayer);
 
       // finally add route to map
-      routeLayer.getSource().addFeature(routeFeature);
+      routeLayer.getSource().addFeatures([routeFeature, endMarker]);
     });
   });
 }
 
-// right click/long press to route from current position to clicked
+var destinationCoordinates = [];
+// right click/long press to route
 map.on('contextmenu', function(event) {
   var currentPostition = toLonLat(geolocation.getPosition());
-  var destinationCoordinate = toLonLat(event.coordinate);
-  console.log(destinationCoordinate[1]);
-  console.log(destinationCoordinate[0]);
-  console.log(getDistanceFromLatLonInKm(currentPostition, destinationCoordinate).toFixed(3)*1000 + " m");
+  console.log(toLonLat(event.coordinate)[1]);
+  console.log(toLonLat(event.coordinate)[0]);
+  console.log(Math.round(getDistance(currentPostition, toLonLat(event.coordinate))) + " m");
+
+  if (destinationCoordinates.length == 0) { // set start position
+    destinationCoordinates.push(currentPostition);
+  }
+
+  // remove last coord if < 0.2 km if click on last coord
+  if (destinationCoordinates.length > 2 && getDistance(toLonLat(event.coordinate), destinationCoordinates[destinationCoordinates.length - 1]) < 200) {
+    destinationCoordinates.pop();
+  } 
+  // clear route if click < 0.2 km if coord is last
+  else if (destinationCoordinates.length == 2 && getDistance(toLonLat(event.coordinate), destinationCoordinates[destinationCoordinates.length - 1]) < 200) {
+    clearLayer(routeLayer);
+    setExtraInfo([""]);
+    destinationCoordinates = [];
+  } 
+  else { // else push clicked coord do route
+    destinationCoordinates.push(toLonLat(event.coordinate));
+  }
+
   lastInteraction = new Date();
   // if click less than 0.2km from current position clear route else start route
-  if (getDistanceFromLatLonInKm(currentPostition, destinationCoordinate) < 0.2) {
+  if (getDistance(currentPostition, toLonLat(event.coordinate)) < 200) {
     clearLayer(routeLayer);
-    setExtraInfo([getDistanceFromLatLonInKm(currentPostition, destinationCoordinate).toFixed(3)*1000 + " m"]);
-  }else {
-    routeMe(currentPostition, destinationCoordinate);
+    setExtraInfo([Math.round(getDistance(currentPostition, toLonLat(event.coordinate))) + " m"]);
+    destinationCoordinates = [];
+  }else if (destinationCoordinates.length >= 2){
+    routeMe(destinationCoordinates);
   }
 });
 
@@ -651,3 +670,143 @@ document.addEventListener('keydown', function(event) {
     view.adjustZoom(zoomStep);
   }
 });
+
+var apiUrl = "https://api.trafikinfo.trafikverket.se/v2/";
+var styleFunction = function (feature) {    //Function to determine style of icons
+  return [new Style({
+    image: new Icon(({
+      anchor: [0.5, 0.5],
+      src: apiUrl + "icons/" + feature.get("iconId") + "?type=png32x32" 
+    })),
+    text: new Text({
+      text: feature.get('name'),
+      font: 'bold 14px Droid Sans Mono,monospace',
+      textAlign: 'left',
+      offsetX: 20,
+      fill: new Fill({
+        color: '#b41412',
+      }),
+      stroke: new Stroke({
+        color: 'yellow',
+        width: 4,
+      }),
+    }),
+  })];
+};
+
+function breakSentence(sentence) {
+  var returnSentence = "";
+  var x = 0;
+  for (var i = 0; i < sentence.length; i++) {
+    if (x > 10 && sentence[i] == ' ') {
+      x = 0;
+      returnSentence += '\n';
+    }
+    else {
+      returnSentence += sentence[i];
+    }
+    x++;
+  }
+  return returnSentence;
+} 
+
+$.ajaxSetup({
+    url: apiUrl + "data.json",
+  error: function (msg) {
+    if (msg.statusText == "abort") return;
+  }
+});
+
+$.support.cors = true; // Enable Cross domain requests
+var trafikLayer = new VectorLayer({     //Creates a layer for deviations
+  source: new VectorSource(),
+  declutter: true,
+  style: styleFunction,
+});
+map.addLayer(trafikLayer);
+
+function getDeviations() {
+  clearLayer(trafikLayer);
+
+  var xmlRequest = "<REQUEST>" +
+    // Use your valid authenticationkey
+    "<LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />" +
+      "<QUERY objecttype='Situation' schemaversion='1.2'>" +
+        "<FILTER>" +
+          "<OR>" +
+            "<ELEMENTMATCH>" +
+              // "<WITHIN name='Deviation.Geometry.WGS84' shape='center' value='" + toLonLat(geolocation.getPosition()).join(' ') + "' radius='1' />" + 
+              "<EQ name='Deviation.ManagedCause' value='true' />" +
+              "<EQ name='Deviation.MessageType' value='Olycka' />" +
+            "</ELEMENTMATCH>" +
+            "<ELEMENTMATCH>" +
+              "<GTE name='Deviation.SeverityCode' value='5' />" +
+            "</ELEMENTMATCH>" +
+            "<ELEMENTMATCH>" +
+              "<EQ name='Deviation.IconId' value='roadClosed' />" +
+            "</ELEMENTMATCH>" +
+          "</OR>" +
+        "</FILTER>" +
+          "<INCLUDE>Deviation.Message</INCLUDE>" +
+          "<INCLUDE>Deviation.IconId</INCLUDE>" +
+          "<INCLUDE>Deviation.Geometry.WGS84</INCLUDE>" +
+          "<INCLUDE>Deviation.RoadNumber</INCLUDE>" +
+          "</QUERY>" +
+          "</REQUEST>";
+          
+  $.ajax({
+    type: "POST",
+    contentType: "text/xml",
+    dataType: "json",
+    data: xmlRequest,
+    success: function (response) {
+      if (response == null) return;
+      try {
+        $.each(response.RESPONSE.RESULT[0].Situation, function (index, item) {
+          var format = new WKT();
+          var feature = new Feature({
+            geometry: format.readGeometry(item.Deviation[0].Geometry.WGS84).transform("EPSG:4326", "EPSG:3857"),
+              name: breakSentence(item.Deviation[0].RoadNumber + ": " + (item.Deviation[0].Message)),
+              iconId: item.Deviation[0].IconId
+          });
+          trafikLayer.getSource().addFeature(feature);
+        });
+      }
+      catch (ex) { }
+    },
+    error: function (xhr, status, error) {
+      var err = status;
+    },
+    complete: function (xhr, status) {
+      var status = status;
+    }
+  });
+}
+
+getDeviations();
+
+setInterval(getDeviations, 300000);
+
+// geolocation.on('change', function () {
+//   $.ajax({
+//     url:
+//       'https://www.overpass-api.de/api/interpreter?data=' + 
+//       '[out:json][timeout:60];' + 
+//       '(' +
+//         'way["maxspeed"](around:7.0, ' + toLonLat(geolocation.getPosition()).reverse() + ' );' +
+//       ');' + 
+//       'out;',
+//     dataType: 'json',
+//     type: 'GET',
+//     async: true,
+//     crossDomain: true
+//   }).done(function(response) {
+//     // console.log(response.elements[0].tags.maxspeed);
+//     if (response.elements.length != 0) {
+//       document.getElementById('info3').innerHTML = response.elements[0].tags.maxspeed + " km/h";
+//     } else {
+//       document.getElementById('info3').innerHTML = "";
+//     }
+
+//   });
+// })

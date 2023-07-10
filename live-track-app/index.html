@@ -7,7 +7,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.css" rel="stylesheet" />
     <link rel="icon" type="image/x-icon" href="https://openlayers.org/favicon.ico" />
     <link rel="stylesheet" href="node_modules/ol/ol.css">
-    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta charset="UTF-8" />
@@ -56,24 +56,6 @@
         display: none;
       }
     </style>
-    <script>
-      let wakeLock;
-      const acquireWakeLock = async () => {
-        if ('wakeLock' in navigator) {
-          try {
-            wakeLock = await navigator.wakeLock.request('screen');
-          } catch (err) {
-            console.log(err);
-          }
-        }
-      };
-      acquireWakeLock();
-      document.addEventListener('visibilitychange', async () => {
-        if (document.visibilityState === 'visible') {
-          acquireWakeLock();
-        }
-      });
-    </script>
   <script type="module" src="./main.js"></script>
   </head>
   <body oncontextmenu="return false;">
@@ -81,6 +63,7 @@
       <div class="infoGroup" id="infoGroup">
         <div id="info"></div>
         <div id="info2"></div>
+        <div id="info3"></div>
       </div>
       <div id="btn-group">
         <button class="btn btn-warning" id="saveLogButton">Spara GPX</button>
