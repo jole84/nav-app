@@ -321,7 +321,7 @@ geolocation.on('change', function () {
   // send text to info box
   const html = [
     lonlat[1].toFixed(5) + ', ' + lonlat[0].toFixed(5),
-    distanceTraveled.toFixed(2) + ' km / ' + Math.round(accuracy) + ' m',
+    (distanceTraveled * 1000).toFixed(2) + ' km / ' + Math.round(accuracy) + ' m',
     '<b style="font-size:120%">' + speed.toFixed(1) + '</b> (<font style="color:#e60000;">' + maxSpeed + '</font>) km/h'
   ].join('<br />');
   document.getElementById('info').innerHTML = html;
@@ -458,7 +458,7 @@ function saveLog() {
   <time>${startTime.toISOString()}</time>
 </metadata>
 <trk>
-<name>${startTime.toLocaleString()}, max ${maxSpeed.toFixed(1)} km/h, total ${distanceTraveled.toFixed(2)} km, ${toHHMMSS(new Date() - startTime)}</name>
+<name>${startTime.toLocaleString()}, max ${maxSpeed.toFixed(1)} km/h, total ${(distanceTraveled * 1000).toFixed(2)} km, ${toHHMMSS(new Date() - startTime)}</name>
 <trkseg>`;
 
   for (let i = 0; i < trackLog.length; i++){
