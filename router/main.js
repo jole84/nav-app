@@ -22,6 +22,7 @@ var saveRouteButton = document.getElementById("saveRouteButton");
 var switchMapButton = document.getElementById("switchMapButton");
 var savePoiButton = document.getElementById("savePoiButton");
 var savePoiNameButton = document.getElementById("savePoiNameButton");
+var showGPXdiv = document.getElementById("showGPXdiv");
 var infoDiv = document.getElementById("info");
 var info2Div = document.getElementById("info2");
 var info3Div = document.getElementById("info3");
@@ -434,6 +435,7 @@ function route2gpx() {
 
 // gpx loader
 function handleFileSelect(evt) {
+  showGPXdiv.style.display = "inline-block";
   var files = evt.target.files; // FileList object
   // remove previously loaded gpx files
   clearLayer(gpxLayer);
