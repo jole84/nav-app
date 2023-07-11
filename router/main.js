@@ -9,12 +9,14 @@ import {Vector as VectorLayer} from 'ol/layer.js';
 import LineString from 'ol/geom/LineString';
 import Point from 'ol/geom/Point.js';
 import Overlay from 'ol/Overlay.js';
-import {Draw, Modify, Snap} from 'ol/interaction.js';
+import {Modify} from 'ol/interaction.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
 import KeyboardPan from 'ol/interaction/KeyboardPan.js';
 import {getDistance} from 'ol/sphere';
+import GPX from 'ol/format/GPX.js';
+import {toStringXY} from 'ol/coordinate';
 
-var removeLastButton = document.getElementById("removeLastButton");
+var removePositionButton = document.getElementById("removePositionButton");
 var addPositionButton = document.getElementById("addPositionButton");
 var saveRouteButton = document.getElementById("saveRouteButton");
 var switchMapButton = document.getElementById("switchMapButton");
@@ -24,14 +26,21 @@ var infoDiv = document.getElementById("info");
 var info2Div = document.getElementById("info2");
 var info3Div = document.getElementById("info3");
 var fileNameInput = document.getElementById("fileNameInput");
+var gpxFormat = new GPX();
+var gpxFeatures;
+var trackLength;
 const popupContainer = document.getElementById('popup');
 // const popupContent = document.getElementById('popup-content');
 const popupCloser = document.getElementById('popup-closer');
 
 saveRouteButton.onclick = route2gpx;
 switchMapButton.onclick = switchMap;
+customFileButton.addEventListener('change', handleFileSelect, false);
+document.getElementById("showGPX").addEventListener('change', function() {
+  gpxLayer.setVisible(showGPX.checked);
+});
 savePoiButton.onclick = savePoiPopup;
-removeLastButton.onclick = removeLastMapCenter;
+removePositionButton.onclick = removeLastMapCenter;
 addPositionButton.onclick = addPositionMapCenter;
 
 var poiCoordinate;
@@ -149,6 +158,34 @@ const trackStyle = {
 };
 trackStyle['MultiLineString'] = trackStyle['LineString'];
 
+const gpxStyle = {
+  'Point': new Style({
+    image: new Icon({
+      anchor: [0.5, 1],
+      src: 'https://jole84.se/default-marker.png',
+    }),
+    text: new Text({
+      font: '14px Droid Sans Mono,monospace',
+      textAlign: 'left',
+      offsetX: 10,
+      fill: new Fill({
+        color: '#b41412',
+      }),
+      stroke: new Stroke({
+        color: 'white',
+        width: 4,
+      }),
+    }),
+  }),
+  'LineString': new Style({
+    stroke: new Stroke({
+      color: [0, 0, 255, 0.4],
+      width: 10,
+    }),
+  })
+};
+gpxStyle['MultiLineString'] = gpxStyle['LineString'];
+
 var routeLayer = new VectorLayer({
   source: new VectorSource(),
   style: function (feature) {
@@ -191,6 +228,14 @@ var poiLayer = new VectorLayer({
   
 });
 
+var gpxLayer = new VectorLayer({
+  source: new VectorSource(),
+  style: function (feature) {
+    gpxStyle['Point'].getText().setText(feature.get('name'));
+    return gpxStyle[feature.getGeometry().getType()];
+  },
+});
+
 const view = new View({
   center: [1579748.5038203455, 7924318.181076467],
   zoom: 10,
@@ -204,6 +249,7 @@ const map = new Map({
   layers: [
     slitlagerkarta,
     slitlagerkarta_nedtonad,
+    gpxLayer,
     routeLayer,
     vectorLayer,
     poiLayer
@@ -225,7 +271,8 @@ modify.on('modifyend', function() {
 
 function savePoiPopup() { // save POI function
   poiCoordinate = map.getView().getCenter();
-  fileNameInput.value = new Date().toLocaleString();
+  fileNameInput.value = toStringXY(toLonLat(map.getView().getCenter()).reverse(), 5);
+  // new Date().toLocaleString();
   overlay.setPosition(poiCoordinate);
 }
 
@@ -240,7 +287,7 @@ function addPositionMapCenter() {
 }
 
 function removeLastMapCenter() {
-  removeLast(map.getView().getCenter());
+  removePosition(map.getView().getCenter());
 }
 
 function addPosition(coordinate){
@@ -253,19 +300,19 @@ function addPosition(coordinate){
   routeMe();
 };
 
-function removeLast(coordinate) {
-  if (getDistance(toLonLat(coordinate), toLonLat(lineArray[0])) < 300 || lineArray.length <= 2) {
-    clearLayer(routeLayer);
-      lineArray = [];
-      infoDiv.innerHTML = "";
-      info2Div.innerHTML = "";
-      info3Div.innerHTML = "";
-  }
+function removePosition(coordinate) {
   for (var i = 0; i < lineArray.length; i++) {
     if (getDistance(toLonLat(coordinate), toLonLat(lineArray[i])) < 300) {
       console.log(getDistance(toLonLat(coordinate), toLonLat(lineArray[i])))
       lineArray.splice(lineArray.indexOf(lineArray[i]), 1);
     }
+  }
+  if (lineArray.length <= 1) {
+    clearLayer(routeLayer);
+      lineArray = [];
+      infoDiv.innerHTML = "";
+      info2Div.innerHTML = "";
+      info3Div.innerHTML = "";
   }
   line.setCoordinates(lineArray);
   routeMe();
@@ -279,7 +326,7 @@ map.on('singleclick', function(event){
 
 map.on('contextmenu', function(event) {
   if (!isTouchDevice()) {
-    removeLast(event.coordinate);
+    removePosition(event.coordinate);
   }
   // console.log(line.getClosestPoint(event.coordinate))
   // console.log(line.forEachSegment(function(feature) {
@@ -321,7 +368,7 @@ function routeMe() {
           featureProjection: 'EPSG:3857'
         }).getGeometry();
         
-        const trackLength = result.features[0].properties['track-length'] / 1000; // track-length in km
+        trackLength = result.features[0].properties['track-length'] / 1000; // track-length in km
         const totalTime = result.features[0].properties['total-time'] * 1000; // track-time in milliseconds
         
         // add route information to info box
@@ -374,8 +421,8 @@ function route2gpx() {
   }
 
   var brouterUrl = 'https://brouter.de/brouter?lonlats=' + coordsString.join('|') + 
-    '&profile=car-fast&alternativeidx=0&format=gpx&trackname=Route_' + 
-    new Date().toLocaleString().replace(/ /g, '_').replace(/:/g, '.');
+    '&profile=car-fast&alternativeidx=0&format=gpx&trackname=' + 
+    new Date().toLocaleDateString() + '__' + trackLength.toFixed(2) + 'km';
 
   if (poiList.length >= 1) {
     brouterUrl += '&pois=' + poiString.join('|');
@@ -386,7 +433,23 @@ function route2gpx() {
   }
 }
 
-// // add keyboard controls
+// gpx loader
+function handleFileSelect(evt) {
+  var files = evt.target.files; // FileList object
+  // remove previously loaded gpx files
+  clearLayer(gpxLayer);
+  for (var i = 0; i < files.length; i++) {
+    var reader = new FileReader();
+    reader.readAsText(files[i], "UTF-8");
+    reader.onload = function (evt) {
+      gpxFeatures = gpxFormat.readFeatures(evt.target.result,{
+        dataProjection:'EPSG:4326',
+        featureProjection:'EPSG:3857'
+      });
+      gpxLayer.getSource().addFeatures(gpxFeatures);
+    }
+  }
+}
 // document.addEventListener('keydown', function(event) {
 //   if (event.key == 'Escape') { // carpe iter adventure controller minus button
 //     removeLastMapCenter();
