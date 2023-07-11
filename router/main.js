@@ -271,8 +271,7 @@ modify.on('modifyend', function() {
 
 function savePoiPopup() { // save POI function
   poiCoordinate = map.getView().getCenter();
-  fileNameInput.value = toStringXY(toLonLat(map.getView().getCenter()).reverse(), 5);
-  // new Date().toLocaleString();
+  fileNameInput.value = toStringXY(toLonLat(map.getView().getCenter()).reverse(), 5).replace(',', '');
   overlay.setPosition(poiCoordinate);
 }
 
