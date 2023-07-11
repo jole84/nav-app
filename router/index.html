@@ -22,18 +22,24 @@
       .destinationButtons {
         position: absolute;
         z-index: 10;
-        bottom: 5px;
+        top: 150px;
         right: 5px;
         text-align: right;
       }
       .optionButtons {
         position: absolute;
-        z-index: 9;
+        z-index: 10;
         bottom: 5px;
         left: 5px;
       }
-      #saveRouteButton, #switchMapButton, #customFileButton {
+      #saveRouteButton {
         margin-bottom: 5px;
+      }
+      #savePoiButton {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        z-index: 10;
       }
       #crosshair {
         pointer-events: none;
@@ -113,9 +119,6 @@
       .popup-content {
         margin-bottom: 8px;
       }
-      #savePoiButton {
-        margin-bottom: 30px;
-      }
       #savePoiNameButton {
         margin-top: 12px;
       }
@@ -124,9 +127,6 @@
       }
       #customFileButton {
         width: 83px;
-      }
-      .btn-group {
-        min-width: 150px;
       }
     </style>
   </head>
@@ -139,23 +139,23 @@
         <div id="info3"></div>
       </div>
       <div class="destinationButtons">
-        <button class="btn btn-danger btn-lg" id="savePoiButton">spara waypoint</button><br>
-        <div class="btn-group btn-group-lg" role="group" aria-label="Basic example">
-          <button class="btn btn-warning" id="removePositionButton">-</button>
-          <button class="btn btn-danger" id="addPositionButton">+</button>
+        <div class="btn-group-vertical btn-group-lg" role="group" aria-label="Basic example" style="margin-bottom: 35px;">
+          <button class="btn btn-success" id="addPositionButton">+</button>
+          <button class="btn btn-danger" id="removePositionButton">-</button>
         </div>
       </div>
       <div class="optionButtons">
-        <label><input type="file" class="form-control" id="customFileButton" multiple accept=".gpx"/></label>
         <div class="form-check form-check-inline" style="background-color: white; padding-inline: 28px; margin-bottom: 5px;">
           <input class="form-check-input" type="checkbox" value="" id="showGPX" checked/>
           <label class="form-check-label" for="showGPX">Visa GPX</label>
         </div><br>
         <button class="btn btn-warning" id="saveRouteButton">Exportera Rutt</button><br>
         <button class="btn btn-primary" id="switchMapButton">Växla karta</button>
-        </div>
+        <label><input type="file" class="form-control" id="customFileButton" multiple accept=".gpx"/></label>
       </div>
+      <button class="btn btn-danger" id="savePoiButton">spara<br>waypoint</button>
     </div>
+  </div>
     <div id="popup" class="ol-popup">
       <a href="#" id="popup-closer" class="ol-popup-closer"></a>
       <div id="popup-content">Ange waypointnamn:</div>
