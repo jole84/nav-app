@@ -702,6 +702,7 @@ var styleFunction = function (feature) {    //Function to determine style of ico
       text: feature.get('name'),
       font: 'bold 14px Droid Sans Mono,monospace',
       textAlign: 'left',
+      textBaseline: 'top',
       offsetX: 20,
       fill: new Fill({
         color: '#b41412',
@@ -718,7 +719,7 @@ function breakSentence(sentence) {
   var returnSentence = "";
   var x = 0;
   for (var i = 0; i < sentence.length; i++) {
-    if (x > 10 && sentence[i] == ' ') {
+    if (x > 20 && sentence[i] == ' ') {
       x = 0;
       returnSentence += '\n';
     }
@@ -786,7 +787,7 @@ function getDeviations() {
           var format = new WKT();
           var feature = new Feature({
             geometry: format.readGeometry(item.Deviation[0].Geometry.WGS84).transform("EPSG:4326", "EPSG:3857"),
-              name: breakSentence(item.Deviation[0].RoadNumber + ": " + (item.Deviation[0].Message)),
+              name: breakSentence((item.Deviation[0].RoadNumber || 'Väg')+ ": " + (item.Deviation[0].Message)),
               iconId: item.Deviation[0].IconId
           });
           trafikLayer.getSource().addFeature(feature);
