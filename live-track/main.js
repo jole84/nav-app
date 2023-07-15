@@ -245,21 +245,21 @@ function handleFileSelect(evt) {
       //     f.getStyle().getText().setText(f.get('name'));
       //   });
       // };
-      console.log(gpxFeatures[0].getGeometry().getCoordinates()[0][0]);
-      console.log((getLength(gpxFeatures[0].getGeometry()) / 1000).toFixed(2));
-      var coords = gpxFeatures[0].getGeometry().getCoordinates()[0];
+      // console.log(gpxFeatures[0].getGeometry().getCoordinates()[0][0]);
+      // console.log((getLength(gpxFeatures[0].getGeometry()) / 1000).toFixed(2));
+      // var coords = gpxFeatures[0].getGeometry().getCoordinates()[0];
       // console.log(coords);
-      console.log(coords.length);
-      for (var i=0; i < coords.length - 1; i++) {
-        const distanceM = getDistance(toLonLat(coords[i]), toLonLat(coords[i+1])).toFixed(0) + "m";
-        const endMarker = new Feature({
-          name: distanceM,
-          type: 'point',
-          geometry: new Point(coords[i])
-        });
-        gpxLayer.getSource().addFeature(endMarker);
+      // console.log(coords.length);
+      // for (var i=0; i < coords.length - 1; i++) {
+      //   const distanceM = getDistance(toLonLat(coords[i]), toLonLat(coords[i+1])).toFixed(0) + "m";
+      //   const endMarker = new Feature({
+      //     name: distanceM,
+      //     type: 'point',
+      //     geometry: new Point(coords[i])
+      //   });
+        // gpxLayer.getSource().addFeature(endMarker);
         // console.log(coords[i])
-      }
+      // }
       // coords.forEach(function(coordinate) {
       //   coordinate.pop();
       //   coordinate.pop();
