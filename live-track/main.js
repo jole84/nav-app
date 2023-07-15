@@ -214,7 +214,7 @@ function clearLayer(layerToClear) {
     layerToClear.getSource().removeFeature(feature);
   });
 }
-
+import {getLength} from 'ol/sphere';
 // gpx loader
 var gpxFormat = new GPX();
 var gpxFeatures;
@@ -245,6 +245,26 @@ function handleFileSelect(evt) {
       //     f.getStyle().getText().setText(f.get('name'));
       //   });
       // };
+      console.log(gpxFeatures[0].getGeometry().getCoordinates()[0][0]);
+      console.log((getLength(gpxFeatures[0].getGeometry()) / 1000).toFixed(2));
+      var coords = gpxFeatures[0].getGeometry().getCoordinates()[0];
+      // console.log(coords);
+      console.log(coords.length);
+      for (var i=0; i < coords.length - 1; i++) {
+        const distanceM = getDistance(toLonLat(coords[i]), toLonLat(coords[i+1])).toFixed(0) + "m";
+        const endMarker = new Feature({
+          name: distanceM,
+          type: 'point',
+          geometry: new Point(coords[i])
+        });
+        gpxLayer.getSource().addFeature(endMarker);
+        // console.log(coords[i])
+      }
+      // coords.forEach(function(coordinate) {
+      //   coordinate.pop();
+      //   coordinate.pop();
+      //   console.log(coordinate);
+      // })
       gpxLayer.getSource().addFeatures(gpxFeatures);
     }
   }
@@ -785,28 +805,4 @@ function getDeviations() {
 
 getDeviations();
 
-setInterval(getDeviations, 300000);
-
-// geolocation.on('change', function () {
-//   $.ajax({
-//     url:
-//       'https://www.overpass-api.de/api/interpreter?data=' + 
-//       '[out:json][timeout:60];' + 
-//       '(' +
-//         'way["maxspeed"](around:7.0, ' + toLonLat(geolocation.getPosition()).reverse() + ' );' +
-//       ');' + 
-//       'out;',
-//     dataType: 'json',
-//     type: 'GET',
-//     async: true,
-//     crossDomain: true
-//   }).done(function(response) {
-//     // console.log(response.elements[0].tags.maxspeed);
-//     if (response.elements.length != 0) {
-//       document.getElementById('info3').innerHTML = response.elements[0].tags.maxspeed + " km/h";
-//     } else {
-//       document.getElementById('info3').innerHTML = "";
-//     }
-
-//   });
-// })
+setInterval(getDeviations, 60000);
