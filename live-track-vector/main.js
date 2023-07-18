@@ -132,39 +132,39 @@ var styleFunction = function (feature) {    //Function to determine style of ico
   // ATK
   if (feature.get('layer') == 'ATK') {
     return [new Style({
-      zIndex: 10,
+      zIndex: 30,
       text: new Text({
         offsetY: 2,
         text: (feature.get('HTHAST')).toString(),
-        font: 'bold 16px sans-serif',
+        font: 'bold 22px Arial, Helvetica, sans-serif',
         rotation: (feature.get('vinkel')) * (Math.PI / 180) + Math.PI,
         rotateWithView: true,
         fill: new Fill({
           color: 'black',
         }),
-      }),
-      image: new Circle({
-        radius: 14,
-        fill: new Fill({
-          color: '#ffd300'
         }),
-        stroke: new Stroke({
-          width: 4,
-          color: '#e73137'
+        image: new Circle({
+          radius: 16,
+          fill: new Fill({
+            color: '#ffd300'
+          }),
+          stroke: new Stroke({
+            width: 4,
+            color: '#e73137'
+          }),
         }),
       }),
-    }),
-    new Style({
-      zIndex: 10,
-      image: new Icon(({
-        rotateWithView: true,
-        anchor: [-0.4, 0.4],
-        rotation: (feature.get('vinkel')) * (Math.PI / 180) + Math.PI,
-        scale: 0.05,
-        src: 'https://raw.githubusercontent.com/jole84/slitlagerkarta_qgis_stilar/main/stil_vagkarta/e24-1.svg'
-      })),
-    }),
-  ];
+      new Style({
+        zIndex: 20,
+        image: new Icon(({
+          rotateWithView: true,
+          anchor: [-0.6, 0.5],
+          rotation: (feature.get('vinkel')) * (Math.PI / 180) + Math.PI,
+          scale: 0.06,
+          src: 'https://raw.githubusercontent.com/jole84/slitlagerkarta_qgis_stilar/main/stil_vagkarta/e24-1.svg'
+        })),
+      }),
+    ];
   }
 
   // mark
