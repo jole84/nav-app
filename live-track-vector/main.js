@@ -1,5 +1,4 @@
 import {Feature, Map, View} from 'ol';
-import XYZ from 'ol/source/XYZ.js';
 import {fromLonLat, toLonLat} from 'ol/proj.js';
 import TileLayer from 'ol/layer/Tile.js';
 import Overlay from 'ol/Overlay.js';
@@ -7,7 +6,7 @@ import LineString from 'ol/geom/LineString';
 import Geolocation from 'ol/Geolocation.js';
 import VectorSource from 'ol/source/Vector.js';
 import GPX from 'ol/format/GPX.js';
-import {Stroke, Style, Icon, Fill, Text, Circle, RegularShape} from 'ol/style.js';
+import {Stroke, Style, Icon, Fill, Text, Circle} from 'ol/style.js';
 import {Vector as VectorLayer} from 'ol/layer.js';
 import TileWMS from 'ol/source/TileWMS.js';
 import WMTS from 'ol/source/WMTS.js';
@@ -19,6 +18,7 @@ import {getDistance} from 'ol/sphere';
 import VectorTileLayer from 'ol/layer/VectorTile.js';
 import VectorTileSource from 'ol/source/VectorTile.js';
 import MVT from 'ol/format/MVT.js';
+// import {getLength} from 'ol/sphere';
 
 let wakeLock;
 const acquireWakeLock = async () => {
@@ -124,7 +124,7 @@ const trackStyle = {
 trackStyle['MultiLineString'] = trackStyle['LineString'];
 
 function getRotation(feature, vinkel) {
-  return (feature.get(vinkel) * (Math.PI / 180))
+  return (-(feature.get(vinkel)) * (Math.PI / 180))
 }
 
 var styleFunction = function (feature) {    //Function to determine style of icons
@@ -137,7 +137,7 @@ var styleFunction = function (feature) {    //Function to determine style of ico
         offsetY: 2,
         text: (feature.get('HTHAST')).toString(),
         font: 'bold 16px sans-serif',
-        rotation: getRotation(feature, 'vinkel') + Math.PI,
+        rotation: (feature.get('vinkel')) * (Math.PI / 180) + Math.PI,
         rotateWithView: true,
         fill: new Fill({
           color: 'black',
@@ -159,7 +159,7 @@ var styleFunction = function (feature) {    //Function to determine style of ico
       image: new Icon(({
         rotateWithView: true,
         anchor: [-0.4, 0.4],
-        rotation: getRotation(feature, 'vinkel') + Math.PI,
+        rotation: (feature.get('vinkel')) * (Math.PI / 180) + Math.PI,
         scale: 0.05,
         src: 'https://raw.githubusercontent.com/jole84/slitlagerkarta_qgis_stilar/main/stil_vagkarta/e24-1.svg'
       })),
@@ -815,7 +815,7 @@ function clearLayer(layerToClear) {
     layerToClear.getSource().removeFeature(feature);
   });
 }
-import {getLength} from 'ol/sphere';
+
 // gpx loader
 var gpxFormat = new GPX();
 var gpxFeatures;
@@ -1040,14 +1040,14 @@ function switchMap() {
 
   if (mapMode == 0) { // mapMode 0: slitlagerkarta
     vagKarta = false;
-    map.renderSync();
+    map.render();
     slitlagerkarta.setVisible(true);
   }
 
   else if (mapMode == 1) { // mapMode 1: slitlagerkarta_nedtonad
     vagKarta = true;
     slitlagerkarta.setVisible(true);
-    map.renderSync();
+    map.render();
   }
   
   else if (mapMode == 2) { // mapMode 2: slitlagerkarta_nedtonad + night mode
@@ -1239,7 +1239,7 @@ map.on('contextmenu', function(event) {
   const featureAtPixel = map.getFeaturesAtPixel(event.pixel);
   for (var i = 0; i < featureAtPixel.length; i++) {
     if (featureAtPixel[i].get('layer') == 'roads') {
-      const maxSpeed = featureAtPixel[i].get('maxspeed');
+      const maxSpeed = (featureAtPixel[i].get('maxspeed') || '?');
       paintSign(maxSpeed);
       document.getElementById('info3').innerHTML = (featureAtPixel[i].get('name') || '');
       break;
