@@ -56,7 +56,7 @@
       <a href="https://jole84.github.io/legend.svg"><img id="legend" class="rounded" src="https://jole84.github.io/legend.svg"></a><br>
       <hr>
 
-      <a id="linkButton" href="https://jole84.se/live-track/index.html" class="btn btn-danger my-2">Webbaserad navigationsapp</a>
+      <a id="linkButton" href="https://jole84.se/live-track-vector/index.html" class="btn btn-danger my-2">Webbaserad navigationsapp (vector)</a>
       <a href="https://jole84.se/router/index.html" class="btn btn-warning my-2">jole84 ruttplanerare (beta)</a>
       
       <object id="objectpreview" data="https://jole84.se/live-track/index.html">Your browser doesn’t support the object tag.</object>
@@ -178,11 +178,11 @@
         
         if (newLinkUrl == linkUrl + '?') {
           linkCode.innerHTML = linkUrl;
-          linkButton.setAttribute("href", linkUrl);
+          linkButton.setAttribute("href", linkUrl.replace('live-track/', 'live-track-vector/'));
           linkButton2.setAttribute("href", linkUrl);
         } else {
           linkCode.innerHTML = newLinkUrl;
-          linkButton.setAttribute("href", newLinkUrl);
+          linkButton.setAttribute("href", newLinkUrl.replace('live-track/', 'live-track-vector/'));
           linkButton2.setAttribute("href", newLinkUrl);
         }
         document.getElementById('objectpreview').setAttribute("data", newLinkUrl);
