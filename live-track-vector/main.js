@@ -718,8 +718,8 @@ var trackLine = new Feature({
 
 const vectorsource = new VectorTileSource({
   format: new MVT(),
-  url: 'https://jole84.se/combined/{z}/{x}/{y}.pbf',
-  // url: 'combined/{z}/{x}/{y}.pbf',
+  // url: 'https://jole84.se/combined/{z}/{x}/{y}.pbf',
+  url: 'combined/{z}/{x}/{y}.pbf',
   // minZoom: 0,
   maxZoom: 14,
   useSpatialIndex: true
@@ -912,16 +912,16 @@ geolocation.on('change', function () {
   const currentTime = new Date();
   marker.setPosition(position); // move marker to current location
   
-  const centerPixel = map.getPixelFromCoordinate(position);
-  const featureAtPixel = map.getFeaturesAtPixel(centerPixel);
-  for (var i = 0; i < featureAtPixel.length; i++) {
-    if (featureAtPixel[i].get('layer') == 'roads') {
-      const maxSpeed = (featureAtPixel[i].get('maxspeed') || '0');
-      paintSign(maxSpeed);
-      const streetName = (featureAtPixel[i].get('name') || '');
-      document.getElementById('info3').innerHTML = streetName;
-    }
-  }
+  // const centerPixel = map.getPixelFromCoordinate(position);
+  // const featureAtPixel = map.getFeaturesAtPixel(centerPixel);
+  // for (var i = 0; i < featureAtPixel.length; i++) {
+  //   if (featureAtPixel[i].get('layer') == 'roads') {
+  //     const maxSpeed = (featureAtPixel[i].get('maxspeed') || '0');
+  //     paintSign(maxSpeed);
+  //     const streetName = (featureAtPixel[i].get('name') || '');
+  //     document.getElementById('info3').innerHTML = streetName;
+  //   }
+  // }
 
   if (speed > 3.6) {
     // change view if no interaction occurred last 5 seconds
