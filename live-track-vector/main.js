@@ -184,6 +184,16 @@ var styleFunction = function (feature) {    //Function to determine style of ico
     }
   }
 
+  // markkantlinje
+  else if (feature.get('layer') == 'markkantlinje') {
+  return [new Style({
+    stroke: new Stroke({
+      color: '#00a6ff',
+      width: 1,
+    }),
+    })];
+  }
+
   // hojdlinje
   else if (feature.get('layer') == 'hojdlinje' && !vagKarta) {
       return [new Style({
@@ -218,7 +228,7 @@ var styleFunction = function (feature) {    //Function to determine style of ico
             width: feature.get('maxspeed') / (resolution + 10),
           }),
           // text: new Text({
-          //   text: feature.get('name'),
+          //   text: (feature.get('name') || "") + (feature.get('maxspeed') || ""),
           //   font: '12px sans-serif',
           //   placement: 'line',
           //   fill: new Fill({
@@ -226,7 +236,7 @@ var styleFunction = function (feature) {    //Function to determine style of ico
           //   }),
           //   stroke: new Stroke({
           //     color: 'white',
-          //     width: 3,
+          //     width: 2,
           //   }),
           // }),
         })];   
@@ -264,19 +274,42 @@ var styleFunction = function (feature) {    //Function to determine style of ico
         }),
       })]; 
     }
+  }
 
-    // traktorväg
-    if (feature.get('highway') == 'track') {
+
+  // vaglinje zoom < 12
+  else if (feature.get('layer') == 'vaglinje') {
+    if (feature.get('objekttypnr') == 1806) {
       return [new Style({
-        zIndex: 8,
+        zIndex: 30,
         stroke: new Stroke({
           color: getRoadColor('grus'),
-          width: 20 / resolution,
-          lineDash: [80 / resolution, 160 / resolution]
+          width: 2,
+        }),
+      })];
+    } else {
+      return [new Style({
+        zIndex: 30,
+        stroke: new Stroke({
+          color: 'black',
+          width: 2,
         }),
       })];
     }
   }
+
+  // ovrig_vag tracktorväg
+  else if (feature.get('layer') == 'ovrig_vag') {
+    return [new Style({
+      zIndex: 8,
+      stroke: new Stroke({
+        color: getRoadColor('grus'),
+        width: 20 / resolution,
+        lineDash: [100 / resolution, 80 / resolution]
+      }),
+    })];
+  }
+
 
   // ralstrafik
   else if (feature.get('layer') == 'ralstrafik'){
@@ -395,7 +428,7 @@ var styleFunction = function (feature) {    //Function to determine style of ico
   }
 
   // rastplats
-  else if (feature.get('layer') == 'rastplats') {
+  else if (feature.get('layer') == 'VIS_DK_O_32_Rastplats') {
     return [new Style({
       image: new Icon(({
         // anchor: [-0.4, 0.4],
@@ -407,7 +440,7 @@ var styleFunction = function (feature) {    //Function to determine style of ico
   }
 
   // höjdhinder
-  else if (feature.get('layer') == 'hojdhinder' && vagKarta) {
+  else if (feature.get('layer') == 'NVDB_DK_O_24_Hojdhinder45dm' && vagKarta) {
     return [new Style({
       text: new Text({
         offsetY: 2,
@@ -426,7 +459,7 @@ var styleFunction = function (feature) {    //Function to determine style of ico
   }
 
   // pficka
-  else if (feature.get('layer') == 'pficka' && vagKarta) {
+  else if (feature.get('layer') == 'VIS_DK_O_90_P_ficka' && vagKarta) {
     return [new Style({
       image: new Icon(({
         // anchor: [-0.4, 0.4],
@@ -718,9 +751,8 @@ var trackLine = new Feature({
 
 const vectorsource = new VectorTileSource({
   format: new MVT(),
-  // url: 'https://jole84.se/combined/{z}/{x}/{y}.pbf',
-  url: 'combined/{z}/{x}/{y}.pbf',
-  // minZoom: 0,
+  url: 'https://jole84.se/combined/{z}/{x}/{y}.pbf',
+  // url: 'combined/{z}/{x}/{y}.pbf',
   maxZoom: 14,
   useSpatialIndex: true
 });
@@ -1199,52 +1231,52 @@ function routeMe(destinationCoordinates) {
 
 var destinationCoordinates = [];
 // right click/long press to route
-// map.on('contextmenu', function(event) {  
-//   var currentPostition = toLonLat(geolocation.getPosition());
-//   console.log(toLonLat(event.coordinate)[1]);
-//   console.log(toLonLat(event.coordinate)[0]);
-//   console.log(Math.round(getDistance(currentPostition, toLonLat(event.coordinate))) + " m");
+map.on('contextmenu', function(event) {  
+  var currentPostition = toLonLat(geolocation.getPosition());
+  console.log(toLonLat(event.coordinate)[1]);
+  console.log(toLonLat(event.coordinate)[0]);
+  console.log(Math.round(getDistance(currentPostition, toLonLat(event.coordinate))) + " m");
 
-//   if (destinationCoordinates.length == 0) { // set start position
-//     destinationCoordinates.push(currentPostition);
-//   }
-
-//   // remove last coord if < 0.2 km if click on last coord
-//   if (destinationCoordinates.length > 2 && getDistance(toLonLat(event.coordinate), destinationCoordinates[destinationCoordinates.length - 1]) < 200) {
-//     destinationCoordinates.pop();
-//   } 
-//   // clear route if click < 0.2 km if coord is last
-//   else if (destinationCoordinates.length == 2 && getDistance(toLonLat(event.coordinate), destinationCoordinates[destinationCoordinates.length - 1]) < 200) {
-//     clearLayer(routeLayer);
-//     setExtraInfo([""]);
-//     destinationCoordinates = [];
-//   } 
-//   else { // else push clicked coord do route
-//     destinationCoordinates.push(toLonLat(event.coordinate));
-//   }
-
-//   lastInteraction = new Date();
-//   // if click less than 0.2km from current position clear route else start route
-//   if (getDistance(currentPostition, toLonLat(event.coordinate)) < 200) {
-//     clearLayer(routeLayer);
-//     setExtraInfo([Math.round(getDistance(currentPostition, toLonLat(event.coordinate))) + " m"]);
-//     destinationCoordinates = [];
-//   }else if (destinationCoordinates.length >= 2){
-//     routeMe(destinationCoordinates);
-//   }
-// });
-
-map.on('contextmenu', function(event) {
-  const featureAtPixel = map.getFeaturesAtPixel(event.pixel);
-  for (var i = 0; i < featureAtPixel.length; i++) {
-    if (featureAtPixel[i].get('layer') == 'roads') {
-      const maxSpeed = (featureAtPixel[i].get('maxspeed') || '?');
-      paintSign(maxSpeed);
-      document.getElementById('info3').innerHTML = (featureAtPixel[i].get('name') || '');
-      break;
-    }
+  if (destinationCoordinates.length == 0) { // set start position
+    destinationCoordinates.push(currentPostition);
   }
-})
+
+  // remove last coord if < 0.2 km if click on last coord
+  if (destinationCoordinates.length > 2 && getDistance(toLonLat(event.coordinate), destinationCoordinates[destinationCoordinates.length - 1]) < 200) {
+    destinationCoordinates.pop();
+  } 
+  // clear route if click < 0.2 km if coord is last
+  else if (destinationCoordinates.length == 2 && getDistance(toLonLat(event.coordinate), destinationCoordinates[destinationCoordinates.length - 1]) < 200) {
+    clearLayer(routeLayer);
+    setExtraInfo([""]);
+    destinationCoordinates = [];
+  } 
+  else { // else push clicked coord do route
+    destinationCoordinates.push(toLonLat(event.coordinate));
+  }
+
+  lastInteraction = new Date();
+  // if click less than 0.2km from current position clear route else start route
+  if (getDistance(currentPostition, toLonLat(event.coordinate)) < 200) {
+    clearLayer(routeLayer);
+    setExtraInfo([Math.round(getDistance(currentPostition, toLonLat(event.coordinate))) + " m"]);
+    destinationCoordinates = [];
+  }else if (destinationCoordinates.length >= 2){
+    routeMe(destinationCoordinates);
+  }
+});
+
+// map.on('contextmenu', function(event) {
+//   const featureAtPixel = map.getFeaturesAtPixel(event.pixel);
+//   for (var i = 0; i < featureAtPixel.length; i++) {
+//     if (featureAtPixel[i].get('layer') == 'roads') {
+//       const maxSpeed = (featureAtPixel[i].get('maxspeed') || '?');
+//       paintSign(maxSpeed);
+//       document.getElementById('info3').innerHTML = (featureAtPixel[i].get('name') || '');
+//       break;
+//     }
+//   }
+// })
 
 // store time of last interaction
 map.on('pointerdrag', function() {
