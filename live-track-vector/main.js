@@ -442,6 +442,7 @@ var styleFunction = function (feature) {    //Function to determine style of ico
   // höjdhinder
   else if (feature.get('layer') == 'NVDB_DK_O_24_Hojdhinder45dm' && vagKarta) {
     return [new Style({
+      zIndex: 25,
       text: new Text({
         offsetY: 2,
         text: (feature.get('hojd')).toFixed(1) + "m",
@@ -514,7 +515,7 @@ var styleFunction = function (feature) {    //Function to determine style of ico
     if (byggnadspunktSymbolKeys.includes(featureType.toString())) {
       return [new Style({
         image: new Icon(({
-          rotateWithView: true,
+          rotateWithView: feature.get('rotation') !== 0,
           rotation: getRotation(feature, 'rotation'),
           scale: 1.5,
           anchor: [0.5, 0.5],
@@ -530,7 +531,7 @@ else if (feature.get('layer') == 'kultur_lamning_punkt') {
   if (kultur_lamning_punktSymbolKeys.includes(featureType.toString())) {
     return [new Style({
       image: new Icon(({
-        rotateWithView: true,
+        rotateWithView: feature.get('rotation') !== 0,
         rotation: getRotation(feature, 'rotation'),
         scale: 1.5,
         anchor: [0.5, 0.5],
@@ -541,17 +542,16 @@ else if (feature.get('layer') == 'kultur_lamning_punkt') {
 }
 // anlaggningsomradespunkt
 else if (feature.get('layer') == 'anlaggningsomradespunkt') {
-  const featureType = feature.get('objekttypnr');
   const andamal = feature.get('andamal');
   if (anlaggningsomradespunktSymbolKeys.includes(andamal)) {
     return [new Style({
       zIndex: 20,
       image: new Icon(({
-        rotateWithView: true,
+        rotateWithView: feature.get('rotation') !== 0,
         rotation: getRotation(feature, 'rotation'),
         scale: 1.5,
-        anchor: [0.5, 0.5],
-        src: anlaggningsomradespunktSymbol[andamal]
+        anchor: anlaggningsomradespunktSymbol[andamal][1],
+        src: anlaggningsomradespunktSymbol[andamal][0]
       })),
     })];
   }
@@ -723,14 +723,14 @@ const kultur_lamning_punktSymbol = {
 }
 const kultur_lamning_punktSymbolKeys = Object.keys(kultur_lamning_punktSymbol);
 const anlaggningsomradespunktSymbol = {
-  'Badplats': 'https://raw.githubusercontent.com/jole84/slitlagerkarta_qgis_stilar/main/kartsymboler/badplats.svg',
-  'Campingplats': 'https://raw.githubusercontent.com/jole84/slitlagerkarta_qgis_stilar/main/kartsymboler/camping.svg',
-  'Gästhamn': 'https://raw.githubusercontent.com/jole84/slitlagerkarta_qgis_stilar/main/kartsymboler/gasthamn.svg',
-  'Skjutbana': 'https://raw.githubusercontent.com/jole84/slitlagerkarta_qgis_stilar/main/kartsymboler/idrott_skjutbana.svg',
-  'Skjutbana, mindre': 'https://raw.githubusercontent.com/jole84/slitlagerkarta_qgis_stilar/main/kartsymboler/idrott_skjutbana_liten.svg',
-  'Fotbollsplan': 'https://raw.githubusercontent.com/jole84/slitlagerkarta_qgis_stilar/main/kartsymboler/idrott_fotbollsplan.svg',
-  'Bollplan': 'https://raw.githubusercontent.com/jole84/slitlagerkarta_qgis_stilar/main/kartsymboler/idrott_fotbollsplan.svg',
-  'Travbana': 'https://raw.githubusercontent.com/jole84/slitlagerkarta_qgis_stilar/main/kartsymboler/idrott_anlaggning.svg',
+  'Badplats': ['https://raw.githubusercontent.com/jole84/slitlagerkarta_qgis_stilar/main/kartsymboler/badplats.svg', [0.5, 0.5]],
+  'Campingplats': ['https://raw.githubusercontent.com/jole84/slitlagerkarta_qgis_stilar/main/kartsymboler/camping.svg', [0.5, 0.5]],
+  'Gästhamn': ['https://raw.githubusercontent.com/jole84/slitlagerkarta_qgis_stilar/main/kartsymboler/gasthamn.svg', [0.5, 0.5]],
+  'Skjutbana': ['https://raw.githubusercontent.com/jole84/slitlagerkarta_qgis_stilar/main/kartsymboler/idrott_skjutbana.svg', [1, 0.5]],
+  'Skjutbana, mindre': ['https://raw.githubusercontent.com/jole84/slitlagerkarta_qgis_stilar/main/kartsymboler/idrott_skjutbana_liten.svg', [1, 0.5]],
+  'Fotbollsplan': ['https://raw.githubusercontent.com/jole84/slitlagerkarta_qgis_stilar/main/kartsymboler/idrott_fotbollsplan.svg', [0.5, 0.5]],
+  'Bollplan': ['https://raw.githubusercontent.com/jole84/slitlagerkarta_qgis_stilar/main/kartsymboler/idrott_fotbollsplan.svg', [0.5, 0.5]],
+  'Travbana': ['https://raw.githubusercontent.com/jole84/slitlagerkarta_qgis_stilar/main/kartsymboler/idrott_anlaggning.svg', [0.5, 0.5]],
 }
 const anlaggningsomradespunktSymbolKeys = Object.keys(anlaggningsomradespunktSymbol);
 
@@ -749,7 +749,7 @@ var trackLine = new Feature({
 //   visible: false
 // });
 
-const vectorsource = new VectorTileSource({
+const slitlagersource = new VectorTileSource({
   format: new MVT(),
   url: 'https://jole84.se/combined/{z}/{x}/{y}.pbf',
   // url: 'combined/{z}/{x}/{y}.pbf',
@@ -759,10 +759,7 @@ const vectorsource = new VectorTileSource({
 
 const slitlagerkarta = new VectorTileLayer({
 // declutter: true,
-// minZoom: 11,
-// layers: ['select'],
-source: vectorsource,
-style: styleFunction
+source: slitlagersource,
 })
 
  
@@ -1071,14 +1068,14 @@ function switchMap() {
 
   if (mapMode == 0) { // mapMode 0: slitlagerkarta
     vagKarta = false;
-    map.render();
+    slitlagerkarta.setStyle(styleFunction);
     slitlagerkarta.setVisible(true);
   }
 
   else if (mapMode == 1) { // mapMode 1: slitlagerkarta_nedtonad
     vagKarta = true;
+    slitlagerkarta.setStyle(styleFunction);
     slitlagerkarta.setVisible(true);
-    map.render();
   }
   
   else if (mapMode == 2) { // mapMode 2: slitlagerkarta_nedtonad + night mode
@@ -1352,7 +1349,7 @@ document.addEventListener('keydown', function(event) {
 });
 
 var apiUrl = "https://api.trafikinfo.trafikverket.se/v2/";
-var styleFunction = function (feature) {    //Function to determine style of icons
+var styleFunctionIcons = function (feature) {    //Function to determine style of icons
   return [new Style({
     image: new Icon(({
       anchor: [0.5, 0.5],
@@ -1402,7 +1399,7 @@ $.support.cors = true; // Enable Cross domain requests
 var trafikLayer = new VectorLayer({     //Creates a layer for deviations
   source: new VectorSource(),
   declutter: true,
-  style: styleFunction,
+  style: styleFunctionIcons,
 });
 map.addLayer(trafikLayer);
 
