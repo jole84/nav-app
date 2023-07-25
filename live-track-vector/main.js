@@ -228,15 +228,15 @@ var styleFunction = function (feature) {    //Function to determine style of ico
             width: feature.get('maxspeed') / (resolution + 10),
           }),
           // text: new Text({
-          //   text: (feature.get('name') || "") + (feature.get('maxspeed') || ""),
-          //   font: '12px sans-serif',
+          //   text: (feature.get('name') || ""),
+          //   font: '14px sans-serif',
           //   placement: 'line',
           //   fill: new Fill({
           //     color: 'black',
           //   }),
           //   stroke: new Stroke({
           //     color: 'white',
-          //     width: 2,
+          //     width: 3,
           //   }),
           // }),
         })];   
@@ -1080,6 +1080,7 @@ function switchMap() {
   
   else if (mapMode == 2) { // mapMode 2: slitlagerkarta_nedtonad + night mode
     vagKarta = true;
+    slitlagerkarta.setStyle(styleFunction);
     slitlagerkarta.setVisible(true);
     mapDiv.setAttribute(            "style", "filter: invert(1) hue-rotate(180deg);");
   }
