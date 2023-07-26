@@ -206,7 +206,7 @@ var styleFunction = function (feature) {    //Function to determine style of ico
 
   // roads
   else if (feature.get('layer') == 'roads'){
-    const vagBredd = (feature.get('width') * 10) / resolution || 20 / resolution;
+    const vagBredd = (feature.get('width') * 8) / resolution || 10 / resolution;
     if (feature.get('highway') == 'primary') { // asfaltsväg
       // stratväg
       if (feature.get('stratvag') != undefined && vagKarta) {
@@ -258,8 +258,8 @@ var styleFunction = function (feature) {    //Function to determine style of ico
         stroke: new Stroke({
           lineCap: 'square',
           color: 'black',
-          width: vagBredd,
-          lineDash: [80 / resolution, 160 / resolution],
+          width: vagBredd * 1.5,
+          lineDash: [80 / resolution, 250 / resolution],
         }),
       })
     ];
@@ -517,7 +517,7 @@ var styleFunction = function (feature) {    //Function to determine style of ico
         image: new Icon(({
           rotateWithView: feature.get('rotation') !== 0,
           rotation: getRotation(feature, 'rotation'),
-          scale: 1.5,
+          scale: 10 / resolution,
           anchor: [0.5, 0.5],
           src: byggnadspunktSymbol[featureType]
         })),
@@ -525,46 +525,60 @@ var styleFunction = function (feature) {    //Function to determine style of ico
     }
   }
 
-// kultur_lamning_punkt
-else if (feature.get('layer') == 'kultur_lamning_punkt') {
-  const featureType = feature.get('objekttypnr');
-  if (kultur_lamning_punktSymbolKeys.includes(featureType.toString())) {
-    return [new Style({
-      image: new Icon(({
-        rotateWithView: feature.get('rotation') !== 0,
-        rotation: getRotation(feature, 'rotation'),
-        scale: 1.5,
-        anchor: [0.5, 0.5],
-        src: kultur_lamning_punktSymbol[featureType]
-      })),
-    })];
+  // kultur_lamning_punkt
+  else if (feature.get('layer') == 'kultur_lamning_punkt') {
+    const featureType = feature.get('objekttypnr');
+    if (kultur_lamning_punktSymbolKeys.includes(featureType.toString())) {
+      return [new Style({
+        image: new Icon(({
+          rotateWithView: feature.get('rotation') !== 0,
+          rotation: getRotation(feature, 'rotation'),
+          scale: 1.5,
+          anchor: [0.5, 0.5],
+          src: kultur_lamning_punktSymbol[featureType]
+        })),
+      })];
+    }
   }
-}
-// anlaggningsomradespunkt
-else if (feature.get('layer') == 'anlaggningsomradespunkt') {
-  const andamal = feature.get('andamal');
-  if (anlaggningsomradespunktSymbolKeys.includes(andamal)) {
-    return [new Style({
-      zIndex: 20,
-      image: new Icon(({
-        rotateWithView: feature.get('rotation') !== 0,
-        rotation: getRotation(feature, 'rotation'),
-        scale: 1.5,
-        anchor: anlaggningsomradespunktSymbol[andamal][1],
-        src: anlaggningsomradespunktSymbol[andamal][0]
-      })),
-    })];
+  // anlaggningsomradespunkt
+  else if (feature.get('layer') == 'anlaggningsomradespunkt') {
+    const andamal = feature.get('andamal');
+    if (anlaggningsomradespunktSymbolKeys.includes(andamal)) {
+      return [new Style({
+        zIndex: 20,
+        image: new Icon(({
+          rotateWithView: feature.get('rotation') !== 0,
+          rotation: getRotation(feature, 'rotation'),
+          scale: 1.5,
+          anchor: anlaggningsomradespunktSymbol[andamal][1],
+          src: anlaggningsomradespunktSymbol[andamal][0]
+        })),
+      })];
+    }
   }
-}
 
   // hydrolinje
   else if (feature.get('layer') == 'hydrolinje') {
     return [new Style({
       zIndex: 8,
       stroke: new Stroke({
-        color: '#bfe6ff',
+        color: '#00a6ff',
         width: feature.get('storleksklass') * 20 / resolution,
       }),
+    })];
+  }
+
+  // hydroanlaggningspunkt
+  else if (feature.get('layer') == 'hydroanlaggningspunkt') {
+    const featureType = feature.get('objekttypnr');
+    return [new Style({
+      image: new Icon(({
+        rotateWithView: feature.get('rotation') !== 0,
+        rotation: getRotation(feature, 'rotation'),
+        scale: 1.5,
+        anchor: [0.5, 0.5],
+        src: hydroanlaggningspunktSymbol[featureType]
+      })),
     })];
   }
 
@@ -734,6 +748,11 @@ const anlaggningsomradespunktSymbol = {
 }
 const anlaggningsomradespunktSymbolKeys = Object.keys(anlaggningsomradespunktSymbol);
 
+const hydroanlaggningspunktSymbol = {
+  1922: 'https://raw.githubusercontent.com/jole84/slitlagerkarta_qgis_stilar/main/kartsymboler/slussport.svg',
+  1923: 'https://raw.githubusercontent.com/jole84/slitlagerkarta_qgis_stilar/main/kartsymboler/dammbyggnad.svg',
+}
+
 
 var line = new LineString([]);
 var trackLine = new Feature({
@@ -759,7 +778,10 @@ const slitlagersource = new VectorTileSource({
 
 const slitlagerkarta = new VectorTileLayer({
 // declutter: true,
+updateWhileAnimating: false,
+updateWhileInteracting: false,
 source: slitlagersource,
+
 })
 
  
