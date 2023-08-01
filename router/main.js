@@ -421,8 +421,8 @@ function route2gpx() {
   }
 
   var brouterUrl = 'https://brouter.de/brouter?lonlats=' + coordsString.join('|') + 
-    '&profile=car-fast&alternativeidx=0&format=gpx&trackname=' + 
-    new Date().toLocaleDateString() + '__' + trackLength.toFixed(2) + 'km';
+    '&profile=car-fast&alternativeidx=0&format=gpx&trackname=Rutt_' + 
+    new Date().toLocaleDateString() + '_' + trackLength.toFixed(2) + 'km';
 
   if (poiList.length >= 1) {
     brouterUrl += '&pois=' + poiString.join('|');
