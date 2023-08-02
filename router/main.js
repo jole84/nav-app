@@ -15,17 +15,18 @@ import KeyboardPan from 'ol/interaction/KeyboardPan.js';
 import {getDistance} from 'ol/sphere';
 import GPX from 'ol/format/GPX.js';
 import {toStringXY} from 'ol/coordinate';
+import TileWMS from 'ol/source/TileWMS.js';
 
 var removePositionButton = document.getElementById("removePositionButton");
 var addPositionButton = document.getElementById("addPositionButton");
 var saveRouteButton = document.getElementById("saveRouteButton");
-var switchMapButton = document.getElementById("switchMapButton");
 var savePoiButton = document.getElementById("savePoiButton");
 var savePoiNameButton = document.getElementById("savePoiNameButton");
 var showGPXdiv = document.getElementById("showGPXdiv");
 var infoDiv = document.getElementById("info");
 var info2Div = document.getElementById("info2");
 var info3Div = document.getElementById("info3");
+var info4Div = document.getElementById("info4");
 var fileNameInput = document.getElementById("fileNameInput");
 var gpxFormat = new GPX();
 var gpxFeatures;
@@ -35,7 +36,6 @@ const popupContainer = document.getElementById('popup');
 const popupCloser = document.getElementById('popup-closer');
 
 saveRouteButton.onclick = route2gpx;
-switchMapButton.onclick = switchMap;
 customFileButton.addEventListener('change', handleFileSelect, false);
 document.getElementById("showGPX").addEventListener('change', function() {
   gpxLayer.setVisible(showGPX.checked);
@@ -45,6 +45,10 @@ removePositionButton.onclick = removeLastMapCenter;
 addPositionButton.onclick = addPositionMapCenter;
 
 var poiCoordinate;
+
+window.onunload = window.onbeforeunload = function() {
+  return "";
+};
 
 const overlay = new Overlay({
   element: popupContainer,
@@ -84,16 +88,27 @@ var slitlagerkarta = new TileLayer({
       minZoom: 6,
       maxZoom: 14,
   }),
-  visible: true
+  maxZoom: 16,
 });
 
-var slitlagerkarta_nedtonad = new TileLayer({
-  source: new XYZ({
-    url: 'https://jole84.se/slitlagerkarta_nedtonad/{z}/{x}/{y}.jpg',
-      minZoom: 6,
-      maxZoom: 14,
+// var slitlagerkarta_nedtonad = new TileLayer({
+//   source: new XYZ({
+//     url: 'https://jole84.se/slitlagerkarta_nedtonad/{z}/{x}/{y}.jpg',
+//       minZoom: 6,
+//       maxZoom: 14,
+//   }),
+//   visible: false
+// });
+
+var ortofoto = new TileLayer({
+  source: new TileWMS({
+    url: 'https://minkarta.lantmateriet.se/map/ortofoto/',
+    params: {
+      'layers': 'Ortofoto_0.5,Ortofoto_0.4,Ortofoto_0.25,Ortofoto_0.16',
+      'TILED': true,
+    },
   }),
-  visible: false
+  minZoom: 16
 });
 
 var lineArray = [];
@@ -249,7 +264,7 @@ const map = new Map({
   target: 'map',
   layers: [
     slitlagerkarta,
-    slitlagerkarta_nedtonad,
+    ortofoto,
     gpxLayer,
     routeLayer,
     vectorLayer,
@@ -301,49 +316,57 @@ function addPosition(coordinate){
 };
 
 function removePosition(coordinate) {
+  var removedOne = false
   for (var i = 0; i < lineArray.length; i++) {
     if (getDistance(toLonLat(coordinate), toLonLat(lineArray[i])) < 300) {
       console.log(getDistance(toLonLat(coordinate), toLonLat(lineArray[i])))
       lineArray.splice(lineArray.indexOf(lineArray[i]), 1);
+      removedOne = true;
     }
+  }
+  if (!removedOne) {
+    lineArray.pop();
   }
   if (lineArray.length <= 1) {
     clearLayer(routeLayer);
-      lineArray = [];
-      infoDiv.innerHTML = "";
-      info2Div.innerHTML = "";
-      info3Div.innerHTML = "";
+    lineArray = [];
+    infoDiv.innerHTML = "";
+    info2Div.innerHTML = "";
+    info3Div.innerHTML = "";
   }
   line.setCoordinates(lineArray);
   routeMe();
 };
 
 map.on('singleclick', function(event){
-  if (!isTouchDevice()) {
+  var removedOne = false;
+  for (var i = 0; i < lineArray.length; i++) {
+    if (getDistance(toLonLat(event.coordinate), toLonLat(lineArray[i])) < 300) {
+      removePosition(event.coordinate);
+      removedOne = true;
+      break;
+    }
+  }
+  if (!isTouchDevice() && !removedOne) {
     addPosition(event.coordinate);
   }
 });
 
-map.on('contextmenu', function(event) {
-  if (!isTouchDevice()) {
-    removePosition(event.coordinate);
-  }
-  // console.log(line.getClosestPoint(event.coordinate))
-  // console.log(line.forEachSegment(function(feature) {
-  //   console.log(feature)
-  // }))
-})
+const markerEl = document.getElementById('geolocation_marker');
+const marker = new Overlay({
+  positioning: 'center-center',
+  element: markerEl,
+  stopEvent: false,
+});
+map.addOverlay(marker);
 
-function switchMap() {
-  if (slitlagerkarta_nedtonad.getVisible()) {
-    slitlagerkarta.setVisible(true);
-    slitlagerkarta_nedtonad.setVisible(false);
-  }
-  else {
-    slitlagerkarta.setVisible(false);
-    slitlagerkarta_nedtonad.setVisible(true);
-  }
-}
+map.on('contextmenu', function(event) {
+  var streetviewlink = "<a href=\"http://maps.google.com/maps?q=&layer=c&cbll=" + toLonLat(event.coordinate).reverse() + "\" target=\"_blank\">Streetview</a>";
+  var gmaplink = "<a href=\"http://maps.google.com/maps?q=" + toLonLat(event.coordinate).reverse() + "\" target=\"_blank\">Gmap</a>";
+  info4Div.innerHTML = streetviewlink + "<br>" + gmaplink;
+
+  marker.setPosition(event.coordinate);
+})
 
 function clearLayer(layerToClear) {
   layerToClear.getSource().getFeatures().forEach(function(feature) {
@@ -429,7 +452,11 @@ function route2gpx() {
   }
 
   if (lineArray.length >= 2) {
+    window.onunload = window.onbeforeunload = "";
     window.location = brouterUrl;
+    window.onunload = window.onbeforeunload = function() {
+      return "";
+    };
   }
 }
 
@@ -459,3 +486,15 @@ function handleFileSelect(evt) {
 //     addPositionMapCenter();
 //   }
 // });
+
+document.addEventListener('keydown', function(event) {
+  if (event.key == 'a' && !overlay.getPosition()) {
+    addPositionMapCenter();
+  }
+  if (event.key == 's' && !overlay.getPosition()) {
+    savePoiPopup();
+  }
+  if (event.key == 'Escape' && !overlay.getPosition()) {
+    removeLastMapCenter();
+  }
+})
