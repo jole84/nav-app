@@ -413,18 +413,17 @@ var styleFunction = function (feature) {    //Function to determine style of ico
   ];
   }
 
-  // naturvardslinje
-  else if (feature.get('layer') == 'naturvardslinje') {
-    return [new Style({
-      zIndex: 20,
-      stroke: new Stroke({
-        color: 'green',
-        width: 2,
-        lineCap: 'square',
-        lineDash: [8, 16],
+  // skyddadnatur
+  else if (feature.get('layer') == 'skyddadnatur' && !vagKarta) {
+    return [
+      new Style({
+        zIndex: 20,
+        stroke: new Stroke({
+          color: '#4fba28',
+          width: 2,
+        }),
       }),
-    })
-  ];
+    ];
   }
 
   // rastplats
@@ -587,14 +586,13 @@ var styleFunction = function (feature) {    //Function to determine style of ico
     return [new Style({
       zIndex: 20,
       text: new Text({
-        // text: feature.get('name') + " " + feature.get('textstorleksklass'),
         text: feature.get('name'),
-        font: textStorlek[feature.get('textstorleksklass')] + 'px Calibri,sans-serif',
-        textBaseline: textBaseLine[feature.get('textlage')],
-        justify: textJustify[feature.get('textlage')],
+        font: (textKategori[feature.get('textkategori')] || '') + textStorlek[feature.get('textstorleksklass')] + 'px Calibri,sans-serif',
+        // textBaseline: textBaseLine[feature.get('textlage')],
+        // justify: textJustify[feature.get('textlage')],
         placement: 'line',
         fill: new Fill({
-          color: 'black',
+          color: textColor[feature.get('textkategori')] || 'black',
         }),
         stroke: new Stroke({
           color: 'white',
@@ -669,6 +667,26 @@ const markColorVagKarta = {
   2649 : '#d4d4d4', // Bebyggelse
   2650 : '#ededed', // Skog
   2654 : '#bfe6ff', // Vattenyta
+}
+
+const textKategori = {
+  'Administrativ indelning': 'italic ',
+  'Anläggningsområde/Byggnadsanläggning': '',
+  'Bebyggelse': '',
+  'Fjällupplysningstext': 'italic ',
+  'Hydrografi': 'italic ',
+  'Kulturhistorisk lämning': 'italic ',
+  'Kyrka': 'bold ',
+  'Terrängnamn': 'italic ',
+  'Skyddad natur': 'italic ',
+  'Tätort': '',
+  'Upplysningstext': 'italic ',
+}
+
+const textColor = {
+  'Hydrografi': '#0070ff',
+  'Skyddad natur': '#419821',
+  'Fjällupplysningstext': '#c44982',
 }
 
 const textStorlek = {
@@ -777,11 +795,10 @@ const slitlagersource = new VectorTileSource({
 });
 
 const slitlagerkarta = new VectorTileLayer({
-// declutter: true,
-updateWhileAnimating: false,
-updateWhileInteracting: false,
-source: slitlagersource,
-
+  // declutter: true,
+  updateWhileAnimating: false,
+  updateWhileInteracting: false,
+  source: slitlagersource,
 })
 
  
