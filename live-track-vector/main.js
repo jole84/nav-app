@@ -420,7 +420,7 @@ var styleFunction = function (feature) {    //Function to determine style of ico
         zIndex: 20,
         stroke: new Stroke({
           color: '#4fba28',
-          width: 2,
+          width: 3,
         }),
       }),
     ];
