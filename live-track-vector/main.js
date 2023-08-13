@@ -88,7 +88,7 @@ const gpxStyle = {
   }),
   'LineString': new Style({
     stroke: new Stroke({
-      color: [0, 0, 255, 0.6],
+      color: [0, 0, 255, 0.5],
       width: 10,
     }),
   })
