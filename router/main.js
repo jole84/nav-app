@@ -333,7 +333,7 @@ function removeLastMapCenter() {
 
 function addPosition(coordinate){
   const startMarker = new Feature({
-    type: 'startPoint',
+    type: 'Point',
     geometry: new Point(coordinate)
   });
   routeLayer.getSource().addFeature(startMarker);
