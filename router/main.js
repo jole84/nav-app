@@ -158,6 +158,18 @@ const trackStyle = {
         width: 2,
       }),
     }),
+    text: new Text({
+      font: '14px Droid Sans Mono,monospace',
+      textAlign: 'left',
+      offsetX: 10,
+      fill: new Fill({
+        color: '#b41412',
+      }),
+      stroke: new Stroke({
+        color: 'white',
+        width: 4,
+      }),
+    }),
   }),
   'startPoint': new Style({
     image: new Circle({
@@ -168,6 +180,19 @@ const trackStyle = {
       stroke: new Stroke({
         color: 'rgb(0,255,0)',
         width: 2,
+      }),
+    }),
+    text: new Text({
+      font: '14px Droid Sans Mono,monospace',
+      text: "Start",
+      textAlign: 'left',
+      offsetX: 10,
+      fill: new Fill({
+        color: '#b41412',
+      }),
+      stroke: new Stroke({
+        color: 'white',
+        width: 4,
       }),
     }),
   }),
@@ -205,6 +230,7 @@ gpxStyle['MultiLineString'] = gpxStyle['LineString'];
 var routeLayer = new VectorLayer({
   source: new VectorSource(),
   style: function (feature) {
+    trackStyle['endPoint'].getText().setText(feature.get('text'));
     return trackStyle[feature.get('type')];
   },
 });
@@ -275,7 +301,7 @@ const map = new Map({
   overlays: [overlay],
 });
 
-const keyboardPan = new KeyboardPan({pixelDelta: 64,})
+const keyboardPan = new KeyboardPan({pixelDelta: 64})
 map.addInteraction(keyboardPan);
 
 const modify = new Modify({source: vectorLayer.getSource()});
@@ -316,7 +342,31 @@ function addPosition(coordinate){
 };
 
 function removePosition(coordinate) {
-  var removedOne = false
+  var removedOne = false;
+  var removedPoi = false;
+
+  // remove poi
+  for (var i = 0; i < poiList.length; i++) {
+    if (getDistance(toLonLat(coordinate), poiList[i][0]) < 300) {
+      poiList.splice(poiList.indexOf(poiList[i]), 1);
+      removedPoi = true;
+      clearLayer(poiLayer);
+      break;
+    }
+  }
+  
+  // redraw poi layer
+  if (removedPoi) {
+    for (var i = 0; i < poiList.length; i++) {
+      const poiMarker = new Feature({
+        name: poiList[i][1],
+        geometry: new Point(fromLonLat(poiList[i][0]))
+      });
+      poiLayer.getSource().addFeature(poiMarker);
+    }
+  }
+
+  // removes wp if less than 300 m
   for (var i = 0; i < lineArray.length; i++) {
     if (getDistance(toLonLat(coordinate), toLonLat(lineArray[i])) < 300) {
       console.log(getDistance(toLonLat(coordinate), toLonLat(lineArray[i])))
@@ -324,16 +374,30 @@ function removePosition(coordinate) {
       removedOne = true;
     }
   }
-  if (!removedOne) {
+
+  // if no wp < 300 m, remove last wp
+  if (!removedOne && !removedPoi) {
     lineArray.pop();
   }
-  if (lineArray.length <= 1) {
+
+  // if only 1 wp, remove route and redraw startpoint
+  if (lineArray.length == 1) {
     clearLayer(routeLayer);
-    lineArray = [];
     infoDiv.innerHTML = "";
     info2Div.innerHTML = "";
     info3Div.innerHTML = "";
+    
+    const startMarker = new Feature({
+      type: 'startPoint',
+      geometry: new Point(lineArray[0])
+    });
+    routeLayer.getSource().addFeature(startMarker);
   }
+
+  if (lineArray.length == 0) {
+    clearLayer(routeLayer);
+  }
+
   line.setCoordinates(lineArray);
   routeMe();
 };
@@ -347,25 +411,18 @@ map.on('singleclick', function(event){
       break;
     }
   }
+
   if (!isTouchDevice() && !removedOne) {
     addPosition(event.coordinate);
   }
 });
 
-const markerEl = document.getElementById('geolocation_marker');
-const marker = new Overlay({
-  positioning: 'center-center',
-  element: markerEl,
-  stopEvent: false,
-});
-map.addOverlay(marker);
-
-map.on('contextmenu', function(event) {
-  var streetviewlink = "<a href=\"http://maps.google.com/maps?q=&layer=c&cbll=" + toLonLat(event.coordinate).reverse() + "\" target=\"_blank\">Streetview</a>";
-  var gmaplink = "<a href=\"http://maps.google.com/maps?q=" + toLonLat(event.coordinate).reverse() + "\" target=\"_blank\">Gmap</a>";
+var centerCoordinate;
+map.on('moveend', function() {
+  centerCoordinate = toLonLat(map.getView().getCenter()).reverse();
+  var streetviewlink = "<a href=\"http://maps.google.com/maps?q=&layer=c&cbll=" + centerCoordinate + "\" target=\"_blank\">Streetview</a>";
+  var gmaplink = "<a href=\"http://maps.google.com/maps?q=" + centerCoordinate + "\" target=\"_blank\">Gmap</a>";
   info4Div.innerHTML = streetviewlink + "<br>" + gmaplink;
-
-  marker.setPosition(event.coordinate);
 })
 
 function clearLayer(layerToClear) {
@@ -411,6 +468,7 @@ function routeMe() {
         
         const endMarker = new Feature({
           type: 'endPoint',
+          text: lineArray.length.toString(),
           geometry: new Point(route.getLastCoordinate().splice(0,2)),
         });
 
@@ -423,6 +481,7 @@ function routeMe() {
         for (var i = 1; i < lineArray.length - 1; i++) {
           const marker = new Feature({
             type: 'endPoint',
+            text: (i + 1).toString(),
             geometry: new Point(lineArray[i])
           });
           routeLayer.getSource().addFeature(marker);
@@ -443,20 +502,24 @@ function route2gpx() {
     coordsString.push(toLonLat(lineArray[i]));
   }
 
-  var brouterUrl = 'https://brouter.de/brouter?lonlats=' + coordsString.join('|') + 
+  
+  if (lineArray.length >= 2) {
+    var brouterUrl = 'https://brouter.de/brouter?lonlats=' + coordsString.join('|') + 
     '&profile=car-fast&alternativeidx=0&format=gpx&trackname=Rutt_' + 
     new Date().toLocaleDateString() + '_' + trackLength.toFixed(2) + 'km';
-
-  if (poiList.length >= 1) {
-    brouterUrl += '&pois=' + poiString.join('|');
-  }
-
-  if (lineArray.length >= 2) {
+    
+    if (poiList.length >= 1) {
+      brouterUrl += '&pois=' + poiString.join('|');
+    }
     window.onunload = window.onbeforeunload = "";
     window.location = brouterUrl;
     window.onunload = window.onbeforeunload = function() {
       return "";
     };
+  }
+
+  else if (poiList.length >= 1) {
+    console.log(poiList);
   }
 }
 
@@ -478,14 +541,6 @@ function handleFileSelect(evt) {
     }
   }
 }
-// document.addEventListener('keydown', function(event) {
-//   if (event.key == 'Escape') { // carpe iter adventure controller minus button
-//     removeLastMapCenter();
-//   }
-//   if (event.key == 'a') { // carpe iter adventure controller plus button
-//     addPositionMapCenter();
-//   }
-// });
 
 document.addEventListener('keydown', function(event) {
   if (event.key == 'a' && !overlay.getPosition()) {
