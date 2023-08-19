@@ -1,78 +1,91 @@
-
 <html lang="en">
-  <head>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
-    <!-- MDB -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.css" rel="stylesheet" />
-    <link rel="icon" type="image/png" href="https://jole84.se/84.png" />
-    <link rel="stylesheet" href="node_modules/ol/ol.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <style>
-      html, body, #map{
-        background-color: #bfe6ff;
-        height: 100%;
-        margin: 0;
-        overscroll-behavior-y: contain !important;
-        padding: 0;
-        width: 100%;
-      }
-      .infoGroup {
-        backdrop-filter: blur(5px);
-        background-color: rgba(251, 251, 251, 0.6);
-        border-radius: 5px;
-        border: 1px solid rgb(32,32,32);
-        color: rgb(32,32,32);
-        font-size: 1.1em;
-        letter-spacing: 1.3px;
-        line-height: 1.4;
-        padding-left: 5px;
-        padding-right: 5px;
-        position: absolute;
-        right: 5px;
-        top: 5px;
-        z-index: 10;
-        max-width: 90%;
-        word-wrap: break-word;
-      }
-      #btn-group {
-        bottom: 0px;
-        left: 5px;
-        position: absolute;
-        white-space: nowrap;
-        z-index: 10;
-      }
-      #centerButton, #switchMapButton, #saveLogButton, #customFileButton {
-        margin-bottom: 5px;
-      }
-      #customFileButton {
-        width: 83px;
-      }
-      #map .ol-rotate, #geolocation_marker{
-        display: none;
-      }
-    </style>
+
+<head>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+  <!-- MDB -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.css" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="https://jole84.se/84.png" />
+  <link rel="stylesheet" href="node_modules/ol/ol.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <style>
+    html,
+    body,
+    #map {
+      background-color: #bfe6ff;
+      height: 100%;
+      margin: 0;
+      overscroll-behavior-y: contain !important;
+      padding: 0;
+      width: 100%;
+    }
+
+    .infoGroup {
+      backdrop-filter: blur(5px);
+      background-color: rgba(251, 251, 251, 0.6);
+      border-radius: 5px;
+      border: 1px solid rgb(32, 32, 32);
+      color: rgb(32, 32, 32);
+      font-size: 1.1em;
+      letter-spacing: 1.3px;
+      line-height: 1.4;
+      padding-left: 5px;
+      padding-right: 5px;
+      position: absolute;
+      right: 5px;
+      top: 5px;
+      z-index: 10;
+      max-width: 90%;
+      word-wrap: break-word;
+    }
+
+    #btn-group {
+      bottom: 0px;
+      left: 5px;
+      position: absolute;
+      white-space: nowrap;
+      z-index: 10;
+    }
+
+    #centerButton,
+    #switchMapButton,
+    #saveLogButton,
+    #customFileButton {
+      margin-bottom: 5px;
+    }
+
+    #customFileButton {
+      width: 83px;
+    }
+
+    #map .ol-rotate,
+    #geolocation_marker {
+      display: none;
+    }
+  </style>
   <script type="module" src="./main.js"></script>
-  </head>
-  <body oncontextmenu="return false;">
-    <div id="map">
-      <div class="infoGroup" id="infoGroup">
-        <div id="info"></div>
-        <div id="info2"></div>
-        <div id="info3"></div>
-      </div>
-      <div id="btn-group">
-        <button class="btn btn-warning" id="saveLogButton">Spara spår</button>
-        <br>
-        <button class="btn btn-danger" id="centerButton">Center</button>
-        <button class="btn btn-primary" id="switchMapButton">Växla karta</button>
-        <label><input type="file" class="form-control" id="customFileButton" multiple accept=".gpx"/></label>
-      </div>
+</head>
+
+<body oncontextmenu="return false;">
+  <div id="map">
+    <div class="infoGroup" id="infoGroup">
+      <div id="info"></div>
+      <div id="info2"></div>
+      <div id="info3"></div>
     </div>
-    <img id="geolocation_marker" src="https://openlayers.org/en/latest/examples/data/geolocation_marker.png" />
-  </body>
+    <div id="btn-group">
+      <button class="btn btn-warning" id="saveLogButton">Spara spår</button>
+      <br>
+      <button class="btn btn-danger" id="centerButton">Center</button>
+      <button class="btn btn-primary" id="switchMapButton">Växla karta</button>
+      <label><input type="file" class="form-control" id="customFileButton" multiple accept=".gpx" /></label>
+    </div>
+  </div>
+  <img id="geolocation_marker" src="https://openlayers.org/en/latest/examples/data/geolocation_marker.png" />
+</body>
+
 </html>

@@ -1,21 +1,21 @@
-import {Feature, Map, View} from 'ol';
+import { Feature, Map, View } from 'ol';
 import XYZ from 'ol/source/XYZ.js';
-import {fromLonLat, toLonLat} from 'ol/proj.js';
+import { fromLonLat, toLonLat } from 'ol/proj.js';
 import TileLayer from 'ol/layer/Tile.js';
 import Overlay from 'ol/Overlay.js';
 import LineString from 'ol/geom/LineString';
 import Geolocation from 'ol/Geolocation.js';
 import VectorSource from 'ol/source/Vector.js';
 import GPX from 'ol/format/GPX.js';
-import {Stroke, Style, Icon, Fill, Text, Circle} from 'ol/style.js';
-import {Vector as VectorLayer} from 'ol/layer.js';
+import { Stroke, Style, Icon, Fill, Text, Circle } from 'ol/style.js';
+import { Vector as VectorLayer } from 'ol/layer.js';
 import TileWMS from 'ol/source/TileWMS.js';
 import WMTS from 'ol/source/WMTS.js';
 import WMTSTileGrid from 'ol/tilegrid/WMTS.js';
 import Point from 'ol/geom/Point.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
 import WKT from 'ol/format/WKT.js';
-import {getDistance} from 'ol/sphere';
+import { getDistance } from 'ol/sphere';
 
 let wakeLock;
 const acquireWakeLock = async () => {
@@ -127,17 +127,17 @@ var trackLine = new Feature({
 var slitlagerkarta = new TileLayer({
   source: new XYZ({
     url: 'https://jole84.se/slitlagerkarta/{z}/{x}/{y}.jpg',
-      minZoom: 6,
-      maxZoom: 14,
+    minZoom: 6,
+    maxZoom: 14,
   }),
   visible: false
 });
- 
+
 var slitlagerkarta_nedtonad = new TileLayer({
   source: new XYZ({
     url: 'https://jole84.se/slitlagerkarta_nedtonad/{z}/{x}/{y}.jpg',
-      minZoom: 6,
-      maxZoom: 14,
+    minZoom: 6,
+    maxZoom: 14,
   }),
   visible: false
 });
@@ -150,7 +150,7 @@ var ortofoto = new TileLayer({
       'TILED': true,
     },
   }),
-  visible:false
+  visible: false
 });
 
 var topoweb = new TileLayer({
@@ -210,11 +210,11 @@ const map = new Map({
 
 // clear layer when new feature is added
 function clearLayer(layerToClear) {
-  layerToClear.getSource().getFeatures().forEach(function(feature) {
+  layerToClear.getSource().getFeatures().forEach(function (feature) {
     layerToClear.getSource().removeFeature(feature);
   });
 }
-import {getLength} from 'ol/sphere';
+import { getLength } from 'ol/sphere';
 // gpx loader
 var gpxFormat = new GPX();
 var gpxFeatures;
@@ -230,9 +230,9 @@ function handleFileSelect(evt) {
     var reader = new FileReader();
     reader.readAsText(files[i], "UTF-8");
     reader.onload = function (evt) {
-      gpxFeatures = gpxFormat.readFeatures(evt.target.result,{
-        dataProjection:'EPSG:4326',
-        featureProjection:'EPSG:3857'
+      gpxFeatures = gpxFormat.readFeatures(evt.target.result, {
+        dataProjection: 'EPSG:4326',
+        featureProjection: 'EPSG:3857'
       });
       // if (files.length > 1) { // set random color if more than one file is loaded
       //   gpxFeatures.forEach(f => {
@@ -257,8 +257,8 @@ function handleFileSelect(evt) {
       //     type: 'point',
       //     geometry: new Point(coords[i])
       //   });
-        // gpxLayer.getSource().addFeature(endMarker);
-        // console.log(coords[i])
+      // gpxLayer.getSource().addFeature(endMarker);
+      // console.log(coords[i])
       // }
       // coords.forEach(function(coordinate) {
       //   coordinate.pop();
@@ -268,7 +268,7 @@ function handleFileSelect(evt) {
       gpxLayer.getSource().addFeatures(gpxFeatures);
     }
   }
-  document.title = fileNames[fileNames.length-1] || documentTitle;
+  document.title = fileNames[fileNames.length - 1] || documentTitle;
   setExtraInfo(fileNames);
   // reaquire wake lock again after file select
   acquireWakeLock();
@@ -282,10 +282,10 @@ function degToRad(deg) {
 // milliseconds to HH:MM:SS
 function toHHMMSS(milliSecondsInt) {
   var dateObj = new Date(milliSecondsInt);
-  var hours   = dateObj.getUTCHours().toString().padStart(2, '0');
+  var hours = dateObj.getUTCHours().toString().padStart(2, '0');
   var minutes = dateObj.getUTCMinutes().toString().padStart(2, '0');
   var seconds = dateObj.getSeconds().toString().padStart(2, '0');
-  return hours+':'+minutes+':'+seconds;
+  return hours + ':' + minutes + ':' + seconds;
 }
 
 // start geolocation
@@ -367,7 +367,7 @@ function getCenterWithHeading(position, rotation) {
   const resolution = view.getResolution()
   const size = map.getSize();
   const height = size[1];
-  
+
   return [
     position[0] - (Math.sin(rotation) * height * resolution * 1) / 4,
     position[1] + (Math.cos(rotation) * height * resolution * 1) / 4,
@@ -380,7 +380,7 @@ function centerFunction() {
   const heading = geolocation.getHeading() || 0;
   const speed = geolocation.getSpeed() || 0;
   const duration = 500;
-  if (speed > 1){
+  if (speed > 1) {
     view.setZoom(defaultZoom);
     if (new Date() - lastInteraction < 5000) {
       view.setRotation(0);
@@ -408,11 +408,11 @@ function centerFunction() {
 function updateView(position, heading) {
   view.setCenter(getCenterWithHeading(position, -heading));
   view.setRotation(-heading);
-  map.render(); 
+  map.render();
 }
 
 // run once when first position is recieved
-geolocation.once('change', function() {
+geolocation.once('change', function () {
   centerFunction();
 });
 
@@ -443,18 +443,18 @@ function switchMap() {
       topoweb.setMinZoom(15);
     }
   }
-  
+
   else if (mapMode == 2) { // mapMode 2: slitlagerkarta_nedtonad + night mode
     slitlagerkarta_nedtonad.setVisible(true);
     slitlagerkarta_nedtonad.setMaxZoom(20);
     mapDiv.setAttribute("style", "filter: invert(1) hue-rotate(180deg);");
   }
-  
+
   else if (enableLnt && mapMode == 3) { // mapMode 3: ortofoto
     ortofoto.setVisible(true);
     ortofoto.setMinZoom(6);
-  } 
-  
+  }
+
   else if (enableLnt && mapMode == 4) { // mapMode 4: topoweb
     topoweb.setVisible(true);
     topoweb.setMinZoom(6);
@@ -494,7 +494,7 @@ function saveLog() {
 <name>${startTime.toLocaleString()}, max ${maxSpeed.toFixed(1)} km/h, total ${(distanceTraveled / 1000).toFixed(2)} km, ${toHHMMSS(new Date() - startTime)}</name>
 <trkseg>`;
 
-  for (let i = 0; i < trackLog.length; i++){
+  for (let i = 0; i < trackLog.length; i++) {
     const lon = trackLog[i][0];
     const lat = trackLog[i][1];
     const ele = trackLog[i][2];
@@ -519,28 +519,28 @@ function setExtraInfo(infoText) {
   window.clearTimeout(timeOut);
   var extraInfo = infoText.join('<br />');
   document.getElementById('info2').innerHTML = extraInfo;
-  timeOut = setTimeout(function() {
+  timeOut = setTimeout(function () {
     document.getElementById('info2').innerHTML = "";
   }, 30000);
 };
 
 // Function to download data to a file
 function download(data, filename) {
-  var file = new Blob([data], {type: 'application/gpx+xml'});
+  var file = new Blob([data], { type: 'application/gpx+xml' });
   if (window.navigator.msSaveOrOpenBlob) {// IE10+
-      window.navigator.msSaveOrOpenBlob(file, filename);
-    }
+    window.navigator.msSaveOrOpenBlob(file, filename);
+  }
   else { // Others
-      var a = document.createElement("a"),
-              url = URL.createObjectURL(file);
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(function() {
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(url);  
-      }, 0); 
+    var a = document.createElement("a"),
+      url = URL.createObjectURL(file);
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () {
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }, 0);
   }
 }
 
@@ -553,9 +553,9 @@ function routeMe(destinationCoordinates) {
   routeLayer.getSource().addFeature(endMarker);
 
   fetch('https://brouter.de/brouter' +
-  // fetch('https://jole84.se:17777/brouter' +
-  '?lonlats=' + destinationCoordinates.join('|') +
-  '&profile=car-fast&alternativeidx=0&format=geojson'
+    // fetch('https://jole84.se:17777/brouter' +
+    '?lonlats=' + destinationCoordinates.join('|') +
+    '&profile=car-fast&alternativeidx=0&format=geojson'
   ).then(function (response) {
     response.json().then(function (result) {
       const route = new GeoJSON().readFeature((result).features[0], {
@@ -568,9 +568,9 @@ function routeMe(destinationCoordinates) {
 
       // add route information to info box
       setExtraInfo([
-        "Avstånd: " + trackLength.toFixed(2) + " km", 
+        "Avstånd: " + trackLength.toFixed(2) + " km",
         "Restid: " + toHHMMSS(totalTime),
-        "Ankomsttid: " + new Date(new Date().valueOf() + totalTime).toString().slice(16,25),
+        "Ankomsttid: " + new Date(new Date().valueOf() + totalTime).toString().slice(16, 25),
         `<a href="http://maps.google.com/maps?q=${destinationCoordinates[destinationCoordinates.length - 1][1]},${destinationCoordinates[destinationCoordinates.length - 1][0]}" target="_blank">Gmap</a>`,
         `<a href="http://maps.google.com/maps?layer=c&cbll=${destinationCoordinates[destinationCoordinates.length - 1][1]},${destinationCoordinates[destinationCoordinates.length - 1][0]}" target="_blank">Streetview</a>`
       ]);
@@ -582,7 +582,7 @@ function routeMe(destinationCoordinates) {
 
       const endMarker = new Feature({
         type: 'icon',
-        geometry: new Point(route.getLastCoordinate().splice(0,2)),
+        geometry: new Point(route.getLastCoordinate().splice(0, 2)),
       });
 
       // remove previus route
@@ -596,7 +596,7 @@ function routeMe(destinationCoordinates) {
 
 var destinationCoordinates = [];
 // right click/long press to route
-map.on('contextmenu', function(event) {
+map.on('contextmenu', function (event) {
   var currentPostition = toLonLat(geolocation.getPosition());
   console.log(toLonLat(event.coordinate)[1]);
   console.log(toLonLat(event.coordinate)[0]);
@@ -609,13 +609,13 @@ map.on('contextmenu', function(event) {
   // remove last coord if < 0.2 km if click on last coord
   if (destinationCoordinates.length > 2 && getDistance(toLonLat(event.coordinate), destinationCoordinates[destinationCoordinates.length - 1]) < 200) {
     destinationCoordinates.pop();
-  } 
+  }
   // clear route if click < 0.2 km if coord is last
   else if (destinationCoordinates.length == 2 && getDistance(toLonLat(event.coordinate), destinationCoordinates[destinationCoordinates.length - 1]) < 200) {
     clearLayer(routeLayer);
     setExtraInfo([""]);
     destinationCoordinates = [];
-  } 
+  }
   else { // else push clicked coord do route
     destinationCoordinates.push(toLonLat(event.coordinate));
   }
@@ -626,49 +626,49 @@ map.on('contextmenu', function(event) {
     clearLayer(routeLayer);
     setExtraInfo([Math.round(getDistance(currentPostition, toLonLat(event.coordinate))) + " m"]);
     destinationCoordinates = [];
-  }else if (destinationCoordinates.length >= 2){
+  } else if (destinationCoordinates.length >= 2) {
     routeMe(destinationCoordinates);
   }
 });
 
 // store time of last interaction
-map.on('pointerdrag', function() {
+map.on('pointerdrag', function () {
   lastInteraction = new Date();
 });
 
 // checks url parameters and loads gpx file from url:
 var urlParams = window.location.href.split('?').pop().split('&');
 var enableLnt = urlParams.includes('Lnt');
-for (var i = 0; i < urlParams.length; i++){
+for (var i = 0; i < urlParams.length; i++) {
   console.log(decodeURIComponent(urlParams[i]));
   if (urlParams[i].includes(".gpx")) {
-    if (!urlParams[i].includes("http")){
+    if (!urlParams[i].includes("http")) {
       urlParams[i] = "https://jole84.se/rutter/" + urlParams[i];
     };
     var titleString = decodeURIComponent(urlParams[i].split('/').pop());
     document.title = documentTitle + " - " + titleString;
     setExtraInfo([titleString]);
     fetch(urlParams[i])
-    .then((response) => {
-      console.log(response);
-      return response.text();
-    }).then((response) => {
-      var gpxFeatures = new GPX().readFeatures(response, {
-        dataProjection:'EPSG:4326',
-        featureProjection: 'EPSG:3857'
+      .then((response) => {
+        console.log(response);
+        return response.text();
+      }).then((response) => {
+        var gpxFeatures = new GPX().readFeatures(response, {
+          dataProjection: 'EPSG:4326',
+          featureProjection: 'EPSG:3857'
+        });
+        gpxLayer.getSource().addFeatures(gpxFeatures);
       });
-      gpxLayer.getSource().addFeatures(gpxFeatures);
-    });
   } else if (urlParams[i].includes("switchMap")) {
     mapMode++;
   } else if (urlParams[i].includes("zoom=")) {
     defaultZoom = urlParams[i].split('=').pop();
-  } else if(urlParams[i].includes("mapMode=")) {
+  } else if (urlParams[i].includes("mapMode=")) {
     mapMode = urlParams[i].split('=').pop();
   } else if (urlParams[i].includes("info=")) {
     preferredFontSize = urlParams[i].split('=').pop();
   } else if (urlParams[i].includes("onunload")) {
-    window.onunload = window.onbeforeunload = function() {
+    window.onunload = window.onbeforeunload = function () {
       return "";
     };
   }
@@ -676,7 +676,7 @@ for (var i = 0; i < urlParams.length; i++){
 switchMap();
 
 // add keyboard controls
-document.addEventListener('keydown', function(event) {
+document.addEventListener('keydown', function (event) {
   const zoomStep = 0.5;
   if (event.key != 'a' && event.key != 'Escape') { // store time of last interaction
     lastInteraction = new Date();
@@ -709,7 +709,7 @@ var styleFunction = function (feature) {    //Function to determine style of ico
   return [new Style({
     image: new Icon(({
       anchor: [0.5, 0.5],
-      src: apiUrl + "icons/" + feature.get("iconId") + "?type=png32x32" 
+      src: apiUrl + "icons/" + feature.get("iconId") + "?type=png32x32"
     })),
     text: new Text({
       text: feature.get('name'),
@@ -742,10 +742,10 @@ function breakSentence(sentence) {
     x++;
   }
   return returnSentence;
-} 
+}
 
 $.ajaxSetup({
-    url: apiUrl + "data.json",
+  url: apiUrl + "data.json",
   error: function (msg) {
     if (msg.statusText == "abort") return;
   }
@@ -788,6 +788,29 @@ function getDeviations() {
           "</QUERY>" +
           "</REQUEST>";
           
+    "<QUERY objecttype='Situation' schemaversion='1.2'>" +
+    "<FILTER>" +
+    "<OR>" +
+    "<ELEMENTMATCH>" +
+    // "<WITHIN name='Deviation.Geometry.WGS84' shape='center' value='" + toLonLat(geolocation.getPosition()).join(' ') + "' radius='1' />" + 
+    "<EQ name='Deviation.ManagedCause' value='true' />" +
+    "<EQ name='Deviation.MessageType' value='Olycka' />" +
+    "</ELEMENTMATCH>" +
+    "<ELEMENTMATCH>" +
+    "<GTE name='Deviation.SeverityCode' value='5' />" +
+    "</ELEMENTMATCH>" +
+    "<ELEMENTMATCH>" +
+    "<EQ name='Deviation.IconId' value='roadClosed' />" +
+    "</ELEMENTMATCH>" +
+    "</OR>" +
+    "</FILTER>" +
+    "<INCLUDE>Deviation.Message</INCLUDE>" +
+    "<INCLUDE>Deviation.IconId</INCLUDE>" +
+    "<INCLUDE>Deviation.Geometry.WGS84</INCLUDE>" +
+    "<INCLUDE>Deviation.RoadNumber</INCLUDE>" +
+    "</QUERY>" +
+    "</REQUEST>";
+
   $.ajax({
     type: "POST",
     contentType: "text/xml",
@@ -800,8 +823,8 @@ function getDeviations() {
           var format = new WKT();
           var feature = new Feature({
             geometry: format.readGeometry(item.Deviation[0].Geometry.WGS84).transform("EPSG:4326", "EPSG:3857"),
-              name: breakSentence((item.Deviation[0].RoadNumber || 'Väg')+ ": " + (item.Deviation[0].Message)),
-              iconId: item.Deviation[0].IconId
+            name: breakSentence((item.Deviation[0].RoadNumber || 'Väg') + ": " + (item.Deviation[0].Message)),
+            iconId: item.Deviation[0].IconId
           });
           trafikLayer.getSource().addFeature(feature);
         });
