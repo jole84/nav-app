@@ -296,8 +296,8 @@ const geolocation = new Geolocation({
     enableHighAccuracy: true,
     timeout: 600000,
   },
+  tracking: true
 });
-geolocation.setTracking(true); // Start position tracking
 
 // runs when position changes
 let prevCoordinate = geolocation.getPosition();
@@ -424,27 +424,40 @@ function switchMap() {
   slitlagerkarta.setVisible(false);
   ortofoto.setVisible(false);
   topoweb.setVisible(false);
-  mapDiv.setAttribute(            "style", "-webkit-filter: initial;filter: initial;background-color: initial;");
+  mapDiv.setAttribute("style", "-webkit-filter: initial;filter: initial;background-color: initial;");
 
   if (mapMode == 0) { // mapMode 0: slitlagerkarta
     slitlagerkarta.setVisible(true);
+    if (enableLnt) {
+      slitlagerkarta.setMaxZoom(15);
+      ortofoto.setVisible(true);
+      ortofoto.setMinZoom(15);
+    }
   }
 
   else if (mapMode == 1) { // mapMode 1: slitlagerkarta_nedtonad
     slitlagerkarta_nedtonad.setVisible(true);
+    if (enableLnt) {
+      slitlagerkarta_nedtonad.setMaxZoom(15);
+      topoweb.setVisible(true);
+      topoweb.setMinZoom(15);
+    }
   }
   
   else if (mapMode == 2) { // mapMode 2: slitlagerkarta_nedtonad + night mode
-    slitlagerkarta_nedtonad.setVisible(true)
-    mapDiv.setAttribute(            "style", "filter: invert(1) hue-rotate(180deg);");
+    slitlagerkarta_nedtonad.setVisible(true);
+    slitlagerkarta_nedtonad.setMaxZoom(20);
+    mapDiv.setAttribute("style", "filter: invert(1) hue-rotate(180deg);");
   }
   
   else if (enableLnt && mapMode == 3) { // mapMode 3: ortofoto
     ortofoto.setVisible(true);
+    ortofoto.setMinZoom(6);
   } 
   
   else if (enableLnt && mapMode == 4) { // mapMode 4: topoweb
     topoweb.setVisible(true);
+    topoweb.setMinZoom(6);
   }
 
   mapMode++;
