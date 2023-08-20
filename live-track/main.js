@@ -438,9 +438,12 @@ function switchMap() {
   else if (mapMode == 1) { // mapMode 1: slitlagerkarta_nedtonad
     slitlagerkarta_nedtonad.setVisible(true);
     if (enableLnt) {
-      slitlagerkarta_nedtonad.setMaxZoom(15);
       topoweb.setVisible(true);
+      ortofoto.setVisible(true);
+      slitlagerkarta_nedtonad.setMaxZoom(15);
       topoweb.setMinZoom(15);
+      topoweb.setMaxZoom(18)
+      ortofoto.setMinZoom(18);
     }
   }
 
