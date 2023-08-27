@@ -214,7 +214,7 @@ function clearLayer(layerToClear) {
     layerToClear.getSource().removeFeature(feature);
   });
 }
-import { getLength } from 'ol/sphere';
+
 // gpx loader
 var gpxFormat = new GPX();
 var gpxFeatures;
