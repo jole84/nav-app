@@ -21,6 +21,7 @@ var removePositionButton = document.getElementById("removePositionButton");
 var addPositionButton = document.getElementById("addPositionButton");
 var saveRouteButton = document.getElementById("saveRouteButton");
 var savePoiButton = document.getElementById("savePoiButton");
+var switchMapButton = document.getElementById("switchMapButton");
 var savePoiNameButton = document.getElementById("savePoiNameButton");
 var showGPXdiv = document.getElementById("showGPXdiv");
 var infoDiv = document.getElementById("info");
@@ -35,6 +36,7 @@ const popupContainer = document.getElementById('popup');
 // const popupContent = document.getElementById('popup-content');
 const popupCloser = document.getElementById('popup-closer');
 
+switchMapButton.onclick = switchMap;
 saveRouteButton.onclick = route2gpx;
 customFileButton.addEventListener('change', handleFileSelect, false);
 document.getElementById("showGPX").addEventListener('change', function() {
@@ -91,14 +93,15 @@ var slitlagerkarta = new TileLayer({
   maxZoom: 16,
 });
 
-// var slitlagerkarta_nedtonad = new TileLayer({
-//   source: new XYZ({
-//     url: 'https://jole84.se/slitlagerkarta_nedtonad/{z}/{x}/{y}.jpg',
-//       minZoom: 6,
-//       maxZoom: 14,
-//   }),
-//   visible: false
-// });
+var slitlagerkarta_nedtonad = new TileLayer({
+  source: new XYZ({
+    url: 'https://jole84.se/slitlagerkarta_nedtonad/{z}/{x}/{y}.jpg',
+      minZoom: 6,
+      maxZoom: 14,
+  }),
+  maxZoom: 16,
+  visible: false
+});
 
 var ortofoto = new TileLayer({
   source: new TileWMS({
@@ -290,6 +293,7 @@ const map = new Map({
   target: 'map',
   layers: [
     slitlagerkarta,
+    slitlagerkarta_nedtonad,
     ortofoto,
     gpxLayer,
     routeLayer,
@@ -310,6 +314,17 @@ map.addInteraction(modify);
 modify.on('modifyend', function() {
   routeMe();
 })
+
+function switchMap() {
+  if (slitlagerkarta.getVisible()) {
+    slitlagerkarta.setVisible(false);
+    slitlagerkarta_nedtonad.setVisible(true);
+  }
+  else if (slitlagerkarta_nedtonad.getVisible()) {
+    slitlagerkarta.setVisible(true);
+    slitlagerkarta_nedtonad.setVisible(false);
+  }
+}
 
 function savePoiPopup() { // save POI function
   poiCoordinate = map.getView().getCenter();
