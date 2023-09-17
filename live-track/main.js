@@ -35,8 +35,6 @@ document.addEventListener('visibilitychange', async () => {
 });
 
 var center = fromLonLat([14.18, 57.786]);
-const documentTitle = "Live-track";
-document.title = documentTitle;
 var defaultZoom = 14;
 let distanceTraveled = 0;
 var lastInteraction = new Date() - 5000;
@@ -268,7 +266,6 @@ function handleFileSelect(evt) {
       gpxLayer.getSource().addFeatures(gpxFeatures);
     }
   }
-  document.title = fileNames[fileNames.length - 1] || documentTitle;
   setExtraInfo(fileNames);
   // reaquire wake lock again after file select
   acquireWakeLock();
@@ -649,7 +646,6 @@ for (var i = 0; i < urlParams.length; i++) {
       urlParams[i] = "https://jole84.se/rutter/" + urlParams[i];
     };
     var titleString = decodeURIComponent(urlParams[i].split('/').pop());
-    document.title = documentTitle + " - " + titleString;
     setExtraInfo([titleString]);
     fetch(urlParams[i])
       .then((response) => {
