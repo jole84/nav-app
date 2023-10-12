@@ -433,16 +433,18 @@ function removePosition(coordinate) {
 
 map.on('singleclick', function(event){
   var removedOne = false;
-  for (var i = 0; i < lineArray.length; i++) {
-    if (getDistance(toLonLat(event.coordinate), toLonLat(lineArray[i])) < 300) {
-      removePosition(event.coordinate);
-      removedOne = true;
-      break;
+  if (!touchFriendlyCheck.checked) {
+    for (var i = 0; i < lineArray.length; i++) {
+      if (getDistance(toLonLat(event.coordinate), toLonLat(lineArray[i])) < 300) {
+        removePosition(event.coordinate);
+        removedOne = true;
+        break;
+      }
     }
-  }
-
-  if (!touchFriendlyCheck.checked && !removedOne) {
-    addPosition(event.coordinate);
+  
+    if (!removedOne) {
+      addPosition(event.coordinate);
+    }
   }
 });
 
