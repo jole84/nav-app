@@ -24,6 +24,7 @@ var savePoiButton = document.getElementById("savePoiButton");
 var switchMapButton = document.getElementById("switchMapButton");
 var savePoiNameButton = document.getElementById("savePoiNameButton");
 var showGPXdiv = document.getElementById("showGPXdiv");
+var touchFriendlyCheck = document.getElementById("touchFriendlyCheck");
 var infoDiv = document.getElementById("info");
 var info2Div = document.getElementById("info2");
 var info3Div = document.getElementById("info3");
@@ -32,6 +33,7 @@ var fileNameInput = document.getElementById("fileNameInput");
 var gpxFormat = new GPX();
 var gpxFeatures;
 var trackLength;
+var poiCoordinate;
 const popupContainer = document.getElementById('popup');
 // const popupContent = document.getElementById('popup-content');
 const popupCloser = document.getElementById('popup-closer');
@@ -45,8 +47,6 @@ document.getElementById("showGPX").addEventListener('change', function() {
 savePoiButton.onclick = savePoiPopup;
 removePositionButton.onclick = removeLastMapCenter;
 addPositionButton.onclick = addPositionMapCenter;
-
-var poiCoordinate;
 
 window.onunload = window.onbeforeunload = function() {
   return "";
@@ -309,7 +309,6 @@ const keyboardPan = new KeyboardPan({pixelDelta: 64})
 map.addInteraction(keyboardPan);
 
 const modify = new Modify({source: vectorLayer.getSource()});
-map.addInteraction(modify);
 
 modify.on('modifyend', function() {
   routeMe();
@@ -332,10 +331,25 @@ function savePoiPopup() { // save POI function
   overlay.setPosition(poiCoordinate);
 }
 
+// touch check
 function isTouchDevice() {
   return (('ontouchstart' in window) ||
      (navigator.maxTouchPoints > 0) ||
      (navigator.msMaxTouchPoints > 0));
+}
+
+touchFriendlyCheck.addEventListener('change', function() {
+  if (touchFriendlyCheck.checked) {
+    map.removeInteraction(modify);
+  } else {
+    map.addInteraction(modify);
+  }
+});
+if (isTouchDevice()) {
+  touchFriendlyCheck.checked = true;
+} else {
+  document.getElementById('touchFriendly').style.display = 'none';
+  map.addInteraction(modify);
 }
 
 function addPositionMapCenter() {
@@ -427,7 +441,7 @@ map.on('singleclick', function(event){
     }
   }
 
-  if (!isTouchDevice() && !removedOne) {
+  if (!touchFriendlyCheck.checked && !removedOne) {
     addPosition(event.coordinate);
   }
 });
