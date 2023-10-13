@@ -462,9 +462,13 @@ function switchMap() {
 
   mapMode++;
 
-  if (enableLnt && mapMode > 4) {
-    mapMode = 0;
-  } else if (!enableLnt && mapMode > 2) {
+  // if (enableLnt && mapMode > 4) {
+  //   mapMode = 0;
+  // } else if (!enableLnt && mapMode > 2) {
+  //   mapMode = 0;
+  // }
+
+  if (mapMode > 2) {
     mapMode = 0;
   }
   infoGroup.style.fontSize = preferredFontSize;
