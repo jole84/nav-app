@@ -432,18 +432,26 @@ function removePosition(coordinate) {
 };
 
 map.on('singleclick', function(event){
-  var removedOne = false;
   if (!touchFriendlyCheck.checked) {
+    addPosition(event.coordinate);
+  }
+});
+
+map.on('contextmenu', function(event) {
+  if (!touchFriendlyCheck.checked) {
+    // remove waypoint
     for (var i = 0; i < lineArray.length; i++) {
       if (getDistance(toLonLat(event.coordinate), toLonLat(lineArray[i])) < 300) {
         removePosition(event.coordinate);
-        removedOne = true;
         break;
       }
     }
-  
-    if (!removedOne) {
-      addPosition(event.coordinate);
+    // remove poi
+    for (var i = 0; i < poiList.length; i++) {
+      if (getDistance(toLonLat(event.coordinate), poiList[i][0]) < 300) {
+        removePosition(event.coordinate);
+        break;
+      }
     }
   }
 });
@@ -580,8 +588,11 @@ document.addEventListener('keydown', function(event) {
   if (event.key == 's' && !overlay.getPosition()) {
     savePoiPopup();
   }
-  if (event.key == 'Escape' && !overlay.getPosition()) {
+  if ((event.key == 'Escape' || event.key == 'Delete') && !overlay.getPosition()) {
     removeLastMapCenter();
+  }
+  if (event.key == 'v' && !overlay.getPosition()) {
+    switchMap();
   }
 })
 
