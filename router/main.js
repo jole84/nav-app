@@ -213,7 +213,7 @@ const gpxStyle = {
       textAlign: 'left',
       offsetX: 10,
       fill: new Fill({
-        color: '#b41412',
+        color: 'blue'
       }),
       stroke: new Stroke({
         color: 'white',
@@ -309,6 +309,7 @@ const keyboardPan = new KeyboardPan({pixelDelta: 64})
 map.addInteraction(keyboardPan);
 
 const modify = new Modify({source: vectorLayer.getSource()});
+const modifypoi = new Modify({source: poiLayer.getSource()});
 
 modify.on('modifyend', function() {
   routeMe();
@@ -341,8 +342,10 @@ function isTouchDevice() {
 touchFriendlyCheck.addEventListener('change', function() {
   if (touchFriendlyCheck.checked) {
     map.removeInteraction(modify);
+    map.removeInteraction(modifypoi);
   } else {
     map.addInteraction(modify);
+    map.addInteraction(modifypoi);
   }
 });
 if (isTouchDevice()) {
@@ -350,6 +353,7 @@ if (isTouchDevice()) {
 } else {
   document.getElementById('touchFriendly').style.display = 'none';
   map.addInteraction(modify);
+  map.addInteraction(modifypoi);
 }
 
 function addPositionMapCenter() {
@@ -557,8 +561,22 @@ function route2gpx() {
     };
   }
 
-  else if (poiList.length >= 1) {
-    console.log(poiList);
+  else if (poiList.length >= 1) { // simple gpx file if no route is created
+    let gpxFile = `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<gpx version="1.1" creator="jole84 webapp">
+<metadata>
+  <desc>GPX log created by jole84 webapp</desc>
+</metadata>`;
+
+    for (var i = 0; i < poiList.length; i++) {
+      gpxFile +=`
+  <wpt lat="${poiList[i][0][1]}" lon="${poiList[i][0][0]}"><name>${poiList[i][1]}</name></wpt>`
+    }
+
+    gpxFile += 
+`
+</gpx>`;
+    console.log(gpxFile);
   }
 }
 
@@ -606,3 +624,14 @@ map.on("pointermove", function (evt) {
       this.getTargetElement().style.cursor = 'crosshair';
   }
 });
+
+modifypoi.addEventListener('modifyend', function() {
+  poiList = [];
+  poiLayer.getSource().getFeatures().forEach(function(feature) {
+    const fileName = feature.get('name');
+    const coordinate = toLonLat(feature.getGeometry().getCoordinates());
+    console.log(fileName, coordinate);
+    poiList.push([coordinate, fileName]);
+  })
+})
+
