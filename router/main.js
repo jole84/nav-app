@@ -206,7 +206,7 @@ const gpxStyle = {
   'Point': new Style({
     image: new Icon({
       anchor: [0.5, 1],
-      src: 'https://jole84.se/default-marker.png',
+      src: 'https://jole84.se/default-marker-blue.png',
     }),
     text: new Text({
       font: '14px Droid Sans Mono,monospace',
@@ -630,7 +630,6 @@ modifypoi.addEventListener('modifyend', function() {
   poiLayer.getSource().getFeatures().forEach(function(feature) {
     const fileName = feature.get('name');
     const coordinate = toLonLat(feature.getGeometry().getCoordinates());
-    console.log(fileName, coordinate);
     poiList.push([coordinate, fileName]);
   })
 })
