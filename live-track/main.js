@@ -65,7 +65,6 @@ const gpxStyle = {
   'Point': new Style({
     image: new Icon({
       anchor: [0.5, 1],
-      opacity: 0.85,
       src: 'https://jole84.se/poi-marker.svg',
     }),
     text: new Text({
@@ -106,7 +105,6 @@ const trackStyle = {
   'icon': new Style({
     image: new Icon({
       anchor: [0.5, 1],
-      opacity: 0.85,
       src: 'https://jole84.se/end-marker.svg',
     }),
   }),
