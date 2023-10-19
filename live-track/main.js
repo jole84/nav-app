@@ -65,7 +65,7 @@ const gpxStyle = {
   'Point': new Style({
     image: new Icon({
       anchor: [0.5, 1],
-      src: 'https://jole84.se/default-marker.png',
+      src: 'https://jole84.se/poi-marker.svg',
     }),
     text: new Text({
       font: '14px Droid Sans Mono,monospace',
@@ -103,15 +103,9 @@ const trackStyle = {
     }),
   }),
   'icon': new Style({
-    image: new Circle({
-      fill: new Fill({
-        color: 'rgba(255,0,0,0.5)',
-      }),
-      radius: 10,
-      stroke: new Stroke({
-        color: 'rgb(255,0,0)',
-        width: 2,
-      }),
+    image: new Icon({
+      anchor: [0.5, 1],
+      src: 'https://jole84.se/end-marker.svg',
     }),
   }),
 };

@@ -125,16 +125,22 @@ line.on('change', function() {
 })
 
 const trackStyle = {
+  'startPoint': new Style({
+    image: new Icon({
+      anchor: [0.5, 1],
+      src: 'https://jole84.se/start-marker.svg',
+    }),
+  }),
   'Point': new Style({
-    image: new Circle({
-      fill: new Fill({
-        color: 'rgba(0,0,255,0.4)',
-      }),
-      radius: 10,
-      stroke: new Stroke({
-        color: 'blue',
-        width: 2,
-      }),
+    image: new Icon({
+      anchor: [0.5, 1],
+      src: 'https://jole84.se/marker.svg',
+    }),
+  }),
+  'endPoint': new Style({
+    image: new Icon({
+      anchor: [0.5, 1],
+      src: 'https://jole84.se/end-marker.svg',
     }),
   }),
   'LineString': new Style({
@@ -150,55 +156,6 @@ const trackStyle = {
       color: [255, 0, 255, 0.6],
     }),
   }),
-  'endPoint': new Style({
-    image: new Circle({
-      fill: new Fill({
-        color: 'rgba(255,0,0,0.5)',
-      }),
-      radius: 10,
-      stroke: new Stroke({
-        color: 'rgb(255,0,0)',
-        width: 2,
-      }),
-    }),
-    text: new Text({
-      font: '14px Droid Sans Mono,monospace',
-      textAlign: 'left',
-      offsetX: 10,
-      fill: new Fill({
-        color: '#b41412',
-      }),
-      stroke: new Stroke({
-        color: 'white',
-        width: 4,
-      }),
-    }),
-  }),
-  'startPoint': new Style({
-    image: new Circle({
-      fill: new Fill({
-        color: 'rgba(0,255,0,0.5)',
-      }),
-      radius: 10,
-      stroke: new Stroke({
-        color: 'rgb(0,255,0)',
-        width: 2,
-      }),
-    }),
-    text: new Text({
-      font: '14px Droid Sans Mono,monospace',
-      text: "Start",
-      textAlign: 'left',
-      offsetX: 10,
-      fill: new Fill({
-        color: '#b41412',
-      }),
-      stroke: new Stroke({
-        color: 'white',
-        width: 4,
-      }),
-    }),
-  }),
 };
 trackStyle['MultiLineString'] = trackStyle['LineString'];
 
@@ -206,7 +163,7 @@ const gpxStyle = {
   'Point': new Style({
     image: new Icon({
       anchor: [0.5, 1],
-      src: 'https://jole84.se/default-marker-blue.png',
+      src: 'https://jole84.se/poi-marker-blue.svg',
     }),
     text: new Text({
       font: '14px Droid Sans Mono,monospace',
@@ -233,7 +190,6 @@ gpxStyle['MultiLineString'] = gpxStyle['LineString'];
 var routeLayer = new VectorLayer({
   source: new VectorSource(),
   style: function (feature) {
-    trackStyle['endPoint'].getText().setText(feature.get('text'));
     return trackStyle[feature.get('type')];
   },
 });
@@ -253,7 +209,7 @@ var poiLayer = new VectorLayer({
     return new Style({
       image: new Icon({
         anchor: [0.5, 1],
-        src: 'https://jole84.se/default-marker.png',
+        src: 'https://jole84.se/poi-marker.svg',
       }),
       text: new Text({
         text: feature.get('name'),
@@ -366,7 +322,7 @@ function removeLastMapCenter() {
 
 function addPosition(coordinate){
   const startMarker = new Feature({
-    type: 'Point',
+    type: 'startPoint',
     geometry: new Point(coordinate)
   });
   routeLayer.getSource().addFeature(startMarker);
@@ -506,13 +462,12 @@ function routeMe() {
 
         const startMarker = new Feature({
           type: 'startPoint',
-          geometry: new Point(route.getFirstCoordinate().splice(0,2)),
+          geometry: new Point(lineArray[0]),
         });
-        
+
         const endMarker = new Feature({
           type: 'endPoint',
-          text: lineArray.length.toString(),
-          geometry: new Point(route.getLastCoordinate().splice(0,2)),
+          geometry: new Point(lineArray[lineArray.length - 1]),
         });
 
         // remove previus route
@@ -523,8 +478,7 @@ function routeMe() {
         // add markers at waypoints
         for (var i = 1; i < lineArray.length - 1; i++) {
           const marker = new Feature({
-            type: 'endPoint',
-            text: (i + 1).toString(),
+            type: 'Point',
             geometry: new Point(lineArray[i])
           });
           routeLayer.getSource().addFeature(marker);
@@ -616,12 +570,14 @@ document.addEventListener('keydown', function(event) {
 
 map.on("pointermove", function (evt) {
   var hit = this.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
+    if (feature.get('type') != 'route') {
       return true;
+    }
   }); 
   if (hit) {
-      this.getTargetElement().style.cursor = 'pointer';
+    this.getTargetElement().style.cursor = 'pointer';
   } else {
-      this.getTargetElement().style.cursor = 'crosshair';
+    this.getTargetElement().style.cursor = 'crosshair';
   }
 });
 
