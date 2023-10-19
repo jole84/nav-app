@@ -28,9 +28,10 @@
       }
       .destinationButtons {
         position: absolute;
-        margin-top: -43px;
+        /* margin-top: -43px; */
         z-index: 10;
-        top: 50%;
+        /* top: 50%; */
+        bottom: 5px;
         right: 5px;
         text-align: right;
       }
@@ -40,12 +41,12 @@
         bottom: 5px;
         left: 5px;
       }
-      #savePoiButton {
+      /* #savePoiButton {
         position: absolute;
         bottom: 5px;
         right: 5px;
         z-index: 10;
-      }
+      } */
       #crosshair {
         pointer-events: none;
         font-size: 7em;
@@ -140,6 +141,11 @@
       #showGPXdiv {
         display: none;
       }
+      .btn-group-lg {
+        margin-bottom: 5px;
+        /* min-width: 100px;
+        min-height: 150px; */
+      }
     </style>
   </head>
   <body oncontextmenu="return false;">
@@ -160,17 +166,18 @@
         </div>
       </div>
       <div class="destinationButtons">
-        <div class="btn-group-vertical btn-group-lg" role="group" aria-label="Basic example" style="margin-bottom: 35px;">
+        <div class="btn-group-vertical btn-group-lg" role="group" aria-label="Basic example">
           <button class="btn btn-success" id="addPositionButton">+</button>
           <button class="btn btn-danger" id="removePositionButton">-</button>
         </div>
+        <br>
+        <button class="btn btn-danger" id="savePoiButton">spara<br>waypoint</button>
       </div>
       <div class="optionButtons">
         <button class="btn btn-warning" id="saveRouteButton">Exportera Rutt</button><br>
         <button class="btn btn-primary" id="switchMapButton">Växla karta</button>
         <label><input type="file" class="form-control" id="customFileButton" multiple accept=".gpx,application/gpx+xml"/></label>
       </div>
-      <button class="btn btn-danger" id="savePoiButton">spara<br>waypoint</button>
     </div>
   </div>
     <div id="popup" class="ol-popup">
