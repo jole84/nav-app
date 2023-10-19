@@ -128,18 +128,21 @@ const trackStyle = {
   'startPoint': new Style({
     image: new Icon({
       anchor: [0.5, 1],
+      opacity: 0.85,
       src: 'https://jole84.se/start-marker.svg',
     }),
   }),
   'Point': new Style({
     image: new Icon({
       anchor: [0.5, 1],
+      opacity: 0.85,
       src: 'https://jole84.se/marker.svg',
     }),
   }),
   'endPoint': new Style({
     image: new Icon({
       anchor: [0.5, 1],
+      opacity: 0.85,
       src: 'https://jole84.se/end-marker.svg',
     }),
   }),
@@ -163,6 +166,7 @@ const gpxStyle = {
   'Point': new Style({
     image: new Icon({
       anchor: [0.5, 1],
+      opacity: 0.85,
       src: 'https://jole84.se/poi-marker-blue.svg',
     }),
     text: new Text({
@@ -209,6 +213,7 @@ var poiLayer = new VectorLayer({
     return new Style({
       image: new Icon({
         anchor: [0.5, 1],
+        opacity: 0.85,
         src: 'https://jole84.se/poi-marker.svg',
       }),
       text: new Text({
