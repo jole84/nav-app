@@ -458,7 +458,7 @@ function routeMe() {
         // add route information to info box
         infoDiv.innerHTML = "Avstånd: " + trackLength.toFixed(2) + " km";
         info2Div.innerHTML = "Restid: " + new Date(0 + totalTime).toUTCString().toString().slice(16,25);
-        info3Div.innerHTML = "Ankomsttid: " + new Date(new Date().valueOf() + totalTime).toString().slice(16,25);
+        // info3Div.innerHTML = "Ankomsttid: " + new Date(new Date().valueOf() + totalTime).toString().slice(16,25);
 
         const routeFeature = new Feature({
           type: 'route',
