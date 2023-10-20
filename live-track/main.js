@@ -419,23 +419,19 @@ function switchMap() {
 
   if (mapMode == 0) { // mapMode 0: slitlagerkarta
     slitlagerkarta.setVisible(true);
-    if (enableLnt) {
-      slitlagerkarta.setMaxZoom(15);
-      ortofoto.setVisible(true);
-      ortofoto.setMinZoom(15);
-    }
+    ortofoto.setVisible(true);
+    slitlagerkarta.setMaxZoom(15);
+    ortofoto.setMinZoom(15);
   }
 
   else if (mapMode == 1) { // mapMode 1: slitlagerkarta_nedtonad
     slitlagerkarta_nedtonad.setVisible(true);
-    if (enableLnt) {
-      topoweb.setVisible(true);
-      ortofoto.setVisible(true);
-      slitlagerkarta_nedtonad.setMaxZoom(15);
-      topoweb.setMinZoom(15);
-      topoweb.setMaxZoom(18)
-      ortofoto.setMinZoom(18);
-    }
+    topoweb.setVisible(true);
+    ortofoto.setVisible(true);
+    slitlagerkarta_nedtonad.setMaxZoom(15);
+    topoweb.setMinZoom(15);
+    topoweb.setMaxZoom(18)
+    ortofoto.setMinZoom(18);
   }
 
   else if (mapMode == 2) { // mapMode 2: slitlagerkarta_nedtonad + night mode
@@ -456,15 +452,15 @@ function switchMap() {
 
   mapMode++;
 
-  // if (enableLnt && mapMode > 4) {
-  //   mapMode = 0;
-  // } else if (!enableLnt && mapMode > 2) {
-  //   mapMode = 0;
-  // }
-
-  if (mapMode > 2) {
+  if (enableLnt && mapMode > 4) {
+    mapMode = 0;
+  } else if (!enableLnt && mapMode > 2) {
     mapMode = 0;
   }
+
+  // if (mapMode > 2) {
+  //   mapMode = 0;
+  // }
   infoGroup.style.fontSize = preferredFontSize;
 };
 
