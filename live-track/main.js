@@ -146,19 +146,27 @@ var ortofoto = new TileLayer({
 });
 
 var topoweb = new TileLayer({
-  source: new WMTS({
-    url: 'https://minkarta.lantmateriet.se/map/topowebbcache',
-    layer: 'topowebb',
-    format: 'image/png',
-    matrixSet: "3857",
-    tileGrid: new WMTSTileGrid({
-      origin: [-20037508.342789, 20037508.342789],
-      resolutions: [156543.03392804097, 78271.51696402048, 39135.75848201024, 19567.87924100512, 9783.93962050256, 4891.96981025128, 2445.98490512564, 1222.99245256282, 611.49622628141, 305.748113140705, 152.8740565703525, 76.43702828517625, 38.21851414258813, 19.109257071294063, 9.554628535647032, 4.777314267823516, 2.388657133911758, 1.194328566955879],
-      matrixIds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
-    }),
+  source: new XYZ({
+    url: 'https://minkarta.lantmateriet.se/map/topowebbcache/?layer=topowebb&style=default&tilematrixset=3857&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix={z}&TileCol={x}&TileRow={y}',
+    maxZoom: 17,
   }),
   visible: false
 });
+
+// var topoweb = new TileLayer({
+//   source: new WMTS({
+//     url: 'https://minkarta.lantmateriet.se/map/topowebbcache',
+//     layer: 'topowebb',
+//     format: 'image/png',
+//     matrixSet: "3857",
+//     tileGrid: new WMTSTileGrid({
+//       origin: [-20037508.342789, 20037508.342789],
+//       resolutions: [156543.03392804097, 78271.51696402048, 39135.75848201024, 19567.87924100512, 9783.93962050256, 4891.96981025128, 2445.98490512564, 1222.99245256282, 611.49622628141, 305.748113140705, 152.8740565703525, 76.43702828517625, 38.21851414258813, 19.109257071294063, 9.554628535647032, 4.777314267823516, 2.388657133911758, 1.194328566955879],
+//       matrixIds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+//     }),
+//   }),
+//   visible: false
+// });
 
 var gpxLayer = new VectorLayer({
   source: new VectorSource(),
@@ -420,16 +428,16 @@ function switchMap() {
   if (mapMode == 0) { // mapMode 0: slitlagerkarta
     slitlagerkarta.setVisible(true);
     ortofoto.setVisible(true);
-    slitlagerkarta.setMaxZoom(15);
-    ortofoto.setMinZoom(15);
+    slitlagerkarta.setMaxZoom(16);
+    ortofoto.setMinZoom(16);
   }
 
   else if (mapMode == 1) { // mapMode 1: slitlagerkarta_nedtonad
     slitlagerkarta_nedtonad.setVisible(true);
     topoweb.setVisible(true);
     ortofoto.setVisible(true);
-    slitlagerkarta_nedtonad.setMaxZoom(15);
-    topoweb.setMinZoom(15);
+    slitlagerkarta_nedtonad.setMaxZoom(16);
+    topoweb.setMinZoom(16);
     topoweb.setMaxZoom(18)
     ortofoto.setMinZoom(18);
   }
