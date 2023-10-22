@@ -170,7 +170,7 @@ const gpxStyle = {
       src: 'https://jole84.se/poi-marker-blue.svg',
     }),
     text: new Text({
-      font: '14px Droid Sans Mono,monospace',
+      font: '14px Roboto,monospace',
       textAlign: 'left',
       offsetX: 10,
       fill: new Fill({
@@ -218,7 +218,7 @@ var poiLayer = new VectorLayer({
       }),
       text: new Text({
         text: feature.get('name'),
-        font: '14px Droid Sans Mono,monospace',
+        font: '14px Roboto,monospace',
         textAlign: 'left',
         offsetX: 10,
         fill: new Fill({

@@ -7,11 +7,9 @@ import LineString from 'ol/geom/LineString';
 import Geolocation from 'ol/Geolocation.js';
 import VectorSource from 'ol/source/Vector.js';
 import GPX from 'ol/format/GPX.js';
-import { Stroke, Style, Icon, Fill, Text, Circle } from 'ol/style.js';
+import { Stroke, Style, Icon, Fill, Text} from 'ol/style.js';
 import { Vector as VectorLayer } from 'ol/layer.js';
 import TileWMS from 'ol/source/TileWMS.js';
-import WMTS from 'ol/source/WMTS.js';
-import WMTSTileGrid from 'ol/tilegrid/WMTS.js';
 import Point from 'ol/geom/Point.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
 import WKT from 'ol/format/WKT.js';
@@ -68,7 +66,7 @@ const gpxStyle = {
       src: 'https://jole84.se/poi-marker.svg',
     }),
     text: new Text({
-      font: '14px Droid Sans Mono,monospace',
+      font: '14px Roboto,monospace',
       textAlign: 'left',
       offsetX: 10,
       fill: new Fill({
@@ -714,7 +712,7 @@ var styleFunction = function (feature) {    //Function to determine style of ico
     })),
     text: new Text({
       text: feature.get('name'),
-      font: 'bold 14px Droid Sans Mono,monospace',
+      font: 'bold 14px Roboto,monospace',
       textAlign: 'left',
       textBaseline: 'top',
       offsetX: 20,
