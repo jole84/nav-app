@@ -762,7 +762,6 @@ function getDeviations() {
   clearLayer(trafikLayer);
 
   var xmlRequest = "<REQUEST>" +
-    // Use your valid authenticationkey
     "<LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />" +
       "<QUERY objecttype='Situation' schemaversion='1.2'>" +
         "<FILTER>" +
@@ -780,34 +779,12 @@ function getDeviations() {
             "</ELEMENTMATCH>" +
           "</OR>" +
         "</FILTER>" +
-          "<INCLUDE>Deviation.Message</INCLUDE>" +
-          "<INCLUDE>Deviation.IconId</INCLUDE>" +
-          "<INCLUDE>Deviation.Geometry.WGS84</INCLUDE>" +
-          "<INCLUDE>Deviation.RoadNumber</INCLUDE>" +
-          "</QUERY>" +
-          "</REQUEST>";
-          
-    "<QUERY objecttype='Situation' schemaversion='1.2'>" +
-    "<FILTER>" +
-    "<OR>" +
-    "<ELEMENTMATCH>" +
-    // "<WITHIN name='Deviation.Geometry.WGS84' shape='center' value='" + toLonLat(geolocation.getPosition()).join(' ') + "' radius='1' />" + 
-    "<EQ name='Deviation.ManagedCause' value='true' />" +
-    "<EQ name='Deviation.MessageType' value='Olycka' />" +
-    "</ELEMENTMATCH>" +
-    "<ELEMENTMATCH>" +
-    "<GTE name='Deviation.SeverityCode' value='5' />" +
-    "</ELEMENTMATCH>" +
-    "<ELEMENTMATCH>" +
-    "<EQ name='Deviation.IconId' value='roadClosed' />" +
-    "</ELEMENTMATCH>" +
-    "</OR>" +
-    "</FILTER>" +
-    "<INCLUDE>Deviation.Message</INCLUDE>" +
-    "<INCLUDE>Deviation.IconId</INCLUDE>" +
-    "<INCLUDE>Deviation.Geometry.WGS84</INCLUDE>" +
-    "<INCLUDE>Deviation.RoadNumber</INCLUDE>" +
-    "</QUERY>" +
+        "<INCLUDE>Deviation.Message</INCLUDE>" +
+        "<INCLUDE>Deviation.IconId</INCLUDE>" +
+        "<INCLUDE>Deviation.Geometry.WGS84</INCLUDE>" +
+        "<INCLUDE>Deviation.RoadNumber</INCLUDE>" +
+        "<INCLUDE>Deviation.EndTime</INCLUDE>" +
+      "</QUERY>" +
     "</REQUEST>";
 
   $.ajax({
@@ -822,23 +799,20 @@ function getDeviations() {
           var format = new WKT();
           var feature = new Feature({
             geometry: format.readGeometry(item.Deviation[0].Geometry.WGS84).transform("EPSG:4326", "EPSG:3857"),
-            name: breakSentence((item.Deviation[0].RoadNumber || 'Väg') + ": " + (item.Deviation[0].Message)),
+            name: breakSentence((item.Deviation[0].RoadNumber || 'Väg') + ": " + 
+              (item.Deviation[0].Message)
+              // + " " + new Date(item.Deviation[0].EndTime).toLocaleTimeString().slice(0, 5)
+            ),
             iconId: item.Deviation[0].IconId
           });
           trafikLayer.getSource().addFeature(feature);
         });
       }
       catch (ex) { }
-    },
-    error: function (xhr, status, error) {
-      var err = status;
-    },
-    complete: function (xhr, status) {
-      var status = status;
     }
   });
 }
 
 getDeviations();
 
-setInterval(getDeviations, 60000);
+setInterval(getDeviations, 60000 * 5); // getDeviations 5 min intervall
