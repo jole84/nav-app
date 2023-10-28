@@ -156,7 +156,7 @@ const trackStyle = {
   'route': new Style({
     stroke: new Stroke({
       width: 10,
-      color: [255, 0, 255, 0.6],
+      color: [255, 0, 255, 0.4],
     }),
   }),
 };
