@@ -218,7 +218,7 @@ function handleFileSelect(evt) {
         featureProjection: 'EPSG:3857'
       });
       
-      if (files.length > 1) { // set random color if more than one file is loaded
+      if (files.length > 1) { // set random color if two or more files is loaded
         var color = [Math.floor(Math.random() * 200 + 56), Math.floor(Math.random() * 200 + 56), Math.floor(Math.random() * 200 + 56), 0.8]
         gpxFeatures.forEach(f => {
           f.setStyle(new Style({
@@ -229,6 +229,9 @@ function handleFileSelect(evt) {
             text: new Text({
               text: f.get('name'),
               font: 'bold 14px Roboto,monospace',
+              placement: 'line',
+              overflow: true,
+              repeat: 1000,
               fill: new Fill({
                 color: color,
               }),
