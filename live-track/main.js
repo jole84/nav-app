@@ -219,30 +219,32 @@ function handleFileSelect(evt) {
       });
       
       if (files.length > 1) { // set random color if more than one file is loaded
+        var color = [Math.floor(Math.random() * 200 + 56), Math.floor(Math.random() * 200 + 56), Math.floor(Math.random() * 200 + 56), 0.8]
         gpxFeatures.forEach(f => {
-          if (f.getGeometry().getType() == 'MultiLineString') {
-            var color = [Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), 0.8]
-            f.setStyle(new Style({
-              stroke: new Stroke({
+          f.setStyle(new Style({
+            stroke: new Stroke({
+              color: color,
+              width: 10
+            }),
+            text: new Text({
+              text: f.get('name'),
+              font: 'bold 14px Roboto,monospace',
+              fill: new Fill({
                 color: color,
-                width: 10
               }),
-              text: new Text({
-                text: f.get('name'),
-                font: 'bold 14px Roboto,monospace',
-                fill: new Fill({
-                  color: color,
-                }),
-                stroke: new Stroke({
-                  color: 'white',
-                  width: 4,
-                }),
+              stroke: new Stroke({
+                color: 'white',
+                width: 4,
               }),
-            }))
-          }
+            }),
+            image: new Icon({
+              anchor: [0.5, 1],
+              src: 'https://jole84.se/poi-marker.svg',
+            }),
+          }))
         })
       };
-      
+
       gpxLayer.getSource().addFeatures(gpxFeatures);
     }
   }
