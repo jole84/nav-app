@@ -555,7 +555,7 @@ function handleFileSelect(evt) {
       });
 
       if (files.length > 1) { // set random color if two or more files is loaded
-        var color = [Math.floor(Math.random() * 200 + 56), Math.floor(Math.random() * 200 + 56), Math.floor(Math.random() * 200 + 56), 0.6]
+        var color = [Math.floor(Math.random() * 255), Math.floor(Math.random() * 255), Math.floor(Math.random() * 255), 0.8]
         gpxFeatures.forEach(f => {
           f.setStyle(new Style({
             stroke: new Stroke({
@@ -566,7 +566,6 @@ function handleFileSelect(evt) {
               text: f.get('name'),
               font: 'bold 14px Roboto,monospace',
               placement: 'line',
-              overflow: true,
               repeat: 1000,
               fill: new Fill({
                 color: color,
