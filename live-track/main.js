@@ -543,6 +543,35 @@ function download(data, filename) {
     }, 0);
   }
 }
+var route = new GeoJSON();
+
+// map.on('singleclick', function(event) {
+//   var currentPosition = toLonLat(event.coordinate);
+//   var closestPointCoordinate = toLonLat(route.getClosestPoint(event.coordinate));
+//   var closestPointDistance = (getDistance(currentPosition, closestPointCoordinate));
+//   var routeLineCoord = route.getCoordinates();
+//   var distanceToPrevSeg;
+
+//   console.log("closest distance:" + closestPointDistance);
+
+//   for (var i = 0; i < routeLineCoord.length; i++) {
+//     var distanceToSeg = getDistance(toLonLat(routeLineCoord[i]), currentPosition);
+//     if (distanceToPrevSeg < distanceToSeg) {
+//       console.log("break")
+//       break;
+//     }
+//     console.log(distanceToSeg);
+//     distanceToPrevSeg = distanceToSeg;
+//   }
+
+//   route.forEachSegment(function(seg) {
+//     var distanceToSeg = getDistance(currentPosition, toLonLat(seg)) 
+//     console.log(distanceToSeg)
+//     if (distanceToSeg < closestPointDistance) {
+//       console.log("break")
+//     }
+//   })
+// })
 
 // brouter routing
 function routeMe(destinationCoordinates) {
@@ -558,7 +587,7 @@ function routeMe(destinationCoordinates) {
     '&profile=car-fast&alternativeidx=0&format=geojson'
   ).then(function (response) {
     response.json().then(function (result) {
-      const route = new GeoJSON().readFeature((result).features[0], {
+      route = new GeoJSON().readFeature((result).features[0], {
         dataProjection: 'EPSG:4326',
         featureProjection: 'EPSG:3857'
       }).getGeometry();
