@@ -151,21 +151,6 @@ var topoweb = new TileLayer({
   visible: false
 });
 
-// var topoweb = new TileLayer({
-//   source: new WMTS({
-//     url: 'https://minkarta.lantmateriet.se/map/topowebbcache',
-//     layer: 'topowebb',
-//     format: 'image/png',
-//     matrixSet: "3857",
-//     tileGrid: new WMTSTileGrid({
-//       origin: [-20037508.342789, 20037508.342789],
-//       resolutions: [156543.03392804097, 78271.51696402048, 39135.75848201024, 19567.87924100512, 9783.93962050256, 4891.96981025128, 2445.98490512564, 1222.99245256282, 611.49622628141, 305.748113140705, 152.8740565703525, 76.43702828517625, 38.21851414258813, 19.109257071294063, 9.554628535647032, 4.777314267823516, 2.388657133911758, 1.194328566955879],
-//       matrixIds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
-//     }),
-//   }),
-//   visible: false
-// });
-
 var gpxLayer = new VectorLayer({
   source: new VectorSource(),
   style: function (feature) {
@@ -232,37 +217,32 @@ function handleFileSelect(evt) {
         dataProjection: 'EPSG:4326',
         featureProjection: 'EPSG:3857'
       });
-      // if (files.length > 1) { // set random color if more than one file is loaded
-      //   gpxFeatures.forEach(f => {
-      //     f.setStyle(new Style({
-      //       stroke: new Stroke({
-      //         color: [Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), 0.8],
-      //         width: 10
-      //       }),
-      //     }));
-      //     f.getStyle().getText().setText(f.get('name'));
-      //   });
-      // };
-      // console.log(gpxFeatures[0].getGeometry().getCoordinates()[0][0]);
-      // console.log((getLength(gpxFeatures[0].getGeometry()) / 1000).toFixed(2));
-      // var coords = gpxFeatures[0].getGeometry().getCoordinates()[0];
-      // console.log(coords);
-      // console.log(coords.length);
-      // for (var i=0; i < coords.length - 1; i++) {
-      //   const distanceM = getDistance(toLonLat(coords[i]), toLonLat(coords[i+1])).toFixed(0) + "m";
-      //   const endMarker = new Feature({
-      //     name: distanceM,
-      //     type: 'point',
-      //     geometry: new Point(coords[i])
-      //   });
-      // gpxLayer.getSource().addFeature(endMarker);
-      // console.log(coords[i])
-      // }
-      // coords.forEach(function(coordinate) {
-      //   coordinate.pop();
-      //   coordinate.pop();
-      //   console.log(coordinate);
-      // })
+      
+      if (files.length > 1) { // set random color if more than one file is loaded
+        gpxFeatures.forEach(f => {
+          if (f.getGeometry().getType() == 'MultiLineString') {
+            var color = [Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), 0.8]
+            f.setStyle(new Style({
+              stroke: new Stroke({
+                color: color,
+                width: 10
+              }),
+              text: new Text({
+                text: f.get('name'),
+                font: 'bold 14px Roboto,monospace',
+                fill: new Fill({
+                  color: color,
+                }),
+                stroke: new Stroke({
+                  color: 'white',
+                  width: 4,
+                }),
+              }),
+            }))
+          }
+        })
+      };
+      
       gpxLayer.getSource().addFeatures(gpxFeatures);
     }
   }
