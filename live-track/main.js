@@ -14,6 +14,8 @@ import Point from 'ol/geom/Point.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
 import WKT from 'ol/format/WKT.js';
 import { getDistance } from 'ol/sphere';
+import OSM from 'ol/source/OSM.js';
+import {Attribution, defaults as defaultControls} from 'ol/control.js';
 
 let wakeLock;
 const acquireWakeLock = async () => {
@@ -56,7 +58,7 @@ const view = new View({
   minZoom: 6,
   maxZoom: 20,
   constrainRotation: false,
-  extent: [900000, 7200000, 2900000, 11000000]
+  // extent: [900000, 7200000, 2900000, 11000000]
 });
 
 const gpxStyle = {
@@ -113,6 +115,11 @@ var line = new LineString([]);
 var trackLine = new Feature({
   geometry: line,
 })
+
+var osm =  new TileLayer({
+  source: new OSM(),
+  visible: false
+});
 
 var slitlagerkarta = new TileLayer({
   source: new XYZ({
@@ -180,6 +187,7 @@ const map = new Map({
   layers: [
     slitlagerkarta,
     slitlagerkarta_nedtonad,
+    osm,
     ortofoto,
     topoweb,
     gpxLayer,
@@ -405,6 +413,7 @@ function switchMap() {
   slitlagerkarta.setVisible(false);
   ortofoto.setVisible(false);
   topoweb.setVisible(false);
+  osm.setVisible(false);
   mapDiv.setAttribute("style", "-webkit-filter: initial;filter: initial;background-color: initial;");
 
   if (mapMode == 0) { // mapMode 0: slitlagerkarta
@@ -430,9 +439,10 @@ function switchMap() {
     mapDiv.setAttribute("style", "filter: invert(1) hue-rotate(180deg);");
   }
 
-  else if (enableLnt && mapMode == 3) { // mapMode 3: ortofoto
-    ortofoto.setVisible(true);
-    ortofoto.setMinZoom(6);
+  else if (mapMode == 3) { // mapMode 3: Openstreetmap
+    osm.setVisible(true);
+    // ortofoto.setVisible(true);
+    // ortofoto.setMinZoom(6);
   }
 
   else if (enableLnt && mapMode == 4) { // mapMode 4: topoweb
@@ -444,7 +454,7 @@ function switchMap() {
 
   if (enableLnt && mapMode > 4) {
     mapMode = 0;
-  } else if (!enableLnt && mapMode > 2) {
+  } else if (!enableLnt && mapMode > 3) {
     mapMode = 0;
   }
 

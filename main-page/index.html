@@ -77,7 +77,7 @@
           <option value="terräng">Terrängkarta</option>
           <option value="vägkarta">Vägkarta</option>
           <option value="darkmode">Mörk vägkarta</option>
-          <option value="satellit">Satellit</option>
+          <option value="osm">OpenStreetMap</option>
           <option value="topografisk">Topografisk</option>
         </select><br>
           <label for="gpxUrl">Ladda GPX-fil automatiskt:</label>
@@ -135,7 +135,7 @@
 
         
         var newLinkUrl = linkUrl + '?';
-        if (karta.value == 'topografisk' || karta.value == 'satellit') {
+        if (karta.value == 'topografisk') {
           Lnt.checked = true;
         };
         
@@ -151,7 +151,7 @@
           newLinkUrl += '&mapMode=2';
         }
 
-        if (karta.value == 'satellit') {
+        if (karta.value == 'osm') {
           newLinkUrl += '&mapMode=3';
         }
         
