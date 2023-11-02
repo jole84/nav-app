@@ -423,13 +423,10 @@ map.on('singleclick', function(event){
 map.on('contextmenu', function(event) {
   map.forEachFeatureAtPixel(event.pixel, function(feature, layer) {
     if (feature.getGeometry().getType() == 'Point') {
-      if (feature.get('straight') == false) {
-        feature.set('straight', true);
-      } else {
-        feature.set('straight', false);
-      }
+      feature.set('straight', !feature.get('straight')); // boolean switch
     }
-  })
+  });
+
   routeMe()
   // if (!touchFriendlyCheck.checked) {
   //   // remove waypoint
@@ -471,9 +468,8 @@ function routeMe() {
   var brouterUrl = 'https://brouter.de/brouter' +
   // fetch('https://jole84.se:17777/brouter' +
   '?lonlats=' + coordsString.join('|') +
-  '&profile=car-fast&alternativeidx=0&format=geojson';
-
-  brouterUrl += '&straight=' + getStraightPoints();
+  '&profile=car-fast&alternativeidx=0&format=geojson' +
+  '&straight=' + getStraightPoints();
 
   if (lineArray.length >= 2) {
     fetch(brouterUrl
@@ -541,10 +537,9 @@ function route2gpx() {
   if (lineArray.length >= 2) {
     var brouterUrl = 'https://brouter.de/brouter?lonlats=' + coordsString.join('|') + 
     '&profile=car-fast&alternativeidx=0&format=gpx&trackname=Rutt_' + 
-    new Date().toLocaleDateString() + '_' + trackLength.toFixed(2) + 'km';
+    new Date().toLocaleDateString() + '_' + trackLength.toFixed(2) + 'km' +
+    '&straight=' + getStraightPoints();
     
-    brouterUrl += '&straight=' + getStraightPoints();
-
     if (poiList.length >= 1) {
       brouterUrl += '&pois=' + poiString.join('|');
     }
