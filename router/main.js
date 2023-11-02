@@ -120,10 +120,6 @@ var trackLine = new Feature({
   geometry: line,
 })
 
-line.on('change', function() {
-  lineArray = line.getCoordinates();
-})
-
 const trackStyle = {
   'startPoint': new Style({
     image: new Icon({
@@ -269,6 +265,33 @@ const map = new Map({
 const keyboardPan = new KeyboardPan({pixelDelta: 64})
 map.addInteraction(keyboardPan);
 
+var lineArrayStraight = [];
+
+line.on('change', function() {
+  lineArray = line.getCoordinates();
+
+  if (lineArray.length == 1) {
+    const startMarker = new Feature({
+      name: 0,
+      straight: false,
+      type: 'startPoint',
+      geometry: new Point(lineArray[0])
+    });
+    routeLayer.getSource().addFeature(startMarker);
+  }
+
+})
+
+// routeLayer.on('change', function() {
+//   routeLayer.getSource().forEachFeature(function(seg) {
+//     if (seg.getGeometry().getType() == 'Point') {
+//       lineArrayStraight[seg.get('name')] = seg.get('straight');
+//       console.log(seg.get('name'), seg.get('straight'));
+//     }
+//   })
+//   console.log(lineArrayStraight);
+// })
+
 const modify = new Modify({source: vectorLayer.getSource()});
 const modifypoi = new Modify({source: poiLayer.getSource()});
 
@@ -326,11 +349,6 @@ function removeLastMapCenter() {
 }
 
 function addPosition(coordinate){
-  const startMarker = new Feature({
-    type: 'startPoint',
-    geometry: new Point(coordinate)
-  });
-  routeLayer.getSource().addFeature(startMarker);
   line.appendCoordinate(coordinate);
   routeMe();
 };
@@ -365,6 +383,7 @@ function removePosition(coordinate) {
     if (getDistance(toLonLat(coordinate), toLonLat(lineArray[i])) < 300) {
       console.log(getDistance(toLonLat(coordinate), toLonLat(lineArray[i])))
       lineArray.splice(lineArray.indexOf(lineArray[i]), 1);
+      // lineArrayStraight.splice(lineArray.indexOf(lineArray[i]), 1);
       removedOne = true;
     }
   }
@@ -372,6 +391,7 @@ function removePosition(coordinate) {
   // if no wp < 300 m, remove last wp
   if (!removedOne && !removedPoi) {
     lineArray.pop();
+    // lineArrayStraight.pop();
   }
 
   // if only 1 wp, remove route and redraw startpoint
@@ -380,12 +400,6 @@ function removePosition(coordinate) {
     infoDiv.innerHTML = "";
     info2Div.innerHTML = "";
     info3Div.innerHTML = "";
-    
-    const startMarker = new Feature({
-      type: 'startPoint',
-      geometry: new Point(lineArray[0])
-    });
-    routeLayer.getSource().addFeature(startMarker);
   }
 
   if (lineArray.length == 0) {
@@ -403,6 +417,15 @@ map.on('singleclick', function(event){
 });
 
 map.on('contextmenu', function(event) {
+  // map.forEachFeatureAtPixel(event.pixel, function(feature, layer) {
+  //   if (feature.getGeometry().getType() == 'Point') {
+  //     if (feature.get('straight') == false) {
+  //       feature.set('straight', true);
+  //     } else {
+  //       feature.set('straight', false);
+  //     }
+  //   }
+  // })
   if (!touchFriendlyCheck.checked) {
     // remove waypoint
     for (var i = 0; i < lineArray.length; i++) {
@@ -458,38 +481,39 @@ function routeMe() {
         // add route information to info box
         infoDiv.innerHTML = "Avstånd: " + trackLength.toFixed(2) + " km";
         info2Div.innerHTML = "Restid: " + new Date(0 + totalTime).toUTCString().toString().slice(16,25);
-        // info3Div.innerHTML = "Ankomsttid: " + new Date(new Date().valueOf() + totalTime).toString().slice(16,25);
-
+        
         const routeFeature = new Feature({
           type: 'route',
           geometry: route,
         });
-
-        const startMarker = new Feature({
-          type: 'startPoint',
-          geometry: new Point(lineArray[0]),
-        });
-
-        const endMarker = new Feature({
-          type: 'endPoint',
-          geometry: new Point(lineArray[lineArray.length - 1]),
-        });
-
+        
         // remove previus route
         clearLayer(routeLayer);
         
         // finally add route to map
-        routeLayer.getSource().addFeatures([routeFeature, startMarker, endMarker]);
+        routeLayer.getSource().addFeatures([routeFeature]);
         // add markers at waypoints
-        for (var i = 1; i < lineArray.length - 1; i++) {
+        for (var i = 0; i < lineArray.length; i++) {
           const marker = new Feature({
-            type: 'Point',
+            name: i,
+            straight: (lineArrayStraight[i] || false),
+            type: getPointType(i),
             geometry: new Point(lineArray[i])
           });
           routeLayer.getSource().addFeature(marker);
         }
       });
     });
+  }
+}
+
+function getPointType(i) {
+  if (i == 0) {
+    return 'startPoint'
+  } else if (i == lineArray.length - 1) {
+    return 'endPoint'
+  } else {
+    return 'Point'
   }
 }
 
