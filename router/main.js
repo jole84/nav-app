@@ -265,11 +265,10 @@ const map = new Map({
 const keyboardPan = new KeyboardPan({pixelDelta: 64})
 map.addInteraction(keyboardPan);
 
-var lineArrayStraight = [];
 
 line.on('change', function() {
   lineArray = line.getCoordinates();
-
+  
   if (lineArray.length == 1) {
     const startMarker = new Feature({
       name: 0,
@@ -279,18 +278,25 @@ line.on('change', function() {
     });
     routeLayer.getSource().addFeature(startMarker);
   }
-
 })
 
-// routeLayer.on('change', function() {
-//   routeLayer.getSource().forEachFeature(function(seg) {
-//     if (seg.getGeometry().getType() == 'Point') {
-//       lineArrayStraight[seg.get('name')] = seg.get('straight');
-//       console.log(seg.get('name'), seg.get('straight'));
-//     }
-//   })
-//   console.log(lineArrayStraight);
-// })
+var lineArrayStraights = [];
+
+function getStraightPoints() {
+  lineArrayStraights = [];
+  routeLayer.getSource().forEachFeature(function(feature) {
+    if (feature.getGeometry().getType() == 'Point') {
+      lineArrayStraights[feature.get('name')] = feature.get('straight');
+    }
+  })
+  var straightPoints = [];
+  for (var i = 0; i < lineArrayStraights.length; i++) {
+    if (lineArrayStraights[i]) {
+      straightPoints.push(i);
+    }
+  }
+  return straightPoints.join(',');
+}
 
 const modify = new Modify({source: vectorLayer.getSource()});
 const modifypoi = new Modify({source: poiLayer.getSource()});
@@ -383,7 +389,6 @@ function removePosition(coordinate) {
     if (getDistance(toLonLat(coordinate), toLonLat(lineArray[i])) < 300) {
       console.log(getDistance(toLonLat(coordinate), toLonLat(lineArray[i])))
       lineArray.splice(lineArray.indexOf(lineArray[i]), 1);
-      // lineArrayStraight.splice(lineArray.indexOf(lineArray[i]), 1);
       removedOne = true;
     }
   }
@@ -391,7 +396,6 @@ function removePosition(coordinate) {
   // if no wp < 300 m, remove last wp
   if (!removedOne && !removedPoi) {
     lineArray.pop();
-    // lineArrayStraight.pop();
   }
 
   // if only 1 wp, remove route and redraw startpoint
@@ -417,31 +421,32 @@ map.on('singleclick', function(event){
 });
 
 map.on('contextmenu', function(event) {
-  // map.forEachFeatureAtPixel(event.pixel, function(feature, layer) {
-  //   if (feature.getGeometry().getType() == 'Point') {
-  //     if (feature.get('straight') == false) {
-  //       feature.set('straight', true);
-  //     } else {
-  //       feature.set('straight', false);
+  map.forEachFeatureAtPixel(event.pixel, function(feature, layer) {
+    if (feature.getGeometry().getType() == 'Point') {
+      if (feature.get('straight') == false) {
+        feature.set('straight', true);
+      } else {
+        feature.set('straight', false);
+      }
+    }
+  })
+  routeMe()
+  // if (!touchFriendlyCheck.checked) {
+  //   // remove waypoint
+  //   for (var i = 0; i < lineArray.length; i++) {
+  //     if (getDistance(toLonLat(event.coordinate), toLonLat(lineArray[i])) < 300) {
+  //       removePosition(event.coordinate);
+  //       break;
   //     }
   //   }
-  // })
-  if (!touchFriendlyCheck.checked) {
-    // remove waypoint
-    for (var i = 0; i < lineArray.length; i++) {
-      if (getDistance(toLonLat(event.coordinate), toLonLat(lineArray[i])) < 300) {
-        removePosition(event.coordinate);
-        break;
-      }
-    }
-    // remove poi
-    for (var i = 0; i < poiList.length; i++) {
-      if (getDistance(toLonLat(event.coordinate), poiList[i][0]) < 300) {
-        removePosition(event.coordinate);
-        break;
-      }
-    }
-  }
+  //   // remove poi
+  //   for (var i = 0; i < poiList.length; i++) {
+  //     if (getDistance(toLonLat(event.coordinate), poiList[i][0]) < 300) {
+  //       removePosition(event.coordinate);
+  //       break;
+  //     }
+  //   }
+  // }
 });
 
 var centerCoordinate;
@@ -459,15 +464,19 @@ function clearLayer(layerToClear) {
 }
 
 function routeMe() {
+  var coordsString = [];
+  for (var i = 0; i < lineArray.length; i++) {
+    coordsString.push(toLonLat(lineArray[i]))
+  }
+  var brouterUrl = 'https://brouter.de/brouter' +
+  // fetch('https://jole84.se:17777/brouter' +
+  '?lonlats=' + coordsString.join('|') +
+  '&profile=car-fast&alternativeidx=0&format=geojson';
+
+  brouterUrl += '&straight=' + getStraightPoints();
+
   if (lineArray.length >= 2) {
-    var coordsString = [];
-    for (var i = 0; i < lineArray.length; i++) {
-      coordsString.push(toLonLat(lineArray[i]))
-    }
-    fetch('https://brouter.de/brouter' +
-    // fetch('https://jole84.se:17777/brouter' +
-    '?lonlats=' + coordsString.join('|') +
-    '&profile=car-fast&alternativeidx=0&format=geojson'
+    fetch(brouterUrl
     ).then(function (response) {
       response.json().then(function (result) {
         const route = new GeoJSON().readFeature((result).features[0], {
@@ -496,7 +505,7 @@ function routeMe() {
         for (var i = 0; i < lineArray.length; i++) {
           const marker = new Feature({
             name: i,
-            straight: (lineArrayStraight[i] || false),
+            straight: (lineArrayStraights[i] || false),
             type: getPointType(i),
             geometry: new Point(lineArray[i])
           });
@@ -534,6 +543,8 @@ function route2gpx() {
     '&profile=car-fast&alternativeidx=0&format=gpx&trackname=Rutt_' + 
     new Date().toLocaleDateString() + '_' + trackLength.toFixed(2) + 'km';
     
+    brouterUrl += '&straight=' + getStraightPoints();
+
     if (poiList.length >= 1) {
       brouterUrl += '&pois=' + poiString.join('|');
     }
