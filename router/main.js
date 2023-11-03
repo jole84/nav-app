@@ -45,8 +45,8 @@ document.getElementById("showGPX").addEventListener('change', function() {
   gpxLayer.setVisible(showGPX.checked);
 });
 savePoiButton.onclick = savePoiPopup;
-removePositionButton.onclick = removeLastMapCenter;
-addPositionButton.onclick = addPositionMapCenter;
+removePositionButton.onclick = removePosition;
+addPositionButton.onclick = addPosition;
 
 window.onunload = window.onbeforeunload = function() {
   return "";
@@ -353,16 +353,8 @@ if (isTouchDevice()) {
   map.addInteraction(modifypoi);
 }
 
-function addPositionMapCenter() {
-  addPosition(map.getView().getCenter());
-}
-
-function removeLastMapCenter() {
-  removePosition(map.getView().getCenter());
-}
-
 function addPosition(coordinate){
-  line.appendCoordinate(coordinate);
+  line.appendCoordinate(coordinate || map.getView().getCenter());
   routeMe();
 };
 
@@ -372,7 +364,7 @@ function removePosition(coordinate) {
 
   // remove poi
   for (var i = 0; i < poiList.length; i++) {
-    if (getDistance(toLonLat(coordinate), poiList[i][0]) < 300) {
+    if (getDistance(toLonLat(coordinate || map.getView().getCenter()), poiList[i][0]) < 300) {
       poiList.splice(poiList.indexOf(poiList[i]), 1);
       removedPoi = true;
       clearLayer(poiLayer);
@@ -387,8 +379,8 @@ function removePosition(coordinate) {
 
   // removes wp if less than 300 m
   for (var i = 0; i < lineArray.length; i++) {
-    if (getDistance(toLonLat(coordinate), toLonLat(lineArray[i])) < 300) {
-      console.log(getDistance(toLonLat(coordinate), toLonLat(lineArray[i])))
+    if (getDistance(toLonLat(coordinate || map.getView().getCenter()), toLonLat(lineArray[i])) < 300) {
+      console.log(getDistance(toLonLat(coordinate || map.getView().getCenter()), toLonLat(lineArray[i])))
       lineArray.splice(lineArray.indexOf(lineArray[i]), 1);
       removedOne = true;
     }
@@ -622,13 +614,13 @@ function handleFileSelect(evt) {
 
 document.addEventListener('keydown', function(event) {
   if (event.key == 'a' && !overlay.getPosition()) {
-    addPositionMapCenter();
+    addPosition();
   }
   if (event.key == 's' && !overlay.getPosition()) {
     savePoiPopup();
   }
   if ((event.key == 'Escape' || event.key == 'Delete') && !overlay.getPosition()) {
-    removeLastMapCenter();
+    removePosition();
   }
   if (event.key == 'v' && !overlay.getPosition()) {
     switchMap();
