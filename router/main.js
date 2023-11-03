@@ -95,6 +95,7 @@ var slitlagerkarta = new TileLayer({
     url: 'https://jole84.se/slitlagerkarta/{z}/{x}/{y}.jpg',
       minZoom: 6,
       maxZoom: 14,
+      zDirection: -1
   }),
   maxZoom: 16,
 });
@@ -104,6 +105,7 @@ var slitlagerkarta_nedtonad = new TileLayer({
     url: 'https://jole84.se/slitlagerkarta_nedtonad/{z}/{x}/{y}.jpg',
       minZoom: 6,
       maxZoom: 14,
+      zDirection: -1
   }),
   maxZoom: 16,
   visible: false
