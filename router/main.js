@@ -97,7 +97,7 @@ var slitlagerkarta = new TileLayer({
       maxZoom: 14,
       zDirection: -1
   }),
-  maxZoom: 15.5,
+  maxZoom: 16,
 });
 
 var slitlagerkarta_nedtonad = new TileLayer({
@@ -107,7 +107,7 @@ var slitlagerkarta_nedtonad = new TileLayer({
       maxZoom: 14,
       zDirection: -1
   }),
-  maxZoom: 15.5,
+  maxZoom: 16,
   visible: false
 });
 
@@ -119,7 +119,7 @@ var ortofoto = new TileLayer({
       'TILED': true,
     },
   }),
-  minZoom: 15.5
+  minZoom: 16
 });
 
 var lineArray = [];
