@@ -75,14 +75,20 @@ savePoiNameButton.onclick = function() {
   poiList.push([coordinate, fileName]);
   overlay.setPosition(undefined);
   popupCloser.blur();
-
-  const poiMarker = new Feature({
-    name: fileNameInput.value,
-    geometry: new Point(poiCoordinate)
-  });
-  poiLayer.getSource().addFeature(poiMarker);
+  drawPoiLayer();
   return false;
 };
+
+function drawPoiLayer() {
+  for (var i = 0; i < poiList.length; i++) {
+    const poiMarker = new Feature({
+      routeFeature: true,
+      name: poiList[i][1],
+      geometry: new Point(fromLonLat(poiList[i][0]))
+    });
+    poiLayer.getSource().addFeature(poiMarker);
+  }
+}
 
 var slitlagerkarta = new TileLayer({
   source: new XYZ({
@@ -117,6 +123,7 @@ var ortofoto = new TileLayer({
 var lineArray = [];
 var line = new LineString([]);
 var trackLine = new Feature({
+  routeFeature: true,
   geometry: line,
 })
 
@@ -375,13 +382,7 @@ function removePosition(coordinate) {
   
   // redraw poi layer
   if (removedPoi) {
-    for (var i = 0; i < poiList.length; i++) {
-      const poiMarker = new Feature({
-        name: poiList[i][1],
-        geometry: new Point(fromLonLat(poiList[i][0]))
-      });
-      poiLayer.getSource().addFeature(poiMarker);
-    }
+    drawPoiLayer();
   }
 
   // removes wp if less than 300 m
@@ -427,7 +428,7 @@ map.on('contextmenu', function(event) {
     }
   });
 
-  routeMe()
+  routeMe();
   // if (!touchFriendlyCheck.checked) {
   //   // remove waypoint
   //   for (var i = 0; i < lineArray.length; i++) {
@@ -487,7 +488,7 @@ function routeMe() {
         infoDiv.innerHTML = "Avstånd: " + trackLength.toFixed(2) + " km";
         info2Div.innerHTML = "Restid: " + new Date(0 + totalTime).toUTCString().toString().slice(16,25);
         
-        const routeFeature = new Feature({
+        const routeGeometry = new Feature({
           type: 'route',
           geometry: route,
         });
@@ -496,10 +497,11 @@ function routeMe() {
         clearLayer(routeLayer);
         
         // finally add route to map
-        routeLayer.getSource().addFeatures([routeFeature]);
+        routeLayer.getSource().addFeatures([routeGeometry]);
         // add markers at waypoints
         for (var i = 0; i < lineArray.length; i++) {
           const marker = new Feature({
+            routeFeature: true,
             name: i,
             straight: (lineArrayStraights[i] || false),
             type: getPointType(i),
@@ -525,7 +527,7 @@ function getPointType(i) {
 function route2gpx() {
   var poiString = [];
   for (var i = 0; i < poiList.length; i++) {
-    poiString.push((poiList[i][0]) + "," + poiList[i][1]);
+    poiString.push(poiList[i].join(','));
   }
 
   var coordsString = [];
@@ -635,7 +637,7 @@ document.addEventListener('keydown', function(event) {
 
 map.on("pointermove", function (evt) {
   var hit = this.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
-    if (feature.get('type') != 'route') {
+    if (feature.get('routeFeature')) {
       return true;
     }
   }); 
