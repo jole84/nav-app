@@ -419,18 +419,18 @@ function switchMap() {
   if (mapMode == 0) { // mapMode 0: slitlagerkarta
     slitlagerkarta.setVisible(true);
     ortofoto.setVisible(true);
-    slitlagerkarta.setMaxZoom(16);
-    ortofoto.setMinZoom(16);
+    slitlagerkarta.setMaxZoom(15.5);
+    ortofoto.setMinZoom(15.5);
   }
 
   else if (mapMode == 1) { // mapMode 1: slitlagerkarta_nedtonad
     slitlagerkarta_nedtonad.setVisible(true);
     topoweb.setVisible(true);
     ortofoto.setVisible(true);
-    slitlagerkarta_nedtonad.setMaxZoom(16);
-    topoweb.setMinZoom(16);
-    topoweb.setMaxZoom(18)
-    ortofoto.setMinZoom(18);
+    slitlagerkarta_nedtonad.setMaxZoom(15.5);
+    topoweb.setMinZoom(15.5);
+    topoweb.setMaxZoom(17.5)
+    ortofoto.setMinZoom(17.5);
   }
 
   else if (mapMode == 2) { // mapMode 2: slitlagerkarta_nedtonad + night mode
