@@ -14,8 +14,7 @@ import Point from "ol/geom/Point.js";
 import GeoJSON from "ol/format/GeoJSON.js";
 import WKT from "ol/format/WKT.js";
 import { getDistance } from "ol/sphere";
-import OSM from "ol/source/OSM.js";
-import { Attribution, defaults as defaultControls } from "ol/control.js";
+import MapboxVectorLayer from "ol/layer/MapboxVector";
 
 let wakeLock;
 const acquireWakeLock = async () => {
@@ -115,8 +114,6 @@ var line = new LineString([]);
 var trackLine = new Feature({
   geometry: line,
 });
-
-import MapboxVectorLayer from "ol/layer/MapboxVector";
 
 var osm = new MapboxVectorLayer({
   // styleUrl: "mapbox://styles/tryckluft/clk5f1a6p005l01nwe09ee3v3",
