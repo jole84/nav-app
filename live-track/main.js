@@ -119,8 +119,8 @@ var trackLine = new Feature({
 import MapboxVectorLayer from "ol/layer/MapboxVector";
 
 var osm = new MapboxVectorLayer({
-  styleUrl: "mapbox://styles/tryckluft/clk5f1a6p005l01nwe09ee3v3",
-  // styleUrl: "mapbox://styles/mapbox/streets-v12",
+  // styleUrl: "mapbox://styles/tryckluft/clk5f1a6p005l01nwe09ee3v3",
+  styleUrl: "mapbox://styles/mapbox/streets-v12",
   accessToken:
     "pk.eyJ1IjoidHJ5Y2tsdWZ0IiwiYSI6ImNrcTU1YTIzeTFlem8yd3A4MXRsMTZreWQifQ.lI612CDqRgWujJDv6zlBqw",
 });
