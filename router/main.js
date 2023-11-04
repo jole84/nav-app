@@ -505,7 +505,7 @@ function routeMe() {
         clearLayer(routeLineLayer);
         
         // finally add route to map
-        routeLineLayer.getSource().addFeatures([routeGeometry]);
+        routeLineLayer.getSource().addFeature(routeGeometry);
       });
     });
   }
