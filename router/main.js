@@ -80,6 +80,7 @@ savePoiNameButton.onclick = function() {
 };
 
 function drawPoiLayer() {
+  clearLayer(poiLayer);
   for (var i = 0; i < poiList.length; i++) {
     const poiMarker = new Feature({
       routeFeature: true,
@@ -123,10 +124,11 @@ var ortofoto = new TileLayer({
 });
 
 var lineArray = [];
-var line = new LineString([]);
+var lineStringGeometry = new LineString([]);
 var trackLine = new Feature({
+  type: 'trackLine',
   routeFeature: true,
-  geometry: line,
+  geometry: lineStringGeometry,
 })
 
 const trackStyle = {
@@ -137,7 +139,7 @@ const trackStyle = {
       src: 'https://jole84.se/start-marker.svg',
     }),
   }),
-  'Point': new Style({
+  'midPoint': new Style({
     image: new Icon({
       anchor: [0.5, 1],
       opacity: 0.85,
@@ -151,7 +153,7 @@ const trackStyle = {
       src: 'https://jole84.se/end-marker.svg',
     }),
   }),
-  'LineString': new Style({
+  'trackLine': new Style({
     stroke: new Stroke({
       color: [255, 0, 0, 0.6],
       lineDash: [20],
@@ -196,19 +198,26 @@ const gpxStyle = {
 };
 gpxStyle['MultiLineString'] = gpxStyle['LineString'];
 
-var routeLayer = new VectorLayer({
+var routeLineLayer = new VectorLayer({
   source: new VectorSource(),
   style: function (feature) {
     return trackStyle[feature.get('type')];
   },
 });
 
-var vectorLayer = new VectorLayer({
+var trackLineLayer = new VectorLayer({
   source: new VectorSource({
     features: [trackLine],
   }),
   style: function (feature) {
-    return trackStyle[feature.getGeometry().getType()];
+    return trackStyle[feature.get('type')];
+  },
+});
+
+var trackPoints = new VectorLayer({
+  source: new VectorSource(),
+  style: function (feature) {
+    return trackStyle[feature.get('type')];
   },
 });
 
@@ -262,8 +271,9 @@ const map = new Map({
     slitlagerkarta_nedtonad,
     ortofoto,
     gpxLayer,
-    routeLayer,
-    vectorLayer,
+    routeLineLayer,
+    trackLineLayer,
+    trackPoints,
     poiLayer
   ],
   view: view,
@@ -274,26 +284,11 @@ const map = new Map({
 const keyboardPan = new KeyboardPan({pixelDelta: 64})
 map.addInteraction(keyboardPan);
 
-
-line.on('change', function() {
-  lineArray = line.getCoordinates();
-  
-  if (lineArray.length == 1) {
-    const startMarker = new Feature({
-      name: 0,
-      straight: false,
-      type: 'startPoint',
-      geometry: new Point(lineArray[0])
-    });
-    routeLayer.getSource().addFeature(startMarker);
-  }
-})
-
 var lineArrayStraights = [];
 
 function getStraightPoints() {
   lineArrayStraights = [];
-  routeLayer.getSource().forEachFeature(function(feature) {
+  trackPoints.getSource().forEachFeature(function(feature) {
     if (feature.getGeometry().getType() == 'Point') {
       lineArrayStraights[feature.get('name')] = feature.get('straight');
     }
@@ -307,10 +302,27 @@ function getStraightPoints() {
   return straightPoints.join(',');
 }
 
-const modify = new Modify({source: vectorLayer.getSource()});
+const modify = new Modify({source: trackLineLayer.getSource()});
 const modifypoi = new Modify({source: poiLayer.getSource()});
 
+lineStringGeometry.on('change', function() {
+  lineArray = lineStringGeometry.getCoordinates();
+  clearLayer(trackPoints);
+  // add markers at waypoints
+  for (var i = 0; i < lineArray.length; i++) {
+    const marker = new Feature({
+      routeFeature: true,
+      name: i,
+      straight: (lineArrayStraights[i] || false),
+      type: getPointType(i),
+      geometry: new Point(lineArray[i])
+    });
+    trackPoints.getSource().addFeature(marker);
+  }
+})
+
 modify.on('modifyend', function() {
+  lineStringGeometry.setCoordinates(lineArray);
   routeMe();
 })
 
@@ -364,7 +376,7 @@ function removeLastMapCenter() {
 }
 
 function addPosition(coordinate){
-  line.appendCoordinate(coordinate);
+  lineStringGeometry.appendCoordinate(coordinate);
   routeMe();
 };
 
@@ -377,7 +389,6 @@ function removePosition(coordinate) {
     if (getDistance(toLonLat(coordinate), poiList[i][0]) < 300) {
       poiList.splice(poiList.indexOf(poiList[i]), 1);
       removedPoi = true;
-      clearLayer(poiLayer);
       break;
     }
   }
@@ -403,17 +414,13 @@ function removePosition(coordinate) {
 
   // if only 1 wp, remove route and redraw startpoint
   if (lineArray.length == 1) {
-    clearLayer(routeLayer);
+    clearLayer(routeLineLayer);
     infoDiv.innerHTML = "";
     info2Div.innerHTML = "";
     info3Div.innerHTML = "";
   }
 
-  if (lineArray.length == 0) {
-    clearLayer(routeLayer);
-  }
-
-  line.setCoordinates(lineArray);
+  lineStringGeometry.setCoordinates(lineArray);
   routeMe();
 };
 
@@ -469,7 +476,6 @@ function routeMe() {
     coordsString.push(toLonLat(lineArray[i]))
   }
   var brouterUrl = 'https://brouter.de/brouter' +
-  // fetch('https://jole84.se:17777/brouter' +
   '?lonlats=' + coordsString.join('|') +
   '&profile=car-fast&alternativeidx=0&format=geojson' +
   '&straight=' + getStraightPoints();
@@ -496,21 +502,10 @@ function routeMe() {
         });
         
         // remove previus route
-        clearLayer(routeLayer);
+        clearLayer(routeLineLayer);
         
         // finally add route to map
-        routeLayer.getSource().addFeatures([routeGeometry]);
-        // add markers at waypoints
-        for (var i = 0; i < lineArray.length; i++) {
-          const marker = new Feature({
-            routeFeature: true,
-            name: i,
-            straight: (lineArrayStraights[i] || false),
-            type: getPointType(i),
-            geometry: new Point(lineArray[i])
-          });
-          routeLayer.getSource().addFeature(marker);
-        }
+        routeLineLayer.getSource().addFeatures([routeGeometry]);
       });
     });
   }
@@ -522,7 +517,7 @@ function getPointType(i) {
   } else if (i == lineArray.length - 1) {
     return 'endPoint'
   } else {
-    return 'Point'
+    return 'midPoint'
   }
 }
 
@@ -611,7 +606,8 @@ function handleFileSelect(evt) {
             }),
             image: new Icon({
               anchor: [0.5, 1],
-              src: 'https://jole84.se/poi-marker.svg',
+              color: color,
+              src: 'https://jole84.se/white-marker.svg',
             }),
           }))
         })
@@ -623,17 +619,19 @@ function handleFileSelect(evt) {
 }
 
 document.addEventListener('keydown', function(event) {
-  if (event.key == 'a' && !overlay.getPosition()) {
-    addPositionMapCenter();
-  }
-  if (event.key == 's' && !overlay.getPosition()) {
-    savePoiPopup();
-  }
-  if ((event.key == 'Escape' || event.key == 'Delete') && !overlay.getPosition()) {
-    removeLastMapCenter();
-  }
-  if (event.key == 'v' && !overlay.getPosition()) {
-    switchMap();
+  if (!overlay.getPosition()) { 
+    if (event.key == 'a') {
+      addPositionMapCenter();
+    }
+    if (event.key == 's') {
+      savePoiPopup();
+    }
+    if ((event.key == 'Escape' || event.key == 'Delete')) {
+      removeLastMapCenter();
+    }
+    if (event.key == 'v') {
+      switchMap();
+    }
   }
 })
 
