@@ -1,21 +1,21 @@
-import './style.css';
-import {Feature, Map, View} from 'ol';
-import TileLayer from 'ol/layer/Tile';
-import XYZ from 'ol/source/XYZ.js';
-import {fromLonLat, toLonLat} from 'ol/proj.js';
-import VectorSource from 'ol/source/Vector.js';
-import {Stroke, Style, Icon, Fill, Text, Circle} from 'ol/style.js';
-import {Vector as VectorLayer} from 'ol/layer.js';
-import LineString from 'ol/geom/LineString';
-import Point from 'ol/geom/Point.js';
-import Overlay from 'ol/Overlay.js';
-import {Modify} from 'ol/interaction.js';
-import GeoJSON from 'ol/format/GeoJSON.js';
-import KeyboardPan from 'ol/interaction/KeyboardPan.js';
-import {getDistance} from 'ol/sphere';
-import GPX from 'ol/format/GPX.js';
-import {toStringXY} from 'ol/coordinate';
-import TileWMS from 'ol/source/TileWMS.js';
+import "./style.css";
+import { Feature, Map, View } from "ol";
+import TileLayer from "ol/layer/Tile";
+import XYZ from "ol/source/XYZ.js";
+import { fromLonLat, toLonLat } from "ol/proj.js";
+import VectorSource from "ol/source/Vector.js";
+import { Stroke, Style, Icon, Fill, Text, Circle } from "ol/style.js";
+import { Vector as VectorLayer } from "ol/layer.js";
+import LineString from "ol/geom/LineString";
+import Point from "ol/geom/Point.js";
+import Overlay from "ol/Overlay.js";
+import { Modify } from "ol/interaction.js";
+import GeoJSON from "ol/format/GeoJSON.js";
+import KeyboardPan from "ol/interaction/KeyboardPan.js";
+import { getDistance } from "ol/sphere";
+import GPX from "ol/format/GPX.js";
+import { toStringXY } from "ol/coordinate";
+import TileWMS from "ol/source/TileWMS.js";
 
 var removePositionButton = document.getElementById("removePositionButton");
 var addPositionButton = document.getElementById("addPositionButton");
@@ -34,21 +34,21 @@ var gpxFormat = new GPX();
 var gpxFeatures;
 var trackLength;
 var poiCoordinate;
-const popupContainer = document.getElementById('popup');
+const popupContainer = document.getElementById("popup");
 // const popupContent = document.getElementById('popup-content');
-const popupCloser = document.getElementById('popup-closer');
+const popupCloser = document.getElementById("popup-closer");
 
 switchMapButton.onclick = switchMap;
 saveRouteButton.onclick = route2gpx;
-customFileButton.addEventListener('change', handleFileSelect, false);
-document.getElementById("showGPX").addEventListener('change', function() {
+customFileButton.addEventListener("change", handleFileSelect, false);
+document.getElementById("showGPX").addEventListener("change", function () {
   gpxLayer.setVisible(showGPX.checked);
 });
 savePoiButton.onclick = savePoiPopup;
 removePositionButton.onclick = removeLastMapCenter;
 addPositionButton.onclick = addPositionMapCenter;
 
-window.onunload = window.onbeforeunload = function() {
+window.onunload = window.onbeforeunload = function () {
   return "";
 };
 
@@ -69,7 +69,7 @@ popupCloser.onclick = function () {
 
 var poiList = [];
 
-savePoiNameButton.onclick = function() {
+savePoiNameButton.onclick = function () {
   const coordinate = toLonLat(poiCoordinate);
   var fileName = fileNameInput.value;
   poiList.push([coordinate, fileName]);
@@ -85,7 +85,7 @@ function drawPoiLayer() {
     const poiMarker = new Feature({
       routeFeature: true,
       name: poiList[i][1],
-      geometry: new Point(fromLonLat(poiList[i][0]))
+      geometry: new Point(fromLonLat(poiList[i][0])),
     });
     poiLayer.getSource().addFeature(poiMarker);
   }
@@ -93,115 +93,115 @@ function drawPoiLayer() {
 
 var slitlagerkarta = new TileLayer({
   source: new XYZ({
-    url: 'https://jole84.se/slitlagerkarta/{z}/{x}/{y}.jpg',
-      minZoom: 6,
-      maxZoom: 14,
-      zDirection: -1
+    url: "https://jole84.se/slitlagerkarta/{z}/{x}/{y}.jpg",
+    minZoom: 6,
+    maxZoom: 14,
+    zDirection: -1,
   }),
   maxZoom: 16,
 });
 
 var slitlagerkarta_nedtonad = new TileLayer({
   source: new XYZ({
-    url: 'https://jole84.se/slitlagerkarta_nedtonad/{z}/{x}/{y}.jpg',
-      minZoom: 6,
-      maxZoom: 14,
-      zDirection: -1
+    url: "https://jole84.se/slitlagerkarta_nedtonad/{z}/{x}/{y}.jpg",
+    minZoom: 6,
+    maxZoom: 14,
+    zDirection: -1,
   }),
   maxZoom: 16,
-  visible: false
+  visible: false,
 });
 
 var ortofoto = new TileLayer({
   source: new TileWMS({
-    url: 'https://minkarta.lantmateriet.se/map/ortofoto/',
+    url: "https://minkarta.lantmateriet.se/map/ortofoto/",
     params: {
-      'layers': 'Ortofoto_0.5,Ortofoto_0.4,Ortofoto_0.25,Ortofoto_0.16',
-      'TILED': true,
+      layers: "Ortofoto_0.5,Ortofoto_0.4,Ortofoto_0.25,Ortofoto_0.16",
+      TILED: true,
     },
   }),
-  minZoom: 16
+  minZoom: 16,
 });
 
 var lineArray = [];
 var lineStringGeometry = new LineString([]);
 var trackLine = new Feature({
-  type: 'trackLine',
+  type: "trackLine",
   routeFeature: true,
   geometry: lineStringGeometry,
-})
+});
 
 const trackStyle = {
-  'startPoint': new Style({
+  startPoint: new Style({
     image: new Icon({
       anchor: [0.5, 1],
       opacity: 0.85,
-      src: 'https://jole84.se/start-marker.svg',
+      src: "https://jole84.se/start-marker.svg",
     }),
   }),
-  'midPoint': new Style({
+  midPoint: new Style({
     image: new Icon({
       anchor: [0.5, 1],
       opacity: 0.85,
-      src: 'https://jole84.se/marker.svg',
+      src: "https://jole84.se/marker.svg",
     }),
   }),
-  'endPoint': new Style({
+  endPoint: new Style({
     image: new Icon({
       anchor: [0.5, 1],
       opacity: 0.85,
-      src: 'https://jole84.se/end-marker.svg',
+      src: "https://jole84.se/end-marker.svg",
     }),
   }),
-  'trackLine': new Style({
+  trackLine: new Style({
     stroke: new Stroke({
       color: [255, 0, 0, 0.6],
       lineDash: [20],
       width: 6,
     }),
   }),
-  'route': new Style({
+  route: new Style({
     stroke: new Stroke({
       width: 10,
       color: [255, 0, 255, 0.4],
     }),
   }),
 };
-trackStyle['MultiLineString'] = trackStyle['LineString'];
+trackStyle["MultiLineString"] = trackStyle["LineString"];
 
 const gpxStyle = {
-  'Point': new Style({
+  Point: new Style({
     image: new Icon({
       anchor: [0.5, 1],
       opacity: 0.85,
-      src: 'https://jole84.se/poi-marker-blue.svg',
+      src: "https://jole84.se/poi-marker-blue.svg",
     }),
     text: new Text({
-      font: '14px Roboto,monospace',
-      textAlign: 'left',
+      font: "14px Roboto,monospace",
+      textAlign: "left",
       offsetX: 10,
       fill: new Fill({
-        color: 'blue'
+        color: "blue",
       }),
       stroke: new Stroke({
-        color: 'white',
+        color: "white",
         width: 4,
       }),
     }),
   }),
-  'LineString': new Style({
+  LineString: new Style({
     stroke: new Stroke({
       color: [0, 0, 255, 0.4],
       width: 10,
     }),
-  })
+  }),
 };
-gpxStyle['MultiLineString'] = gpxStyle['LineString'];
+gpxStyle["MultiLineString"] = gpxStyle["LineString"];
 
 var routeLineLayer = new VectorLayer({
   source: new VectorSource(),
   style: function (feature) {
-    return trackStyle[feature.get('type')];
+    return trackStyle[feature.get("type")];
   },
 });
 
@@ -210,48 +210,47 @@ var trackLineLayer = new VectorLayer({
     features: [trackLine],
   }),
   style: function (feature) {
-    return trackStyle[feature.get('type')];
+    return trackStyle[feature.get("type")];
   },
 });
 
 var trackPoints = new VectorLayer({
   source: new VectorSource(),
   style: function (feature) {
-    return trackStyle[feature.get('type')];
+    return trackStyle[feature.get("type")];
   },
 });
 
 var poiLayer = new VectorLayer({
   source: new VectorSource(),
-  style: function(feature) {
+  style: function (feature) {
     return new Style({
       image: new Icon({
         anchor: [0.5, 1],
         opacity: 0.85,
-        src: 'https://jole84.se/poi-marker.svg',
+        src: "https://jole84.se/poi-marker.svg",
       }),
       text: new Text({
-        text: feature.get('name'),
-        font: '14px Roboto,monospace',
-        textAlign: 'left',
+        text: feature.get("name"),
+        font: "14px Roboto,monospace",
+        textAlign: "left",
         offsetX: 10,
         fill: new Fill({
-          color: '#b41412',
+          color: "#b41412",
         }),
         stroke: new Stroke({
-          color: 'white',
+          color: "white",
           width: 4,
         }),
       }),
-    })
-  }
-  
+    });
+  },
 });
 
 var gpxLayer = new VectorLayer({
   source: new VectorSource(),
   style: function (feature) {
-    gpxStyle['Point'].getText().setText(feature.get('name'));
+    gpxStyle["Point"].getText().setText(feature.get("name"));
     return gpxStyle[feature.getGeometry().getType()];
   },
 });
@@ -265,7 +264,7 @@ const view = new View({
 });
 
 const map = new Map({
-  target: 'map',
+  target: "map",
   layers: [
     slitlagerkarta,
     slitlagerkarta_nedtonad,
@@ -274,38 +273,38 @@ const map = new Map({
     routeLineLayer,
     trackLineLayer,
     trackPoints,
-    poiLayer
+    poiLayer,
   ],
   view: view,
   keyboardEventTarget: document,
   overlays: [overlay],
 });
 
-const keyboardPan = new KeyboardPan({pixelDelta: 64})
+const keyboardPan = new KeyboardPan({ pixelDelta: 64 });
 map.addInteraction(keyboardPan);
 
 var lineArrayStraights = [];
 
 function getStraightPoints() {
   lineArrayStraights = [];
-  trackPoints.getSource().forEachFeature(function(feature) {
-    if (feature.getGeometry().getType() == 'Point') {
-      lineArrayStraights[feature.get('name')] = feature.get('straight');
+  trackPoints.getSource().forEachFeature(function (feature) {
+    if (feature.getGeometry().getType() == "Point") {
+      lineArrayStraights[feature.get("name")] = feature.get("straight");
     }
-  })
+  });
   var straightPoints = [];
   for (var i = 0; i < lineArrayStraights.length; i++) {
     if (lineArrayStraights[i]) {
       straightPoints.push(i);
     }
   }
-  return straightPoints.join(',');
+  return straightPoints.join(",");
 }
 
-const modify = new Modify({source: trackLineLayer.getSource()});
-const modifypoi = new Modify({source: poiLayer.getSource()});
+const modify = new Modify({ source: trackLineLayer.getSource() });
+const modifypoi = new Modify({ source: poiLayer.getSource() });
 
-lineStringGeometry.on('change', function() {
+lineStringGeometry.on("change", function () {
   lineArray = lineStringGeometry.getCoordinates();
   clearLayer(trackPoints);
   // add markers at waypoints
@@ -313,44 +312,49 @@ lineStringGeometry.on('change', function() {
     const marker = new Feature({
       routeFeature: true,
       name: i,
-      straight: (lineArrayStraights[i] || false),
+      straight: lineArrayStraights[i] || false,
       type: getPointType(i),
-      geometry: new Point(lineArray[i])
+      geometry: new Point(lineArray[i]),
     });
     trackPoints.getSource().addFeature(marker);
   }
-})
+});
 
-modify.on('modifyend', function() {
+modify.on("modifyend", function () {
   lineStringGeometry.setCoordinates(lineArray);
   routeMe();
-})
+});
 
 function switchMap() {
   if (slitlagerkarta.getVisible()) {
     slitlagerkarta.setVisible(false);
     slitlagerkarta_nedtonad.setVisible(true);
-  }
-  else if (slitlagerkarta_nedtonad.getVisible()) {
+  } else if (slitlagerkarta_nedtonad.getVisible()) {
     slitlagerkarta.setVisible(true);
     slitlagerkarta_nedtonad.setVisible(false);
   }
 }
 
-function savePoiPopup() { // save POI function
+function savePoiPopup() {
+  // save POI function
   poiCoordinate = map.getView().getCenter();
-  fileNameInput.value = toStringXY(toLonLat(map.getView().getCenter()).reverse(), 5).replace(',', '');
+  fileNameInput.value = toStringXY(
+    toLonLat(map.getView().getCenter()).reverse(),
+    5,
+  ).replace(",", "");
   overlay.setPosition(poiCoordinate);
 }
 
 // touch check
 function isTouchDevice() {
-  return (('ontouchstart' in window) ||
-     (navigator.maxTouchPoints > 0) ||
-     (navigator.msMaxTouchPoints > 0));
+  return (
+    "ontouchstart" in window ||
+    navigator.maxTouchPoints > 0 ||
+    navigator.msMaxTouchPoints > 0
+  );
 }
 
-touchFriendlyCheck.addEventListener('change', function() {
+touchFriendlyCheck.addEventListener("change", function () {
   if (touchFriendlyCheck.checked) {
     map.removeInteraction(modify);
     map.removeInteraction(modifypoi);
@@ -362,7 +366,7 @@ touchFriendlyCheck.addEventListener('change', function() {
 if (isTouchDevice()) {
   touchFriendlyCheck.checked = true;
 } else {
-  document.getElementById('touchFriendly').style.display = 'none';
+  document.getElementById("touchFriendly").style.display = "none";
   map.addInteraction(modify);
   map.addInteraction(modifypoi);
 }
@@ -375,10 +379,10 @@ function removeLastMapCenter() {
   removePosition(map.getView().getCenter());
 }
 
-function addPosition(coordinate){
+function addPosition(coordinate) {
   lineStringGeometry.appendCoordinate(coordinate);
   routeMe();
-};
+}
 
 function removePosition(coordinate) {
   var removedOne = false;
@@ -392,7 +396,7 @@ function removePosition(coordinate) {
       break;
     }
   }
-  
+
   // redraw poi layer
   if (removedPoi) {
     drawPoiLayer();
@@ -401,7 +405,7 @@ function removePosition(coordinate) {
   // removes wp if less than 300 m
   for (var i = 0; i < lineArray.length; i++) {
     if (getDistance(toLonLat(coordinate), toLonLat(lineArray[i])) < 300) {
-      console.log(getDistance(toLonLat(coordinate), toLonLat(lineArray[i])))
+      console.log(getDistance(toLonLat(coordinate), toLonLat(lineArray[i])));
       lineArray.splice(lineArray.indexOf(lineArray[i]), 1);
       removedOne = true;
     }
@@ -422,18 +426,18 @@ function removePosition(coordinate) {
 
   lineStringGeometry.setCoordinates(lineArray);
   routeMe();
-};
+}
 
-map.on('singleclick', function(event){
+map.on("singleclick", function (event) {
   if (!touchFriendlyCheck.checked) {
     addPosition(event.coordinate);
   }
 });
 
-map.on('contextmenu', function(event) {
-  map.forEachFeatureAtPixel(event.pixel, function(feature, layer) {
-    if (feature.getGeometry().getType() == 'Point') {
-      feature.set('straight', !feature.get('straight')); // boolean switch
+map.on("contextmenu", function (event) {
+  map.forEachFeatureAtPixel(event.pixel, function (feature, layer) {
+    if (feature.getGeometry().getType() == "Point") {
+      feature.set("straight", !feature.get("straight")); // boolean switch
     }
   });
 
@@ -457,53 +461,68 @@ map.on('contextmenu', function(event) {
 });
 
 var centerCoordinate;
-map.on('moveend', function() {
+map.on("moveend", function () {
   centerCoordinate = toLonLat(map.getView().getCenter()).reverse();
-  var streetviewlink = "<a href=\"http://maps.google.com/maps?q=&layer=c&cbll=" + centerCoordinate + "\" target=\"_blank\">Streetview</a>";
-  var gmaplink = "<a href=\"http://maps.google.com/maps?q=" + centerCoordinate + "\" target=\"_blank\">Gmap</a>";
+  var streetviewlink =
+    '<a href="http://maps.google.com/maps?q=&layer=c&cbll=' +
+    centerCoordinate +
+    '" target="_blank">Streetview</a>';
+  var gmaplink =
+    '<a href="http://maps.google.com/maps?q=' +
+    centerCoordinate +
+    '" target="_blank">Gmap</a>';
   info4Div.innerHTML = streetviewlink + "<br>" + gmaplink;
-})
+});
 
 function clearLayer(layerToClear) {
-  layerToClear.getSource().getFeatures().forEach(function(feature) {
-    layerToClear.getSource().removeFeature(feature);
-  });
+  layerToClear
+    .getSource()
+    .getFeatures()
+    .forEach(function (feature) {
+      layerToClear.getSource().removeFeature(feature);
+    });
 }
 
 function routeMe() {
   var coordsString = [];
   for (var i = 0; i < lineArray.length; i++) {
-    coordsString.push(toLonLat(lineArray[i]))
+    coordsString.push(toLonLat(lineArray[i]));
   }
-  var brouterUrl = 'https://brouter.de/brouter' +
-  '?lonlats=' + coordsString.join('|') +
-  '&profile=car-fast&alternativeidx=0&format=geojson' +
-  '&straight=' + getStraightPoints();
+  var brouterUrl =
+    "https://brouter.de/brouter" +
+    "?lonlats=" +
+    coordsString.join("|") +
+    "&profile=car-fast&alternativeidx=0&format=geojson" +
+    "&straight=" +
+    getStraightPoints();
 
   if (lineArray.length >= 2) {
-    fetch(brouterUrl
-    ).then(function (response) {
+    fetch(brouterUrl).then(function (response) {
       response.json().then(function (result) {
-        const route = new GeoJSON().readFeature((result).features[0], {
-          dataProjection: 'EPSG:4326',
-          featureProjection: 'EPSG:3857'
-        }).getGeometry();
-        
-        trackLength = result.features[0].properties['track-length'] / 1000; // track-length in km
-        const totalTime = result.features[0].properties['total-time'] * 1000; // track-time in milliseconds
-        
+        const route = new GeoJSON()
+          .readFeature(result.features[0], {
+            dataProjection: "EPSG:4326",
+            featureProjection: "EPSG:3857",
+          })
+          .getGeometry();
+
+        trackLength = result.features[0].properties["track-length"] / 1000; // track-length in km
+        const totalTime = result.features[0].properties["total-time"] * 1000; // track-time in milliseconds
+
         // add route information to info box
         infoDiv.innerHTML = "Avstånd: " + trackLength.toFixed(2) + " km";
-        info2Div.innerHTML = "Restid: " + new Date(0 + totalTime).toUTCString().toString().slice(16,25);
-        
+        info2Div.innerHTML =
+          "Restid: " +
+          new Date(0 + totalTime).toUTCString().toString().slice(16, 25);
+
         const routeGeometry = new Feature({
-          type: 'route',
+          type: "route",
           geometry: route,
         });
-        
+
         // remove previus route
         clearLayer(routeLineLayer);
-        
+
         // finally add route to map
         routeLineLayer.getSource().addFeature(routeGeometry);
       });
@@ -513,18 +532,18 @@ function routeMe() {
 
 function getPointType(i) {
   if (i == 0) {
-    return 'startPoint'
+    return "startPoint";
   } else if (i == lineArray.length - 1) {
-    return 'endPoint'
+    return "endPoint";
   } else {
-    return 'midPoint'
+    return "midPoint";
   }
 }
 
 function route2gpx() {
   var poiString = [];
   for (var i = 0; i < poiList.length; i++) {
-    poiString.push(poiList[i].join(','));
+    poiString.push(poiList[i].join(","));
   }
 
   var coordsString = [];
@@ -532,24 +551,28 @@ function route2gpx() {
     coordsString.push(toLonLat(lineArray[i]));
   }
 
-  
   if (lineArray.length >= 2) {
-    var brouterUrl = 'https://brouter.de/brouter?lonlats=' + coordsString.join('|') + 
-    '&profile=car-fast&alternativeidx=0&format=gpx&trackname=Rutt_' + 
-    new Date().toLocaleDateString() + '_' + trackLength.toFixed(2) + 'km' +
-    '&straight=' + getStraightPoints();
-    
+    var brouterUrl =
+      "https://brouter.de/brouter?lonlats=" +
+      coordsString.join("|") +
+      "&profile=car-fast&alternativeidx=0&format=gpx&trackname=Rutt_" +
+      new Date().toLocaleDateString() +
+      "_" +
+      trackLength.toFixed(2) +
+      "km" +
+      "&straight=" +
+      getStraightPoints();
+
     if (poiList.length >= 1) {
-      brouterUrl += '&pois=' + poiString.join('|');
+      brouterUrl += "&pois=" + poiString.join("|");
     }
     window.onunload = window.onbeforeunload = "";
     window.location = brouterUrl;
-    window.onunload = window.onbeforeunload = function() {
+    window.onunload = window.onbeforeunload = function () {
       return "";
     };
-  }
-
-  else if (poiList.length >= 1) { // simple gpx file if no route is created
+  } else if (poiList.length >= 1) {
+    // simple gpx file if no route is created
     let gpxFile = `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <gpx version="1.1" creator="jole84 webapp">
 <metadata>
@@ -557,12 +580,11 @@ function route2gpx() {
 </metadata>`;
 
     for (var i = 0; i < poiList.length; i++) {
-      gpxFile +=`
-  <wpt lat="${poiList[i][0][1]}" lon="${poiList[i][0][0]}"><name>${poiList[i][1]}</name></wpt>`
+      gpxFile += `
+  <wpt lat="${poiList[i][0][1]}" lon="${poiList[i][0][0]}"><name>${poiList[i][1]}</name></wpt>`;
     }
 
-    gpxFile += 
-`
+    gpxFile += `
 </gpx>`;
     console.log(gpxFile);
   }
@@ -578,82 +600,92 @@ function handleFileSelect(evt) {
     var reader = new FileReader();
     reader.readAsText(files[i], "UTF-8");
     reader.onload = function (evt) {
-      gpxFeatures = gpxFormat.readFeatures(evt.target.result,{
-        dataProjection:'EPSG:4326',
-        featureProjection:'EPSG:3857'
+      gpxFeatures = gpxFormat.readFeatures(evt.target.result, {
+        dataProjection: "EPSG:4326",
+        featureProjection: "EPSG:3857",
       });
 
-      if (files.length > 1) { // set random color if two or more files is loaded
-        var color = [Math.floor(Math.random() * 255), Math.floor(Math.random() * 255), Math.floor(Math.random() * 255), 0.8]
-        gpxFeatures.forEach(f => {
-          f.setStyle(new Style({
-            stroke: new Stroke({
-              color: color,
-              width: 10
-            }),
-            text: new Text({
-              text: f.get('name'),
-              font: 'bold 14px Roboto,monospace',
-              placement: 'line',
-              repeat: 1000,
-              fill: new Fill({
-                color: color,
-              }),
+      if (files.length > 1) {
+        // set random color if two or more files is loaded
+        var color = [
+          Math.floor(Math.random() * 255),
+          Math.floor(Math.random() * 255),
+          Math.floor(Math.random() * 255),
+          0.8,
+        ];
+        gpxFeatures.forEach((f) => {
+          f.setStyle(
+            new Style({
               stroke: new Stroke({
-                color: 'white',
-                width: 4,
+                color: color,
+                width: 10,
+              }),
+              text: new Text({
+                text: f.get("name"),
+                font: "bold 14px Roboto,monospace",
+                placement: "line",
+                repeat: 1000,
+                fill: new Fill({
+                  color: color,
+                }),
+                stroke: new Stroke({
+                  color: "white",
+                  width: 4,
+                }),
+              }),
+              image: new Icon({
+                anchor: [0.5, 1],
+                color: color,
+                src: "https://jole84.se/white-marker.svg",
               }),
             }),
-            image: new Icon({
-              anchor: [0.5, 1],
-              color: color,
-              src: 'https://jole84.se/white-marker.svg',
-            }),
-          }))
-        })
-      };
+          );
+        });
+      }
 
       gpxLayer.getSource().addFeatures(gpxFeatures);
-    }
+    };
   }
 }
 
-document.addEventListener('keydown', function(event) {
-  if (!overlay.getPosition()) { 
-    if (event.key == 'a') {
+document.addEventListener("keydown", function (event) {
+  if (!overlay.getPosition()) {
+    if (event.key == "a") {
       addPositionMapCenter();
     }
-    if (event.key == 's') {
+    if (event.key == "s") {
       savePoiPopup();
     }
-    if ((event.key == 'Escape' || event.key == 'Delete')) {
+    if (event.key == "Escape" || event.key == "Delete") {
       removeLastMapCenter();
     }
-    if (event.key == 'v') {
+    if (event.key == "v") {
       switchMap();
     }
   }
-})
+});
 
 map.on("pointermove", function (evt) {
-  var hit = this.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
-    if (feature.get('routeFeature')) {
+  var hit = this.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
+    if (feature.get("routeFeature")) {
       return true;
     }
-  }); 
+  });
   if (hit) {
-    this.getTargetElement().style.cursor = 'pointer';
+    this.getTargetElement().style.cursor = "pointer";
   } else {
-    this.getTargetElement().style.cursor = 'crosshair';
+    this.getTargetElement().style.cursor = "crosshair";
   }
 });
 
-modifypoi.addEventListener('modifyend', function() {
+modifypoi.addEventListener("modifyend", function () {
   poiList = [];
-  poiLayer.getSource().getFeatures().forEach(function(feature) {
-    const fileName = feature.get('name');
-    const coordinate = toLonLat(feature.getGeometry().getCoordinates());
-    poiList.push([coordinate, fileName]);
-  })
-})
-
+  poiLayer
+    .getSource()
+    .getFeatures()
+    .forEach(function (feature) {
+      const fileName = feature.get("name");
+      const coordinate = toLonLat(feature.getGeometry().getCoordinates());
+      poiList.push([coordinate, fileName]);
+    });
+});
