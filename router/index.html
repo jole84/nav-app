@@ -41,7 +41,6 @@
       }
       #crosshair {
         pointer-events: none;
-        width: 60px;
         opacity: 0.8;
         -ms-transform: translate(-50%, -50%);
         transform: translate(-50%, -50%);
@@ -181,6 +180,41 @@
         <a href="#" class="btn btn-primary" id="savePoiNameButton">Spara</button>
       </form>
     </div>
-    <img src="https://jole84.se/crosshair.svg" id="crosshair">
+    <svg
+      version="1.1"
+      height="60"
+      width="60"
+      id="crosshair"
+      xmlns="http://www.w3.org/2000/svg"
+      xmlns:svg="http://www.w3.org/2000/svg">
+      <line
+        x1="30"
+        y1="0"
+        x2="30"
+        y2="27"
+        style="stroke:rgb(255,0,0);stroke-width:3"
+        id="line1" />
+      <line
+        x1="0"
+        y1="30"
+        x2="27"
+        y2="30"
+        style="stroke:rgb(255,0,0);stroke-width:3"
+        id="line2" />
+      <line
+        x1="30"
+        y1="33"
+        x2="30"
+        y2="60"
+        style="stroke:rgb(255,0,0);stroke-width:3"
+        id="line3" />
+      <line
+        x1="33"
+        y1="30"
+        x2="60"
+        y2="30"
+        style="stroke:rgb(255,0,0);stroke-width:3"
+        id="line4" />
+    </svg>
   </body>
 </html>
