@@ -266,7 +266,6 @@ function handleFileSelect(evt) {
           );
         });
       }
-
       gpxLayer.getSource().addFeatures(gpxFeatures);
     };
   }
@@ -720,6 +719,12 @@ for (var i = 0; i < urlParams.length; i++) {
           dataProjection: "EPSG:4326",
           featureProjection: "EPSG:3857",
         });
+        gpxFeatures.forEach(function(feature) {
+          var padding = 100;
+          if (feature.getGeometry().getType() == 'MultiLineString') {
+            view.fit(feature.getGeometry().getExtent(), {padding: [padding,padding,padding,padding]})
+          }
+        })
         gpxLayer.getSource().addFeatures(gpxFeatures);
       });
   } else if (urlParams[i].includes("switchMap")) {
