@@ -642,10 +642,15 @@ function handleFileSelect(evt) {
           );
         });
       }
-
       gpxLayer.getSource().addFeatures(gpxFeatures);
     };
   }
+  gpxLayer.getSource().once('change', function() {
+    if (gpxLayer.getSource().getState() === 'ready') {
+      var padding = 100;
+      view.fit(gpxLayer.getSource().getExtent(), {padding: [padding,padding,padding,padding]})
+    }
+  })
 }
 
 document.addEventListener("keydown", function (event) {
