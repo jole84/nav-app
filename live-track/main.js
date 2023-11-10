@@ -36,7 +36,7 @@ document.addEventListener("visibilitychange", async () => {
 var center = fromLonLat([14.18, 57.786]);
 var defaultZoom = 14;
 let distanceTraveled = 0;
-var lastInteraction = new Date() - 5000;
+var lastInteraction = new Date();
 var preferredFontSize;
 const startTime = new Date();
 var trackLog = [];
@@ -356,7 +356,7 @@ geolocation.on("change", function () {
       Math.round(accuracy) +
       " m",
     '<b style="font-size:120%">' +
-      speed.toFixed(1) +
+      Math.floor(speed) +
       '</b> (<font style="color:#e60000;">' +
       maxSpeed +
       "</font>) km/h",

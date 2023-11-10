@@ -48,9 +48,9 @@ savePoiButton.onclick = savePoiPopup;
 removePositionButton.onclick = removeLastMapCenter;
 addPositionButton.onclick = addPositionMapCenter;
 
-window.onunload = window.onbeforeunload = function () {
-  return "";
-};
+// window.onunload = window.onbeforeunload = function () {
+//   return "";
+// };
 
 const overlay = new Overlay({
   element: popupContainer,
@@ -96,9 +96,9 @@ var slitlagerkarta = new TileLayer({
     url: "https://jole84.se/slitlagerkarta/{z}/{x}/{y}.jpg",
     minZoom: 6,
     maxZoom: 14,
-    zDirection: -1,
+    // zDirection: -1,
   }),
-  maxZoom: 16,
+  maxZoom: 15.5,
 });
 
 var slitlagerkarta_nedtonad = new TileLayer({
@@ -106,9 +106,9 @@ var slitlagerkarta_nedtonad = new TileLayer({
     url: "https://jole84.se/slitlagerkarta_nedtonad/{z}/{x}/{y}.jpg",
     minZoom: 6,
     maxZoom: 14,
-    zDirection: -1,
+    // zDirection: -1,
   }),
-  maxZoom: 16,
+  maxZoom: 15.5,
   visible: false,
 });
 
@@ -120,7 +120,7 @@ var ortofoto = new TileLayer({
       TILED: true,
     },
   }),
-  minZoom: 16,
+  minZoom: 15.5,
 });
 
 var lineArray = [];
@@ -646,6 +646,8 @@ function handleFileSelect(evt) {
     };
   }
   gpxLayer.getSource().once('change', function() {
+    showGPX.checked = true;
+    gpxLayer.setVisible(true);
     if (gpxLayer.getSource().getState() === 'ready') {
       var padding = 100;
       view.fit(gpxLayer.getSource().getExtent(), {padding: [padding,padding,padding,padding]})
