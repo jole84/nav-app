@@ -104,7 +104,8 @@
       <a href="https://jole84.github.io/brouter-web/index.html" class="btn btn-primary my-2" id="ruttplanering">Ruttplanerare</a><br>
       <a href="https://jole84.github.io/brouter-web/index.html"><img id="brouter-img" class="rounded" src="https://jole84.github.io/brouter-web.jpg"></a><br>
 
-      <a href="https://jole84.se/html_stuff" class="btn btn-primary my-2" id="ruttplanering">Experiment</a><br>
+      <a href="https://jole84.se/html_stuff" class="btn btn-primary my-2" id="ruttplanering">Experiment</a>
+      <a href="https://jole84.se/html_stuff/gpx2img.html" id="gpx2imgLink">GPX2img</a>
       <hr>
 
       <a href="https://github.com/jole84">Jole84 Github</a>
@@ -119,6 +120,7 @@
       var linkUrl = document.getElementById('linkUrl');
       var linkCode = document.getElementById('linkCode');
       var linkButton= document.getElementById('linkButton');
+      var gpx2imgLink= document.getElementById('gpx2imgLink');
       var gpxUrl = document.getElementById('gpxUrl');
       var selectFile = document.getElementById('selectFile');
       
@@ -165,10 +167,12 @@
         
         if (gpxUrl.value) {
           newLinkUrl += '&' + gpxUrl.value;
+          gpx2imgLink.setAttribute("href", "https://jole84.se/html_stuff/gpx2img.html?" + gpxUrl.value);
         }
 
         if (selectFile.value != 'välj gpxfil') {
           newLinkUrl += '&' + selectFile.value;
+          gpx2imgLink.setAttribute("href", "https://jole84.se/html_stuff/gpx2img.html?" + selectFile.value);
         }
 
         if (infoText.value) {
