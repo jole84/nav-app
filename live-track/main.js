@@ -548,7 +548,7 @@ function setExtraInfo(infoText) {
   document.getElementById("info2").innerHTML = extraInfo;
   timeOut = setTimeout(function () {
     document.getElementById("info2").innerHTML = "";
-  }, 30000);
+  }, 60000);
 }
 
 // Function to download data to a file
@@ -888,20 +888,20 @@ function getDeviations() {
             iconId: item.Deviation[0].IconId,
           });
           trafikLayer.getSource().addFeature(feature);
-
           if (
             getDistance(
               format
                 .readGeometry(item.Deviation[0].Geometry.WGS84)
                 .getCoordinates(),
               toLonLat(geolocation.getPosition()),
-            ) < 50000
+            ) < 40000 &&
+            item.Deviation[0].IconId == "roadAccident"
           ) {
-            console.log(item.Deviation[0]);
             setExtraInfo([
-              '<font style="color:red;font-size:150%;font-weight:bold;">' +
-                item.Deviation[0].IconId,
-              item.Deviation[0].RoadNumber + "</font>",
+              '<font style="color:red;font-size:150%;font-weight:bold;background-color:yellow;border: 2px solid red">Olycka!</font>',
+              '<font style="color:red;font-weight:bold;background-color:yellow;border: 2px solid red">' +
+                item.Deviation[0].RoadNumber +
+                "</font>",
             ]);
           }
         });
@@ -912,4 +912,4 @@ function getDeviations() {
 
 getDeviations();
 
-setInterval(getDeviations, 60000 * 5); // getDeviations 5 min intervall
+setInterval(getDeviations, 60000); // getDeviations interval
