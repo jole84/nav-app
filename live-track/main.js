@@ -47,6 +47,7 @@ var centerButton = document.getElementById("centerButton");
 var saveLogButton = document.getElementById("saveLogButton");
 var switchMapButton = document.getElementById("switchMapButton");
 var customFileButton = document.getElementById("customFileButton");
+var trafficWarning = document.getElementById("trafficWarning");
 saveLogButton.onclick = saveLogButtonFunction;
 centerButton.onclick = centerFunction;
 switchMapButton.onclick = switchMap;
@@ -872,13 +873,14 @@ function getDeviations() {
     data: xmlRequest,
     success: function (response) {
       if (response == null) return;
+      var noAccidents = true;
       try {
         $.each(response.RESPONSE.RESULT[0].Situation, function (index, item) {
           var format = new WKT();
+          var position = format.readGeometry(item.Deviation[0].Geometry.WGS84).transform("EPSG:4326", "EPSG:3857");
+          var distance = getDistance(toLonLat(position.getCoordinates()), toLonLat(geolocation.getPosition()));
           var feature = new Feature({
-            geometry: format
-              .readGeometry(item.Deviation[0].Geometry.WGS84)
-              .transform("EPSG:4326", "EPSG:3857"),
+            geometry: position,
             name: breakSentence(
               (item.Deviation[0].RoadNumber || "Väg") +
                 ": " +
@@ -888,23 +890,18 @@ function getDeviations() {
             iconId: item.Deviation[0].IconId,
           });
           trafikLayer.getSource().addFeature(feature);
-          if (
-            getDistance(
-              format
-                .readGeometry(item.Deviation[0].Geometry.WGS84)
-                .getCoordinates(),
-              toLonLat(geolocation.getPosition()),
-            ) < 40000 &&
-            item.Deviation[0].IconId == "roadAccident"
-          ) {
-            setExtraInfo([
-              '<font style="color:red;font-size:150%;font-weight:bold;background-color:yellow;border: 2px solid red">Olycka!</font>',
-              '<font style="color:red;font-weight:bold;background-color:yellow;border: 2px solid red">' +
-                item.Deviation[0].RoadNumber +
-                "</font>",
-            ]);
+          // if roadAccident < 40000 meters
+          if (distance < 40000 && item.Deviation[0].IconId == "roadAccident") {
+            noAccidents = false;
+            trafficWarning.style.display = "unset";
+            trafficWarning.innerHTML = 
+              'Olycka på ' +
+                item.Deviation[0].RoadNumber + "!";
           }
         });
+        if (noAccidents) {
+          trafficWarning.style.display = "none";
+        }
       } catch (ex) {}
     },
   });
