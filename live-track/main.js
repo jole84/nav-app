@@ -721,12 +721,14 @@ for (var i = 0; i < urlParams.length; i++) {
         });
         gpxLayer.getSource().addFeatures(gpxFeatures);
       });
-      gpxLayer.getSource().once('change', function() {
-        if (gpxLayer.getSource().getState() === 'ready') {
-          var padding = 100;
-          view.fit(gpxLayer.getSource().getExtent(), {padding: [padding,padding,padding,padding]})
-        }
-      });
+    gpxLayer.getSource().once("change", function () {
+      if (gpxLayer.getSource().getState() === "ready") {
+        var padding = 100;
+        view.fit(gpxLayer.getSource().getExtent(), {
+          padding: [padding, padding, padding, padding],
+        });
+      }
+    });
   } else if (urlParams[i].includes("switchMap")) {
     mapMode++;
   } else if (urlParams[i].includes("zoom=")) {
@@ -886,6 +888,22 @@ function getDeviations() {
             iconId: item.Deviation[0].IconId,
           });
           trafikLayer.getSource().addFeature(feature);
+
+          if (
+            getDistance(
+              format
+                .readGeometry(item.Deviation[0].Geometry.WGS84)
+                .getCoordinates(),
+              toLonLat(geolocation.getPosition()),
+            ) < 50000
+          ) {
+            console.log(item.Deviation[0]);
+            setExtraInfo([
+              '<font style="color:red;font-size:150%;font-weight:bold;">' +
+                item.Deviation[0].IconId,
+              item.Deviation[0].RoadNumber + "</font>",
+            ]);
+          }
         });
       } catch (ex) {}
     },
