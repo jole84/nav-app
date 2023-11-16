@@ -14,7 +14,7 @@ import Point from "ol/geom/Point.js";
 import GeoJSON from "ol/format/GeoJSON.js";
 import WKT from "ol/format/WKT.js";
 import { getDistance } from "ol/sphere";
-import MapboxVectorLayer from "ol/layer/MapboxVector";
+import OSM from "ol/source/OSM.js";
 
 let wakeLock;
 const acquireWakeLock = async () => {
@@ -116,11 +116,9 @@ var trackLine = new Feature({
   geometry: line,
 });
 
-var osm = new MapboxVectorLayer({
-  // styleUrl: "mapbox://styles/tryckluft/clk5f1a6p005l01nwe09ee3v3",
-  styleUrl: "mapbox://styles/mapbox/outdoors-v11",
-  accessToken:
-    "pk.eyJ1IjoidHJ5Y2tsdWZ0IiwiYSI6ImNrcTU1YTIzeTFlem8yd3A4MXRsMTZreWQifQ.lI612CDqRgWujJDv6zlBqw",
+var osm = new TileLayer({
+  source: new OSM(),
+  visible: false,
 });
 
 var slitlagerkarta = new TileLayer({
@@ -850,28 +848,28 @@ function getDeviations() {
 
   var xmlRequest =
     "<REQUEST>" +
-      "<LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />" +
-      "<QUERY objecttype='Situation' schemaversion='1.2'>" +
-      "<FILTER>" +
-        "<OR>" +
-          "<ELEMENTMATCH>" +
-            "<EQ name='Deviation.ManagedCause' value='true' />" +
-            "<EQ name='Deviation.MessageType' value='Olycka' />" +
-          "</ELEMENTMATCH>" +
-          "<ELEMENTMATCH>" +
-            "<GTE name='Deviation.SeverityCode' value='5' />" +
-          "</ELEMENTMATCH>" +
-          "<ELEMENTMATCH>" +
-            "<EQ name='Deviation.IconId' value='roadClosed' />" +
-          "</ELEMENTMATCH>" +
-        "</OR>" +
-      "</FILTER>" +
-      "<INCLUDE>Deviation.Message</INCLUDE>" +
-      "<INCLUDE>Deviation.IconId</INCLUDE>" +
-      "<INCLUDE>Deviation.Geometry.WGS84</INCLUDE>" +
-      "<INCLUDE>Deviation.RoadNumber</INCLUDE>" +
-      "<INCLUDE>Deviation.EndTime</INCLUDE>" +
-      "</QUERY>" +
+    "<LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />" +
+    "<QUERY objecttype='Situation' schemaversion='1.2'>" +
+    "<FILTER>" +
+    "<OR>" +
+    "<ELEMENTMATCH>" +
+    "<EQ name='Deviation.ManagedCause' value='true' />" +
+    "<EQ name='Deviation.MessageType' value='Olycka' />" +
+    "</ELEMENTMATCH>" +
+    "<ELEMENTMATCH>" +
+    "<GTE name='Deviation.SeverityCode' value='5' />" +
+    "</ELEMENTMATCH>" +
+    "<ELEMENTMATCH>" +
+    "<EQ name='Deviation.IconId' value='roadClosed' />" +
+    "</ELEMENTMATCH>" +
+    "</OR>" +
+    "</FILTER>" +
+    "<INCLUDE>Deviation.Message</INCLUDE>" +
+    "<INCLUDE>Deviation.IconId</INCLUDE>" +
+    "<INCLUDE>Deviation.Geometry.WGS84</INCLUDE>" +
+    "<INCLUDE>Deviation.RoadNumber</INCLUDE>" +
+    "<INCLUDE>Deviation.EndTime</INCLUDE>" +
+    "</QUERY>" +
     "</REQUEST>";
 
   $.ajax({
@@ -885,8 +883,13 @@ function getDeviations() {
       try {
         $.each(response.RESPONSE.RESULT[0].Situation, function (index, item) {
           var format = new WKT();
-          var position = format.readGeometry(item.Deviation[0].Geometry.WGS84).transform("EPSG:4326", "EPSG:3857");
-          var distance = getDistance(toLonLat(position.getCoordinates()), toLonLat(geolocation.getPosition() || [0,0]));
+          var position = format
+            .readGeometry(item.Deviation[0].Geometry.WGS84)
+            .transform("EPSG:4326", "EPSG:3857");
+          var distance = getDistance(
+            toLonLat(position.getCoordinates()),
+            toLonLat(geolocation.getPosition() || [0, 0]),
+          );
           var feature = new Feature({
             geometry: position,
             name: breakSentence(
@@ -902,15 +905,16 @@ function getDeviations() {
           if (distance < 40000 && item.Deviation[0].IconId == "roadAccident") {
             noAccidents = false;
             trafficWarning.style.display = "unset";
-            trafficWarning.innerHTML = 
-              'Olycka på ' +
-                (item.Deviation[0].RoadNumber || "väg") + "!";
+            trafficWarning.innerHTML =
+              "Olycka på " + (item.Deviation[0].RoadNumber || "väg") + "!";
           }
         });
         if (noAccidents) {
           trafficWarning.style.display = "none";
         }
-      } catch (ex) {console.log(ex)}
+      } catch (ex) {
+        console.log(ex);
+      }
     },
   });
 }
