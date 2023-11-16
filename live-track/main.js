@@ -426,10 +426,19 @@ function centerFunction() {
 }
 
 function updateView(position, heading) {
+  if (view.getZoom() < 10) {
+    view.setZoom(defaultZoom);
+  }
   view.setCenter(getCenterWithHeading(position, -heading));
   view.setRotation(-heading);
   map.render();
 }
+
+view.on("change:resolution", function () {
+  if (view.getRotation() != 0 && view.getZoom() < 10) {
+    view.setRotation(0);
+  }
+});
 
 // run once when first position is recieved
 geolocation.once("change", function () {
