@@ -15,6 +15,7 @@ import GeoJSON from "ol/format/GeoJSON.js";
 import WKT from "ol/format/WKT.js";
 import { getDistance } from "ol/sphere";
 import OSM from "ol/source/OSM.js";
+import { toStringXY } from "ol/coordinate";
 
 let wakeLock;
 const acquireWakeLock = async () => {
@@ -349,7 +350,8 @@ geolocation.on("change", function () {
 
   // send text to info box
   const html = [
-    lonlat[1].toFixed(5) + ", " + lonlat[0].toFixed(5),
+    // lonlat[1].toFixed(5) + ", " + lonlat[0].toFixed(5),
+    toStringXY(lonlat.toReversed(), 5),
     (distanceTraveled / 1000).toFixed(2) +
       " km / " +
       Math.round(accuracy) +
