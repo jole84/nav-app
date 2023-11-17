@@ -36,7 +36,7 @@ document.addEventListener("visibilitychange", async () => {
 var center = fromLonLat([14.18, 57.786]);
 var defaultZoom = 14;
 let distanceTraveled = 0;
-var lastInteraction = new Date();
+var lastInteraction = new Date() - 5000;
 var preferredFontSize;
 const startTime = new Date();
 var trackLog = [];
@@ -424,7 +424,7 @@ function centerFunction() {
 }
 
 function updateView(position, heading) {
-  if (view.getZoom() < 10) {
+  if (view.getZoom() < 11) {
     view.setZoom(defaultZoom);
   }
   view.setCenter(getCenterWithHeading(position, -heading));
@@ -433,7 +433,8 @@ function updateView(position, heading) {
 }
 
 view.on("change:resolution", function () {
-  if (view.getRotation() != 0 && view.getZoom() < 10) {
+  // document.getElementById("info2").innerHTML = view.getZoom().toFixed(1);
+  if (view.getRotation() != 0 && view.getZoom() < 11) {
     view.setRotation(0);
   }
 });
