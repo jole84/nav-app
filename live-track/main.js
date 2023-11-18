@@ -268,6 +268,15 @@ function handleFileSelect(evt) {
       gpxLayer.getSource().addFeatures(gpxFeatures);
     };
   }
+  gpxLayer.getSource().once("change", function () {
+    if (gpxLayer.getSource().getState() === "ready") {
+      var padding = 100;
+      view.fit(gpxLayer.getSource().getExtent(), {
+        padding: [padding, padding, padding, padding],
+        duration: 500
+      });
+    }
+  });
   setExtraInfo(fileNames);
   // reaquire wake lock again after file select
   acquireWakeLock();
@@ -433,7 +442,7 @@ function updateView(position, heading) {
 }
 
 view.on("change:resolution", function () {
-  // document.getElementById("info2").innerHTML = view.getZoom().toFixed(1);
+  // document.getElementById("info3").innerHTML = view.getZoom().toFixed(1);
   if (view.getRotation() != 0 && view.getZoom() < 11) {
     view.setRotation(0);
   }

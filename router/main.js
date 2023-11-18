@@ -650,7 +650,10 @@ function handleFileSelect(evt) {
     gpxLayer.setVisible(true);
     if (gpxLayer.getSource().getState() === 'ready') {
       var padding = 100;
-      view.fit(gpxLayer.getSource().getExtent(), {padding: [padding,padding,padding,padding]})
+      view.fit(gpxLayer.getSource().getExtent(), {
+        padding: [padding,padding,padding,padding],
+        duration: 500
+      })
     }
   })
 }
