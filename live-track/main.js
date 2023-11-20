@@ -55,7 +55,7 @@ switchMapButton.onclick = switchMap;
 const view = new View({
   center: center,
   zoom: 8,
-  minZoom: 6,
+  // minZoom: 6,
   maxZoom: 20,
   constrainRotation: false,
   // extent: [900000, 7200000, 2900000, 11000000]

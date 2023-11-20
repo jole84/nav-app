@@ -566,11 +566,7 @@ function route2gpx() {
     if (poiList.length >= 1) {
       brouterUrl += "&pois=" + poiString.join("|");
     }
-    window.onunload = window.onbeforeunload = "";
     window.location = brouterUrl;
-    window.onunload = window.onbeforeunload = function () {
-      return "";
-    };
   } else if (poiList.length >= 1) {
     // simple gpx file if no route is created
     let gpxFile = `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
