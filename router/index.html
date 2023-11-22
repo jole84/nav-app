@@ -123,9 +123,6 @@
       #fileNameForm {
         text-align: right;
       }
-      #saveRouteButton {
-        margin-bottom: 5px;
-      }
       #customFileButton {
         width: 83px;
       }
@@ -136,6 +133,11 @@
         margin-bottom: 5px;
         /* min-width: 100px;
         min-height: 150px; */
+      }
+      #layerSelector {
+        display: inline-flex;
+        height: 37px;
+        margin-bottom: 5px;
       }
     </style>
   </head>
@@ -165,8 +167,15 @@
         <button class="btn btn-danger" id="savePoiButton">spara<br>waypoint</button>
       </div>
       <div class="optionButtons">
-        <button class="btn btn-warning" id="saveRouteButton">Exportera Rutt</button><br>
-        <button class="btn btn-primary" id="switchMapButton">Växla karta</button>
+        <select class="form-select" id="layerSelector">
+          <option value="0">Jole84 Terrängkarta</option>
+          <option value="1">Jole84 Vägkarta</option>
+          <option value="2">Lantmäteriet Topo</option>
+          <option value="3">Lantmäteriet Orto</option>
+          <option value="4">OpenStreetMap</option>
+        </select>
+        <br>
+        <button class="btn btn-warning" id="saveRouteButton">Exportera Rutt</button>
         <label><input type="file" class="form-control" id="customFileButton" multiple accept=".gpx,application/gpx+xml"/></label>
       </div>
     </div>

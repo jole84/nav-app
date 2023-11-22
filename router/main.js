@@ -16,12 +16,12 @@ import { getDistance } from "ol/sphere";
 import GPX from "ol/format/GPX.js";
 import { toStringXY } from "ol/coordinate";
 import TileWMS from "ol/source/TileWMS.js";
+import OSM from "ol/source/OSM.js";
 
 var removePositionButton = document.getElementById("removePositionButton");
 var addPositionButton = document.getElementById("addPositionButton");
 var saveRouteButton = document.getElementById("saveRouteButton");
 var savePoiButton = document.getElementById("savePoiButton");
-var switchMapButton = document.getElementById("switchMapButton");
 var savePoiNameButton = document.getElementById("savePoiNameButton");
 var showGPXdiv = document.getElementById("showGPXdiv");
 var touchFriendlyCheck = document.getElementById("touchFriendlyCheck");
@@ -30,6 +30,7 @@ var info2Div = document.getElementById("info2");
 var info3Div = document.getElementById("info3");
 var info4Div = document.getElementById("info4");
 var fileNameInput = document.getElementById("fileNameInput");
+var layerSelector = document.getElementById("layerSelector");
 var gpxFormat = new GPX();
 var gpxFeatures;
 var trackLength;
@@ -38,7 +39,6 @@ const popupContainer = document.getElementById("popup");
 // const popupContent = document.getElementById('popup-content');
 const popupCloser = document.getElementById("popup-closer");
 
-switchMapButton.onclick = switchMap;
 saveRouteButton.onclick = route2gpx;
 customFileButton.addEventListener("change", handleFileSelect, false);
 document.getElementById("showGPX").addEventListener("change", function () {
@@ -121,6 +121,19 @@ var ortofoto = new TileLayer({
     },
   }),
   minZoom: 15.5,
+});
+
+var topoweb = new TileLayer({
+  source: new XYZ({
+    url: "https://minkarta.lantmateriet.se/map/topowebbcache/?layer=topowebb&style=default&tilematrixset=3857&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix={z}&TileCol={x}&TileRow={y}",
+    maxZoom: 17,
+  }),
+  visible: false,
+});
+
+var osm = new TileLayer({
+  source: new OSM(),
+  visible: false,
 });
 
 var lineArray = [];
@@ -258,7 +271,7 @@ var gpxLayer = new VectorLayer({
 const view = new View({
   center: [1579748.5038203455, 7924318.181076467],
   zoom: 10,
-  minZoom: 6,
+  minZoom: 3,
   maxZoom: 20,
   enableRotation: false,
 });
@@ -269,6 +282,8 @@ const map = new Map({
     slitlagerkarta,
     slitlagerkarta_nedtonad,
     ortofoto,
+    topoweb,
+    osm,
     gpxLayer,
     routeLineLayer,
     trackLineLayer,
@@ -325,13 +340,44 @@ modify.on("modifyend", function () {
   routeMe();
 });
 
+layerSelector.addEventListener("change", function(evt) {
+  mapMode = layerSelector.value;
+  switchMap();
+})
+
+// switch map logic
+var mapMode = 0; // default map
+
 function switchMap() {
-  if (slitlagerkarta.getVisible()) {
-    slitlagerkarta.setVisible(false);
-    slitlagerkarta_nedtonad.setVisible(true);
-  } else if (slitlagerkarta_nedtonad.getVisible()) {
+  layerSelector.value = mapMode;
+  slitlagerkarta.setVisible(false);
+  slitlagerkarta_nedtonad.setVisible(false);
+  ortofoto.setVisible(false);
+  topoweb.setVisible(false);
+  osm.setVisible(false);
+
+  if (mapMode == 0) {
     slitlagerkarta.setVisible(true);
-    slitlagerkarta_nedtonad.setVisible(false);
+    ortofoto.setVisible(true);
+    ortofoto.setMinZoom(15.5)
+  } else if (mapMode == 1) {
+    slitlagerkarta_nedtonad.setVisible(true);
+    ortofoto.setVisible(true);
+    ortofoto.setMinZoom(15.5)
+  } else if (mapMode == 2) {
+    topoweb.setVisible(true);
+  } else if (mapMode == 3) {
+    ortofoto.setVisible(true);
+    ortofoto.setMinZoom(1);
+    ortofoto.setMaxZoom(20)
+  } else if (mapMode == 4) {
+    osm.setVisible(true);
+  }
+
+  mapMode++;
+
+  if (mapMode > 3) {
+    mapMode = 0;
   }
 }
 
