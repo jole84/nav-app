@@ -457,9 +457,9 @@ function removePosition(coordinate) {
   }
 
   // if no wp < 300 m, remove last wp
-  if (!removedOne && !removedPoi) {
-    lineArray.pop();
-  }
+  // if (!removedOne && !removedPoi) {
+  //   lineArray.pop();
+  // }
 
   // if only 1 wp, remove route and redraw startpoint
   if (lineArray.length == 1) {
