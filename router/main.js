@@ -724,6 +724,17 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
+document.addEventListener("mouseup", function(event) {
+  if (event.button == 1) { // middle mouse button
+    var eventPixel = [event.clientX, event.clientY];
+    map.forEachFeatureAtPixel(eventPixel, function (feature, layer) {
+      if (feature.getGeometry().getType() == "Point") {
+        removePosition(map.getCoordinateFromPixel(eventPixel));
+      }
+    });
+  };
+});
+
 map.on("pointermove", function (evt) {
   var hit = this.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
     if (feature.get("routeFeature")) {
