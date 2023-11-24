@@ -19,13 +19,14 @@
       }
       html, body, #map{
         background-color: #bfe6ff;
-        height: 100%;
-        margin: 0;
         overscroll-behavior-y: contain !important;
-        padding: 0;
-        width: 100%;
         touch-action: none;
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
       }
+
       .destinationButtons {
         position: absolute;
         z-index: 10;
@@ -33,12 +34,74 @@
         right: 5px;
         text-align: right;
       }
-      .optionButtons {
+      .btn-group-lg {
+        margin-bottom: 5px;
+        /* min-width: 100px;
+        min-height: 150px; */
+      }
+
+      .topRightDiv {
         position: absolute;
+        bottom: 5px;
+        left: 5px;
+        backdrop-filter: blur(5px);
+        -webkit-transition: scale 200ms;
+        transition: scale 200ms;
+        scale: 0.5;
+        transform-origin: left bottom;
+      }
+
+      .topRightDiv:hover {
+        scale: 1;
+        -webkit-transition: scale 200ms;
+        transition: scale 200ms;
+      }
+
+      .optionButtons {
+        /* position: absolute; */
         z-index: 10;
         bottom: 5px;
         left: 5px;
       }
+
+      #savePoiNameButton {
+        margin-top: 12px;
+      }
+      #fileNameForm {
+        text-align: right;
+      }
+      #customFileButton {
+        width: 83px;
+      }
+      /* #saveRouteButton {
+        margin-bottom: 5px;
+      } */
+      #showGPXdiv {
+        display: none;
+      }
+      #layerSelector {
+        display: inline-flex;
+        height: 37px;
+        margin-bottom: 5px;
+      }
+
+      .infoGroup {
+        /* position: absolute; */
+        color: rgb(32,32,32);
+        backdrop-filter: blur(5px);
+        background-color: rgba(251, 251, 251, 0.6);
+        border: 1px solid rgb(32,32,32);
+        border-radius: 5px;
+        font-size: 1.1em;
+        letter-spacing: 1.3px;
+        line-height: 1.4;
+        z-index: 10;
+        word-wrap: break-word;
+        padding-right: 5px;
+        padding-left: 5px;
+        margin-bottom: 5px;
+      }
+
       #crosshair {
         pointer-events: none;
         opacity: 0.8;
@@ -54,24 +117,6 @@
         -moz-user-select: none;
         -ms-user-select: none;
         user-select: none;
-      }
-      .infoGroup {
-        backdrop-filter: blur(5px);
-        background-color: rgba(251, 251, 251, 0.6);
-        border-radius: 5px;
-        border: 1px solid rgb(32,32,32);
-        color: rgb(32,32,32);
-        font-size: 1.1em;
-        letter-spacing: 1.3px;
-        line-height: 1.4;
-        padding-left: 5px;
-        padding-right: 5px;
-        position: absolute;
-        right: 5px;
-        top: 5px;
-        z-index: 10;
-        max-width: 90%;
-        word-wrap: break-word;
       }
       .ol-popup {
         position: absolute;
@@ -117,34 +162,25 @@
       .popup-content {
         margin-bottom: 8px;
       }
-      #savePoiNameButton {
-        margin-top: 12px;
-      }
-      #fileNameForm {
-        text-align: right;
-      }
-      #customFileButton {
-        width: 83px;
-      }
-      #showGPXdiv {
-        display: none;
-      }
-      .btn-group-lg {
-        margin-bottom: 5px;
-        /* min-width: 100px;
-        min-height: 150px; */
-      }
-      #layerSelector {
-        display: inline-flex;
-        height: 37px;
-        margin-bottom: 5px;
-      }
     </style>
   </head>
   <body oncontextmenu="return false;">
     <script type="module" src="./main.js"></script>
-    <div id="map">
+    <div id="map"></div>
+
+    <div class="destinationButtons">
+      <div class="btn-group-vertical btn-group-lg" role="group">
+        <button class="btn btn-success" id="addPositionButton">Lägg till +</button>
+        <button class="btn btn-danger" id="removePositionButton">Ta bort -</button>
+      </div>
+      <br>
+      <button class="btn btn-danger" id="savePoiButton">spara<br>waypoint</button>
+    </div>
+
+    <div class="topRightDiv">
+
       <div class="infoGroup" id="infoGroup">
+        <div id="coordsDiv"></div>
         <div id="info"></div>
         <div id="info2"></div>
         <div id="info3"></div>
@@ -158,14 +194,7 @@
           <label class="form-check-label" for="showGPX">Visa GPX</label>
         </div>
       </div>
-      <div class="destinationButtons">
-        <div class="btn-group-vertical btn-group-lg" role="group" aria-label="Basic example">
-          <button class="btn btn-success" id="addPositionButton">Lägg till +</button>
-          <button class="btn btn-danger" id="removePositionButton">Ta bort -</button>
-        </div>
-        <br>
-        <button class="btn btn-danger" id="savePoiButton">spara<br>waypoint</button>
-      </div>
+      
       <div class="optionButtons">
         <select class="form-select" id="layerSelector">
           <option value="0">Jole84 Terrängkarta</option>
@@ -179,7 +208,8 @@
         <label><input type="file" class="form-control" id="customFileButton" multiple accept=".gpx,application/gpx+xml"/></label>
       </div>
     </div>
-  </div>
+      
+      
     <div id="popup" class="ol-popup">
       <a href="#" id="popup-closer" class="ol-popup-closer"></a>
       <div id="popup-content">Ange waypointnamn:</div>
@@ -189,6 +219,7 @@
         <a href="#" class="btn btn-primary" id="savePoiNameButton">Spara</button>
       </form>
     </div>
+
     <svg
       version="1.1"
       height="60"
@@ -225,5 +256,6 @@
         style="stroke:rgb(255,0,0);stroke-width:4"
         id="line4" />
     </svg>
+
   </body>
 </html>

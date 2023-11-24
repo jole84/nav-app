@@ -45,12 +45,10 @@ var mapDiv = document.getElementById("map");
 var infoGroup = document.getElementById("infoGroup");
 var centerButton = document.getElementById("centerButton");
 var saveLogButton = document.getElementById("saveLogButton");
-var switchMapButton = document.getElementById("switchMapButton");
 var customFileButton = document.getElementById("customFileButton");
 var trafficWarning = document.getElementById("trafficWarning");
 saveLogButton.onclick = saveLogButtonFunction;
 centerButton.onclick = centerFunction;
-switchMapButton.onclick = switchMap;
 
 const view = new View({
   center: center,
@@ -453,6 +451,11 @@ geolocation.once("change", function () {
   centerFunction();
 });
 
+layerSelector.addEventListener("change", function() {
+  mapMode = layerSelector.value;
+  switchMap();
+})
+
 // switch map logic
 var mapMode = 0; // default map
 
@@ -466,6 +469,13 @@ function switchMap() {
     "style",
     "-webkit-filter: initial;filter: initial;background-color: initial;",
   );
+    
+  if (enableLnt && mapMode > 5) {
+    mapMode = 0;
+  } else if (!enableLnt && mapMode > 3) {
+    mapMode = 0;
+  }
+  layerSelector.value = mapMode;
 
   if (mapMode == 0) {
     // mapMode 0: slitlagerkarta
@@ -496,19 +506,13 @@ function switchMap() {
     // mapMode 4: topoweb
     topoweb.setVisible(true);
     topoweb.setMinZoom(6);
+    topoweb.setMaxZoom(20);
+  } else if (enableLnt && mapMode == 5) {
+    // mapMode 4: orto
+    ortofoto.setVisible(true);
+    ortofoto.setMinZoom(6);
   }
 
-  mapMode++;
-
-  if (enableLnt && mapMode > 4) {
-    mapMode = 0;
-  } else if (!enableLnt && mapMode > 3) {
-    mapMode = 0;
-  }
-
-  // if (mapMode > 2) {
-  //   mapMode = 0;
-  // }
   infoGroup.style.fontSize = preferredFontSize;
 }
 
@@ -747,8 +751,15 @@ for (var i = 0; i < urlParams.length; i++) {
         });
       }
     });
-  } else if (urlParams[i].includes("switchMap")) {
-    mapMode++;
+  } else if (urlParams[i].includes("Lnt")) {
+    var option = document.createElement("option");
+    var option2 = document.createElement("option");
+    option.text = "Lantmäteriet Topo";
+    option.value = 4;
+    option2.text = "Lantmäteriet Orto";
+    option2.value = 5;
+    layerSelector.add(option);
+    layerSelector.add(option2);
   } else if (urlParams[i].includes("zoom=")) {
     defaultZoom = urlParams[i].split("=").pop();
   } else if (urlParams[i].includes("mapMode=")) {
@@ -774,6 +785,7 @@ document.addEventListener("keydown", function (event) {
     centerFunction();
   }
   if (event.key == "v") {
+    mapMode++;
     switchMap();
   }
   if (event.key == "z") {

@@ -25,6 +25,7 @@ var savePoiButton = document.getElementById("savePoiButton");
 var savePoiNameButton = document.getElementById("savePoiNameButton");
 var showGPXdiv = document.getElementById("showGPXdiv");
 var touchFriendlyCheck = document.getElementById("touchFriendlyCheck");
+var coordsDiv = document.getElementById("coordsDiv");
 var infoDiv = document.getElementById("info");
 var info2Div = document.getElementById("info2");
 var info3Div = document.getElementById("info3");
@@ -374,8 +375,6 @@ function switchMap() {
     osm.setVisible(true);
   }
 
-  mapMode++;
-
   if (mapMode > 3) {
     mapMode = 0;
   }
@@ -507,8 +506,13 @@ map.on("contextmenu", function (event) {
 });
 
 var centerCoordinate;
-map.on("moveend", function () {
+view.on("change:center", function () {
+  updateInfo();
+});
+
+function updateInfo() {
   centerCoordinate = toLonLat(map.getView().getCenter()).reverse();
+  coordsDiv.innerHTML = toStringXY(centerCoordinate, 5);
   var streetviewlink =
     '<a href="http://maps.google.com/maps?q=&layer=c&cbll=' +
     centerCoordinate +
@@ -518,7 +522,9 @@ map.on("moveend", function () {
     centerCoordinate +
     '" target="_blank">Gmap</a>';
   info4Div.innerHTML = streetviewlink + "<br>" + gmaplink;
-});
+}
+
+updateInfo();
 
 function clearLayer(layerToClear) {
   layerToClear
@@ -712,6 +718,7 @@ document.addEventListener("keydown", function (event) {
       removeLastMapCenter();
     }
     if (event.key == "v") {
+      mapMode++;
       switchMap();
     }
   }

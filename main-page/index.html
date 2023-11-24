@@ -39,6 +39,18 @@
       #selectFile {
         max-width: 300px;
       }
+      #karta {
+        max-width: 300px;
+      }
+      #defaultZoom {
+        max-width: 100px;
+      }
+      #infoText {
+        max-width: 200px;
+      }
+      #gpxUrl {
+        max-width: 300px;
+      }
     </style>
   </head>
   <body>
@@ -68,28 +80,29 @@
       <form onchange="myFunction()" id="theForm">
         <input type="checkbox" id="Lnt"> Aktivera Lantmäteriets kartor<br>
         <input type="checkbox" id="onunload"> Varna vid stängning<br>
-          <label for="defaultZoom">Zoom-nivå:</label>
-        <input type="number" id="defaultZoom" name="defaultZoom" step="0.1" required min="6" max="20" size="5" placeholder="14.0"><br>
-          <label for="infoText">Storlek på inforuta:</label>
-        <input id="infoText" name="infoText" required minlength="1" maxlength="50" size="10" placeholder="1em, x-large"><br>
-          <label for="karta">Vald karta:</label>
-        <select name="karta" id="karta">
-          <option value="terräng">Terrängkarta</option>
-          <option value="vägkarta">Vägkarta</option>
-          <option value="darkmode">Mörk vägkarta</option>
+          <label for="defaultZoom"><b>Zoom-nivå:</b></label>
+        <input class="form-control" type="number" id="defaultZoom" name="defaultZoom" step="0.1" required min="6" max="20" size="5" placeholder="14.0"><br>
+          <label for="infoText"><b>Storlek på inforuta:</b></label>
+        <input class="form-control" id="infoText" name="infoText" required minlength="1" maxlength="50" size="10" placeholder="1em, x-large"><br>
+          <label for="karta"><b>Vald karta:</b></label>
+        <select class="form-select" name="karta" id="karta">
+          <option value="terräng">Jole84 terrängkarta</option>
+          <option value="vägkarta">Jole84 vägkarta</option>
+          <option value="darkmode">Jole84 mörk vägkarta</option>
           <option value="osm">OpenStreetMap</option>
-          <option value="topografisk">Topografisk</option>
+          <option value="topografisk">Lantmäteriet Topo</option>
+          <option value="orto">Lantmäteriet Orto</option>
         </select><br>
-          <label for="gpxUrl">Ladda GPX-fil automatiskt:</label>
+          <label for="gpxUrl"><b>Ladda GPX-fil automatiskt:</b></label>
         <a href="https://jole84.se/rutter" target="_blank">(Tillängliga rutter)</a><br>
-        <select id="selectFile">
+        <select class="form-select" id="selectFile">
           <option>välj gpxfil</option>
         </select><br>
-        <input id="gpxUrl" name="gpxUrl" size="20" placeholder=".gpx"><br>
+        <input class="form-control" id="gpxUrl" name="gpxUrl" size="20" placeholder=".gpx"><br>
       </form>
 
       <button id="createLink" class="btn btn-primary my-2" onclick="myFunction()">Uppdatera länk</button><br>
-      <p>Länk för delning:<br>
+      <p><b>Länk för delning:</b><br>
         <code id="linkCode"></code><br>
       </p>
 
@@ -137,7 +150,7 @@
 
         
         var newLinkUrl = linkUrl + '?';
-        if (karta.value == 'topografisk') {
+        if (karta.value == 'topografisk' || karta.value == 'orto') {
           Lnt.checked = true;
         };
         
@@ -159,6 +172,10 @@
         
         if (karta.value == 'topografisk') {
           newLinkUrl += '&mapMode=4';
+        }
+
+        if (karta.value == 'orto') {
+          newLinkUrl += '&mapMode=5';
         }
         
         if (onUnload.checked) {

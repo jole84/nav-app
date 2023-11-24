@@ -12,7 +12,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-  <title>Live-track</title>
+  <title>Jole84 Nav-app</title>
   <style>
     :root {
       touch-action: pan-x pan-y;
@@ -59,7 +59,7 @@
       border: 2px solid red;
     }
 
-    #btn-group {
+    #optionButtons {
       bottom: 0px;
       left: 5px;
       position: absolute;
@@ -67,6 +67,7 @@
       z-index: 10;
     }
 
+    #layerSelector,
     #centerButton,
     #switchMapButton,
     #saveLogButton,
@@ -82,6 +83,9 @@
     #geolocation_marker {
       display: none;
     }
+    #layerSelector {
+      max-width: 65%;
+    }
   </style>
   <script type="module" src="./main.js"></script>
 </head>
@@ -94,11 +98,18 @@
       <div id="info3"></div>
       <div id="trafficWarning"></div>
     </div>
-    <div id="btn-group">
-      <button class="btn btn-warning" id="saveLogButton">Spara spår</button>
-      <br>
+    <div id="optionButtons">
+      <select class="form-select" id="layerSelector">
+        <option value="0">Jole84 Terrängkarta</option>
+        <option value="1">Jole84 Vägkarta</option>
+        <option value="2">Jole84 Nightmode</option>
+        <option value="3">OpenStreetMap</option>
+        <!-- <option value="4">Lantmäteriet Topo</option>
+        <option value="5">Lantmäteriet Orto</option> -->
+      </select>
       <button class="btn btn-danger" id="centerButton">Center</button>
-      <button class="btn btn-primary" id="switchMapButton">Växla karta</button>
+      <button class="btn btn-warning" id="saveLogButton">Spara spår</button>
+      <!-- <button class="btn btn-primary" id="switchMapButton">Växla karta</button> -->
       <label><input type="file" class="form-control" id="customFileButton" multiple accept=".gpx,application/gpx+xml" /></label>
     </div>
   </div>
