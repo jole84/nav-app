@@ -412,6 +412,8 @@ if (isTouchDevice()) {
   touchFriendlyCheck.checked = true;
 } else {
   document.getElementById("touchFriendly").style.display = "none";
+  document.getElementById("destinationButtons").style.display = "none";
+  document.getElementById("crosshair").style.display = "none";
   map.addInteraction(modify);
   map.addInteraction(modifypoi);
 }
@@ -457,9 +459,9 @@ function removePosition(coordinate) {
   }
 
   // if no wp < 300 m, remove last wp
-  // if (!removedOne && !removedPoi) {
-  //   lineArray.pop();
-  // }
+  if (!removedOne && !removedPoi) {
+    lineArray.pop();
+  }
 
   // if only 1 wp, remove route and redraw startpoint
   if (lineArray.length == 1) {
@@ -475,7 +477,19 @@ function removePosition(coordinate) {
 
 map.on("singleclick", function (event) {
   if (!touchFriendlyCheck.checked) {
-    addPosition(event.coordinate);
+    if (event.originalEvent.altKey) { // if alt + click add poi
+      poiCoordinate = event.coordinate;
+      overlay.setPosition(poiCoordinate);
+      fileNameInput.value = toStringXY(
+        toLonLat(poiCoordinate).reverse(),
+        5,
+        ).replace(",", "");
+    } else {
+      if (event.originalEvent.shiftKey) { // if shift + click add offroad waypoint
+        lineArrayStraights[lineArrayStraights.length - 1] = true;
+      }
+      addPosition(event.coordinate);
+    }
   }
 });
 
@@ -720,6 +734,9 @@ document.addEventListener("keydown", function (event) {
     if (event.key == "v") {
       mapMode++;
       switchMap();
+    }
+    if (event.key == "Backspace") {
+      removePosition(lineArray[lineArray.length - 1] || 0);
     }
   }
 });

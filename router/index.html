@@ -168,7 +168,7 @@
     <script type="module" src="./main.js"></script>
     <div id="map"></div>
 
-    <div class="destinationButtons">
+    <div class="destinationButtons" id="destinationButtons">
       <div class="btn-group-vertical btn-group-lg" role="group">
         <button class="btn btn-success" id="addPositionButton">Lägg till +</button>
         <button class="btn btn-danger" id="removePositionButton">Ta bort -</button>
@@ -180,6 +180,12 @@
     <div class="topRightDiv">
 
       <div class="infoGroup" id="infoGroup">
+        <b>klick:</b> lägg till waypoint<br>
+        <b>alt + klick:</b> lägg till poi<br>
+        <b>shift + klick:</b> offroad waypoint<br>
+        <b>mittknapp:</b> ta bort waypoint<br>
+        <b>höger:</b> byt waypoint till offroad<br>
+        <b>backspace:</b> ta bort sista wp<br>
         <div id="coordsDiv"></div>
         <div id="info"></div>
         <div id="info2"></div>
