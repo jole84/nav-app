@@ -341,7 +341,7 @@ modify.on("modifyend", function () {
   routeMe();
 });
 
-layerSelector.addEventListener("change", function (evt) {
+layerSelector.addEventListener("change", function () {
   mapMode = layerSelector.value;
   switchMap();
 });
@@ -408,7 +408,6 @@ if (isTouchDevice()) {
   touchFriendlyCheck.checked = true;
 } else {
   document.getElementById("touchFriendly").style.display = "none";
-  // document.getElementById("destinationButtons").style.display = "none";
   map.addInteraction(modify);
   map.addInteraction(modifypoi);
 }
@@ -453,11 +452,6 @@ function removePosition(coordinate) {
     }
   }
 
-  // if no wp < 300 m, remove last wp
-  // if (!removedOne && !removedPoi) {
-  //   lineArray.pop();
-  // }
-
   // if only 1 wp, remove route and redraw startpoint
   if (lineArray.length == 1) {
     clearLayer(routeLineLayer);
@@ -498,22 +492,6 @@ map.on("contextmenu", function (event) {
   });
 
   routeMe();
-  // if (!touchFriendlyCheck.checked) {
-  //   // remove waypoint
-  //   for (var i = 0; i < lineArray.length; i++) {
-  //     if (getDistance(toLonLat(event.coordinate), toLonLat(lineArray[i])) < 300) {
-  //       removePosition(event.coordinate);
-  //       break;
-  //     }
-  //   }
-  //   // remove poi
-  //   for (var i = 0; i < poiList.length; i++) {
-  //     if (getDistance(toLonLat(event.coordinate), poiList[i][0]) < 300) {
-  //       removePosition(event.coordinate);
-  //       break;
-  //     }
-  //   }
-  // }
 });
 
 var centerCoordinate;
@@ -721,9 +699,6 @@ document.addEventListener("keydown", function (event) {
   if (!overlay.getPosition()) {
     if (event.key == "a") {
       addPositionMapCenter();
-    }
-    if (event.key == "s") {
-      savePoiPopup();
     }
     if (event.key == "Escape" || event.key == "Backspace") {
       removePositionButtonFunction();
