@@ -341,10 +341,10 @@ modify.on("modifyend", function () {
   routeMe();
 });
 
-layerSelector.addEventListener("change", function(evt) {
+layerSelector.addEventListener("change", function (evt) {
   mapMode = layerSelector.value;
   switchMap();
-})
+});
 
 // switch map logic
 var mapMode = 0; // default map
@@ -360,23 +360,19 @@ function switchMap() {
   if (mapMode == 0) {
     slitlagerkarta.setVisible(true);
     ortofoto.setVisible(true);
-    ortofoto.setMinZoom(15.5)
+    ortofoto.setMinZoom(15.5);
   } else if (mapMode == 1) {
     slitlagerkarta_nedtonad.setVisible(true);
     ortofoto.setVisible(true);
-    ortofoto.setMinZoom(15.5)
+    ortofoto.setMinZoom(15.5);
   } else if (mapMode == 2) {
     topoweb.setVisible(true);
   } else if (mapMode == 3) {
     ortofoto.setVisible(true);
     ortofoto.setMinZoom(1);
-    ortofoto.setMaxZoom(20)
+    ortofoto.setMaxZoom(20);
   } else if (mapMode == 4) {
     osm.setVisible(true);
-  }
-
-  if (mapMode > 3) {
-    mapMode = 0;
   }
 }
 
@@ -476,15 +472,17 @@ function removePosition(coordinate) {
 
 map.on("singleclick", function (event) {
   if (!touchFriendlyCheck.checked) {
-    if (event.originalEvent.altKey) { // if alt + click add poi
+    if (event.originalEvent.altKey) {
+      // if alt + click add poi
       poiCoordinate = event.coordinate;
       overlay.setPosition(poiCoordinate);
       fileNameInput.value = toStringXY(
         toLonLat(poiCoordinate).reverse(),
         5,
-        ).replace(",", "");
+      ).replace(",", "");
     } else {
-      if (event.originalEvent.shiftKey) { // if shift + click add offroad waypoint
+      if (event.originalEvent.shiftKey) {
+        // if shift + click add offroad waypoint
         lineArrayStraights[lineArrayStraights.length - 1] = true;
       }
       addPosition(event.coordinate);
@@ -706,17 +704,17 @@ function handleFileSelect(evt) {
       gpxLayer.getSource().addFeatures(gpxFeatures);
     };
   }
-  gpxLayer.getSource().once('change', function() {
+  gpxLayer.getSource().once("change", function () {
     showGPX.checked = true;
     gpxLayer.setVisible(true);
-    if (gpxLayer.getSource().getState() === 'ready') {
+    if (gpxLayer.getSource().getState() === "ready") {
       var padding = 100;
       view.fit(gpxLayer.getSource().getExtent(), {
-        padding: [padding,padding,padding,padding],
-        duration: 500
-      })
+        padding: [padding, padding, padding, padding],
+        duration: 500,
+      });
     }
-  })
+  });
 }
 
 document.addEventListener("keydown", function (event) {
@@ -732,6 +730,9 @@ document.addEventListener("keydown", function (event) {
     }
     if (event.key == "v") {
       mapMode++;
+      if (mapMode > 4) {
+        mapMode = 0;
+      }
       switchMap();
     }
     if (event.key == "Backspace") {
@@ -740,15 +741,16 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
-document.addEventListener("mouseup", function(event) {
-  if (event.button == 1) { // middle mouse button
+document.addEventListener("mouseup", function (event) {
+  if (event.button == 1) {
+    // middle mouse button
     var eventPixel = [event.clientX, event.clientY];
     map.forEachFeatureAtPixel(eventPixel, function (feature, layer) {
       if (feature.getGeometry().getType() == "Point") {
         removePosition(map.getCoordinateFromPixel(eventPixel));
       }
     });
-  };
+  }
 });
 
 map.on("pointermove", function (evt) {
