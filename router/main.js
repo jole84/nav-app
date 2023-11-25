@@ -46,7 +46,7 @@ document.getElementById("showGPX").addEventListener("change", function () {
   gpxLayer.setVisible(showGPX.checked);
 });
 savePoiButton.onclick = savePoiPopup;
-removePositionButton.onclick = removeLastMapCenter;
+removePositionButton.onclick = removePositionButtonFunction;
 addPositionButton.onclick = addPositionMapCenter;
 
 // window.onunload = window.onbeforeunload = function () {
@@ -408,7 +408,7 @@ if (isTouchDevice()) {
   touchFriendlyCheck.checked = true;
 } else {
   document.getElementById("touchFriendly").style.display = "none";
-  document.getElementById("destinationButtons").style.display = "none";
+  // document.getElementById("destinationButtons").style.display = "none";
   map.addInteraction(modify);
   map.addInteraction(modifypoi);
 }
@@ -417,8 +417,8 @@ function addPositionMapCenter() {
   addPosition(map.getView().getCenter());
 }
 
-function removeLastMapCenter() {
-  removePosition(map.getView().getCenter());
+function removePositionButtonFunction() {
+  removePosition(lineArray[lineArray.length - 1] || 0);
 }
 
 function addPosition(coordinate) {
@@ -725,8 +725,11 @@ document.addEventListener("keydown", function (event) {
     if (event.key == "s") {
       savePoiPopup();
     }
-    if (event.key == "Escape" || event.key == "Delete") {
-      removeLastMapCenter();
+    if (event.key == "Escape" || event.key == "Backspace") {
+      removePositionButtonFunction();
+    }
+    if (event.key == "Delete") {
+      removePosition(map.getView().getCenter());
     }
     if (event.key == "v") {
       mapMode++;
@@ -734,9 +737,6 @@ document.addEventListener("keydown", function (event) {
         mapMode = 0;
       }
       switchMap();
-    }
-    if (event.key == "Backspace") {
-      removePosition(lineArray[lineArray.length - 1] || 0);
     }
   }
 });
