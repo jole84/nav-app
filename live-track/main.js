@@ -271,7 +271,7 @@ function handleFileSelect(evt) {
       var padding = 100;
       view.fit(gpxLayer.getSource().getExtent(), {
         padding: [padding, padding, padding, padding],
-        duration: 500
+        duration: 500,
       });
     }
   });
@@ -451,10 +451,10 @@ geolocation.once("change", function () {
   centerFunction();
 });
 
-layerSelector.addEventListener("change", function() {
+layerSelector.addEventListener("change", function () {
   mapMode = layerSelector.value;
   switchMap();
-})
+});
 
 // switch map logic
 var mapMode = 0; // default map
@@ -469,7 +469,7 @@ function switchMap() {
     "style",
     "-webkit-filter: initial;filter: initial;background-color: initial;",
   );
-    
+
   if (enableLnt && mapMode > 5) {
     mapMode = 0;
   } else if (!enableLnt && mapMode > 3) {
