@@ -901,7 +901,6 @@ function getDeviations() {
     data: xmlRequest,
     success: function (response) {
       if (response == null) return;
-      var noAccidents = true;
       try {
         $.each(response.RESPONSE.RESULT[0].Situation, function (index, item) {
           var format = new WKT();
@@ -925,15 +924,10 @@ function getDeviations() {
           trafikLayer.getSource().addFeature(feature);
           // if roadAccident < 40000 meters
           if (distance < 40000 && item.Deviation[0].IconId == "roadAccident") {
-            noAccidents = false;
-            trafficWarning.style.display = "unset";
             trafficWarning.innerHTML =
               "Olycka på " + (item.Deviation[0].RoadNumber || "väg") + "!";
           }
         });
-        if (noAccidents) {
-          trafficWarning.style.display = "none";
-        }
       } catch (ex) {
         console.log(ex);
       }
