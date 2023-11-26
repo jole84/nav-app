@@ -49,6 +49,11 @@ savePoiButton.onclick = savePoiPopup;
 removePositionButton.onclick = removePositionButtonFunction;
 addPositionButton.onclick = addPositionMapCenter;
 
+document.getElementById("helpTextOk").onclick = function () {
+  document.getElementById("helpText").style.display = "none";
+  document.getElementById("map").style.pointerEvents = "unset";
+};
+
 // window.onunload = window.onbeforeunload = function () {
 //   return "";
 // };
