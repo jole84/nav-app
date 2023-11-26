@@ -752,14 +752,14 @@ for (var i = 0; i < urlParams.length; i++) {
       }
     });
   } else if (urlParams[i].includes("Lnt")) {
-    var option = document.createElement("option");
-    var option2 = document.createElement("option");
-    option.text = "Lantmäteriet Topo";
-    option.value = 4;
-    option2.text = "Lantmäteriet Orto";
-    option2.value = 5;
-    layerSelector.add(option);
-    layerSelector.add(option2);
+    var option4 = document.createElement("option");
+    var option5 = document.createElement("option");
+    option4.text = "Lantmäteriet Topo";
+    option4.value = 4;
+    option5.text = "Lantmäteriet Orto";
+    option5.value = 5;
+    layerSelector.add(option4);
+    layerSelector.add(option5);
   } else if (urlParams[i].includes("zoom=")) {
     defaultZoom = urlParams[i].split("=").pop();
   } else if (urlParams[i].includes("mapMode=")) {
@@ -901,6 +901,7 @@ function getDeviations() {
     data: xmlRequest,
     success: function (response) {
       if (response == null) return;
+      var noAccidents = true;
       try {
         $.each(response.RESPONSE.RESULT[0].Situation, function (index, item) {
           var format = new WKT();
@@ -924,10 +925,14 @@ function getDeviations() {
           trafikLayer.getSource().addFeature(feature);
           // if roadAccident < 40000 meters
           if (distance < 40000 && item.Deviation[0].IconId == "roadAccident") {
+            noAccidents = false;
             trafficWarning.innerHTML =
               "Olycka på " + (item.Deviation[0].RoadNumber || "väg") + "!";
           }
         });
+        if (noAccidents) {
+          trafficWarning.innerHTML = "";
+        }
       } catch (ex) {
         console.log(ex);
       }
