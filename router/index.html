@@ -48,29 +48,44 @@
         transition: scale 200ms;
         transform-origin: left bottom;
       }
-
+      
+      #helpText {
+        display: none;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        color: rgb(32,32,32);
+        backdrop-filter: blur(5px);
+        background-color: rgba(251, 251, 251, 0.6);
+        border: 1px solid rgb(32,32,32);
+        border-radius: 5px;
+        font-size: 1.1em;
+        letter-spacing: 1.3px;
+        line-height: 1.4;
+        z-index: 10;
+        word-wrap: break-word;
+        padding-right: 5px;
+        padding-left: 5px;
+        margin-bottom: 5px;
+        -ms-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+      }
+      
       @media only screen and (max-width: 600px) {
-        .topRightDiv {
+        .infoGroup {
+          -webkit-transition: scale 200ms;
+          transition: scale 200ms;
+          transform-origin: left bottom;
           scale: 0.5;
         }
-      }
-
-      .topRightDiv:hover {
-        scale: 1;
-        -webkit-transition: scale 200ms;
-        transition: scale 200ms;
-      }
-
-      .helpText {
-        display: none;
-      }
-
-      @media only screen and (min-width: 600px) {
-        .topRightDiv:hover .helpText{
-          display: unset;
+        .topRightDiv:hover .infoGroup {
+          -webkit-transition: scale 200ms;
+          transition: scale 200ms;
+          display: inline-block;
+          scale: 1.5;
         }
       }
-
+      
       .optionButtons {
         z-index: 10;
         bottom: 5px;
@@ -91,9 +106,9 @@
       }
       #layerSelector {
         display: inline-flex;
-        height: 37px;
+        /* height: 37px; */
         margin-bottom: 5px;
-        max-width: 234px;
+        /* max-width: 234px; */
       }
 
       .infoGroup {
@@ -190,14 +205,6 @@
     <div class="topRightDiv">
 
       <div class="infoGroup" id="infoGroup">
-        <div class="helpText">
-          <b>klick:</b> lägg till waypoint<br>
-          <b>alt + klick:</b> lägg till poi<br>
-          <b>shift + klick:</b> offroad waypoint<br>
-          <b>mittknapp:</b> ta bort waypoint<br>
-          <b>höger:</b> byt waypoint till offroad<br>
-          <b>backspace:</b> ta bort sista wp<br>
-        </div>
         <div id="coordsDiv"></div>
         <div id="info"></div>
         <div id="info2"></div>
@@ -227,14 +234,13 @@
       </div>
     </div>
       
-      
     <div id="popup" class="ol-popup">
       <a href="#" id="popup-closer" class="ol-popup-closer"></a>
       <div id="popup-content">Ange waypointnamn:</div>
       <form id="fileNameForm">
         <input type="submit" style="display: none" />
         <input type="text" id="fileNameInput" class="form-control" />
-        <a href="#" class="btn btn-primary" id="savePoiNameButton">Spara</button>
+        <a href="#" class="btn btn-primary" id="savePoiNameButton">Spara</a>
       </form>
     </div>
 
@@ -274,6 +280,15 @@
         style="stroke:rgb(255,0,0);stroke-width:4"
         id="line4" />
     </svg>
+
+    <div id="helpText">
+      <b>klick:</b> lägg till waypoint<br>
+      <b>alt + klick:</b> lägg till poi<br>
+      <b>shift + klick:</b> offroad waypoint<br>
+      <b>mittknapp:</b> ta bort waypoint<br>
+      <b>höger:</b> byt waypoint till offroad<br>
+      <b>backspace:</b> ta bort sista wp<br>
+    </div>
 
   </body>
 </html>
