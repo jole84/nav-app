@@ -923,8 +923,8 @@ function getDeviations() {
             iconId: item.Deviation[0].IconId,
           });
           trafikLayer.getSource().addFeature(feature);
-          // if roadAccident < 40000 meters
-          if (distance < 40000 && item.Deviation[0].IconId == "roadAccident") {
+          // if roadAccident < 30000 meters
+          if (distance < 30000 && item.Deviation[0].IconId == "roadAccident") {
             noAccidents = false;
             trafficWarning.innerHTML =
               "Olycka på " + (item.Deviation[0].RoadNumber || "väg") + "!";
