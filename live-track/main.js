@@ -659,6 +659,16 @@ function routeMe(destinationCoordinates) {
   });
 }
 
+map.on("click", function(evt) {
+  if (evt.originalEvent.ctrlKey) {
+    var coordinate = toLonLat(evt.coordinate).reverse();
+    window.open(
+      "http://maps.google.com/maps?q=&layer=c&cbll=" + coordinate,
+      "_blank"
+    ).focus();
+  }
+});
+
 var destinationCoordinates = [];
 // right click/long press to route
 map.on("contextmenu", function (event) {
