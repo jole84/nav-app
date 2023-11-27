@@ -901,7 +901,6 @@ function getDeviations() {
     data: xmlRequest,
     success: function (response) {
       if (response == null) return;
-      var noAccidents = true;
       try {
         $.each(response.RESPONSE.RESULT[0].Situation, function (index, item) {
           var format = new WKT();
@@ -920,17 +919,19 @@ function getDeviations() {
                 item.Deviation[0].Message,
               // + " " + new Date(item.Deviation[0].EndTime).toLocaleTimeString().slice(0, 5)
             ),
+            roadNumber: item.Deviation[0].RoadNumber,
             iconId: item.Deviation[0].IconId,
           });
           trafikLayer.getSource().addFeature(feature);
-          // if roadAccident < 30000 meters
-          if (distance < 30000 && item.Deviation[0].IconId == "roadAccident") {
-            noAccidents = false;
-            trafficWarning.innerHTML =
-              "Olycka på " + (item.Deviation[0].RoadNumber || "väg") + "!";
-          }
         });
-        if (noAccidents) {
+        // if roadAccident < 30000 meters
+        var closestAccident = trafikLayer.getSource().getClosestFeatureToCoordinate(geolocation.getPosition() || [0, 0], function(feature) {return feature.get("iconId") === "roadAccident"});
+        var closestAccidentCoords = toLonLat(closestAccident.getGeometry().getCoordinates());
+        var closestAccidentDistance = getDistance(closestAccidentCoords, toLonLat(geolocation.getPosition()));
+        var closestAccidentRoadNumber = closestAccident.get("roadNumber");
+        if (closestAccidentDistance < 30000) {
+          trafficWarning.innerHTML = "Olycka på " + closestAccidentRoadNumber + "!";
+        } else {
           trafficWarning.innerHTML = "";
         }
       } catch (ex) {
