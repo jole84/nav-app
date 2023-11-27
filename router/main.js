@@ -479,6 +479,12 @@ map.on("singleclick", function (event) {
         toLonLat(poiCoordinate).reverse(),
         5,
       ).replace(",", "");
+    } else if (event.originalEvent.ctrlKey) {
+      var coordinate = toLonLat(event.coordinate).reverse();
+      window.open(
+        "http://maps.google.com/maps?q=&layer=c&cbll=" + coordinate,
+        "_blank",
+      );
     } else {
       if (event.originalEvent.shiftKey) {
         // if shift + click add offroad waypoint
