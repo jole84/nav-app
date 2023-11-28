@@ -36,7 +36,8 @@ document.addEventListener("visibilitychange", async () => {
 var center = fromLonLat([14.18, 57.786]);
 var defaultZoom = 14;
 let distanceTraveled = 0;
-var lastInteraction = new Date() - 5000;
+var interactionDelay = 10000;
+var lastInteraction = new Date() - interactionDelay;
 var preferredFontSize;
 const startTime = new Date();
 var trackLog = [];
@@ -319,8 +320,8 @@ geolocation.on("change", function () {
   marker.setPosition(position); // move marker to current location
 
   if (speed > 3.6) {
-    // change view if no interaction occurred last 5 seconds
-    if (currentTime - lastInteraction > 5000) {
+    // change view if no interaction occurred last 10 seconds
+    if (currentTime - lastInteraction > interactionDelay) {
       updateView(position, heading);
     }
     // measure distance
@@ -328,7 +329,7 @@ geolocation.on("change", function () {
       distanceTraveled += getDistance(prevCoordinate, lonlat);
     }
     prevCoordinate = lonlat;
-    // tracklogger
+    // tracklogger every 5th second
     if (currentTime - lastFix > 5000) {
       lastFix = currentTime;
       trackLog.push([
@@ -406,13 +407,9 @@ function centerFunction() {
   const speed = geolocation.getSpeed() || 0;
   const duration = 500;
   if (speed > 1) {
+    lastInteraction -= interactionDelay;
     view.setZoom(defaultZoom);
-    if (new Date() - lastInteraction < 5000) {
-      view.setRotation(0);
-      lastInteraction = new Date();
-    } else {
-      updateView(position, heading);
-    }
+    updateView(position, heading);
   } else {
     view.animate({
       center: position,
