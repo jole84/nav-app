@@ -227,43 +227,6 @@ function handleFileSelect(evt) {
         dataProjection: "EPSG:4326",
         featureProjection: "EPSG:3857",
       });
-
-      // if (files.length > 1) {
-      //   // set random color if two or more files is loaded
-      //   var color = [
-      //     Math.floor(Math.random() * 255),
-      //     Math.floor(Math.random() * 255),
-      //     Math.floor(Math.random() * 255),
-      //     0.8,
-      //   ];
-      //   gpxFeatures.forEach((f) => {
-      //     f.setStyle(
-      //       new Style({
-      //         stroke: new Stroke({
-      //           color: color,
-      //           width: 10,
-      //         }),
-      //         text: new Text({
-      //           text: f.get("name"),
-      //           font: "bold 14px Roboto,monospace",
-      //           placement: "line",
-      //           repeat: 1000,
-      //           fill: new Fill({
-      //             color: color,
-      //           }),
-      //           stroke: new Stroke({
-      //             color: "white",
-      //             width: 4,
-      //           }),
-      //         }),
-      //         image: new Icon({
-      //           anchor: [0.5, 1],
-      //           src: "https://jole84.se/poi-marker.svg",
-      //         }),
-      //       }),
-      //     );
-      //   });
-      // }
       gpxLayer.getSource().addFeatures(gpxFeatures);
     };
   }
@@ -867,7 +830,7 @@ $.support.cors = true; // Enable Cross domain requests
 var trafikLayer = new VectorLayer({
   //Creates a layer for deviations
   source: new VectorSource(),
-  declutter: true,
+  // declutter: true,
   style: styleFunction,
 });
 map.addLayer(trafikLayer);
@@ -880,18 +843,19 @@ function getDeviations() {
     "<LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />" +
     "<QUERY objecttype='Situation' schemaversion='1.2'>" +
     "<FILTER>" +
-    "<OR>" +
+    // "<OR>" +
     "<ELEMENTMATCH>" +
     "<EQ name='Deviation.ManagedCause' value='true' />" +
     "<EQ name='Deviation.MessageType' value='Olycka' />" +
+    "<GTE name='Deviation.EndTime' value='$now'/>" +
     "</ELEMENTMATCH>" +
-    "<ELEMENTMATCH>" +
-    "<GTE name='Deviation.SeverityCode' value='5' />" +
-    "</ELEMENTMATCH>" +
-    "<ELEMENTMATCH>" +
-    "<EQ name='Deviation.IconId' value='roadClosed' />" +
-    "</ELEMENTMATCH>" +
-    "</OR>" +
+    // "<ELEMENTMATCH>" +
+    // "<GTE name='Deviation.SeverityCode' value='5' />" +
+    // "</ELEMENTMATCH>" +
+    // "<ELEMENTMATCH>" +
+    // "<EQ name='Deviation.IconId' value='roadClosed' />" +
+    // "</ELEMENTMATCH>" +
+    // "</OR>" +
     "</FILTER>" +
     "<INCLUDE>Deviation.Message</INCLUDE>" +
     "<INCLUDE>Deviation.IconId</INCLUDE>" +
