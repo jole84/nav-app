@@ -2,7 +2,7 @@ import { Feature, Map, View } from "ol";
 import XYZ from "ol/source/XYZ.js";
 import { fromLonLat, toLonLat } from "ol/proj.js";
 import TileLayer from "ol/layer/Tile.js";
-import Overlay from "ol/Overlay.js";
+// import Overlay from "ol/Overlay.js";
 import LineString from "ol/geom/LineString";
 import Geolocation from "ol/Geolocation.js";
 import VectorSource from "ol/source/Vector.js";
@@ -91,7 +91,7 @@ gpxStyle["MultiLineString"] = gpxStyle["LineString"];
 const trackStyle = {
   LineString: new Style({
     stroke: new Stroke({
-      color: [255, 0, 0, 0.8],
+      color: [255, 0, 0, 0.6],
       width: 6,
     }),
   }),
@@ -280,7 +280,9 @@ geolocation.on("change", function () {
   const altitude = geolocation.getAltitude() || 0;
   const lonlat = toLonLat(position);
   const currentTime = new Date();
-  marker.setPosition(position); // move marker to current location
+  // marker.setPosition(position); // move marker to current location
+  markerEl.getGeometry().setCoordinates(position);
+  markerEl.setStyle(markerElStyle(heading, speed))
 
   if (speed > 3.6) {
     // change view if no interaction occurred last 10 seconds
@@ -342,14 +344,50 @@ geolocation.on("error", function () {
 });
 
 // Geolocation marker
-const markerEl = document.getElementById("geolocation_marker");
-markerEl.style.display = "unset";
-const marker = new Overlay({
-  positioning: "center-center",
-  element: markerEl,
-  stopEvent: false,
+// const markerEl = document.getElementById("geolocation_marker");
+// markerEl.style.display = "unset";
+// const marker = new Overlay({
+//   positioning: "center-center",
+//   element: markerEl,
+//   stopEvent: false,
+// });
+// map.addOverlay(marker);
+
+var markerEl = new Feature({
+  geometry: new Point({})
 });
-map.addOverlay(marker);
+
+var markerElStyle = function (heading, speed) {
+  if (speed > 1) {
+    return [
+      new Style({
+        image: new Icon({
+          anchor: [0.5, 0.67],
+          src: "https://openlayers.org/en/latest/examples/data/geolocation_marker_heading.png",
+          rotation: (heading || 0),
+          rotateWithView: true
+        }),
+      })
+    ]
+  } else {
+    return [
+      new Style({
+        image: new Icon({
+          anchor: [0.5, 0.5],
+          src: "https://openlayers.org/en/latest/examples/data/geolocation_marker.png",
+          rotation: (heading || 0),
+          rotateWithView: true
+        }),
+      })
+    ]
+  };
+}
+map.addLayer(new VectorLayer({
+  source: new VectorSource({
+    features: [markerEl],
+  }),
+  style: markerElStyle
+}))
 
 // recenters the view by putting the given coordinates at 3/4 from the top of the screen
 function getCenterWithHeading(position, rotation) {
