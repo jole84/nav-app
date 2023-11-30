@@ -234,7 +234,7 @@ function handleFileSelect(evt) {
     if (gpxLayer.getSource().getState() === "ready") {
       var padding = 100;
       view.fit(gpxLayer.getSource().getExtent(), {
-        padding: [padding, padding, padding, padding],
+        padding: [200, padding, padding, padding],
         duration: 500,
       });
     }
@@ -900,6 +900,7 @@ function getDeviations() {
     "<INCLUDE>Deviation.Geometry.WGS84</INCLUDE>" +
     "<INCLUDE>Deviation.RoadNumber</INCLUDE>" +
     "<INCLUDE>Deviation.EndTime</INCLUDE>" +
+    "<INCLUDE>Deviation.LocationDescriptor</INCLUDE>" +
     "</QUERY>" +
     "</REQUEST>";
 
@@ -925,11 +926,12 @@ function getDeviations() {
             name: breakSentence(
               (item.Deviation[0].RoadNumber || "Väg") +
                 ": " +
-                item.Deviation[0].Message,
-              // + " " + new Date(item.Deviation[0].EndTime).toLocaleTimeString().slice(0, 5)
+                item.Deviation[0].Message
+              + "\n" + new Date(item.Deviation[0].EndTime).toLocaleTimeString().slice(0, 5)
             ),
             roadNumber: item.Deviation[0].RoadNumber,
             iconId: item.Deviation[0].IconId,
+            locationDescriptor: item.Deviation[0].LocationDescriptor,
           });
           trafikLayer.getSource().addFeature(feature);
         });
@@ -938,6 +940,7 @@ function getDeviations() {
         var closestAccidentCoords = toLonLat(closestAccident.getGeometry().getCoordinates());
         var closestAccidentDistance = getDistance(closestAccidentCoords, toLonLat(geolocation.getPosition()));
         var closestAccidentRoadNumber = closestAccident.get("roadNumber");
+        var locationDescriptor = closestAccident.get("locationDescriptor");
         if (closestAccidentDistance < 30000) {
           trafficWarning.innerHTML = "Olycka på " + closestAccidentRoadNumber + "!";
         } else {
