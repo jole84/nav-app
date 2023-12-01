@@ -280,11 +280,15 @@ geolocation.on("change", function () {
   const altitude = geolocation.getAltitude() || 0;
   const lonlat = toLonLat(position);
   const currentTime = new Date();
-  // marker.setPosition(position); // move marker to current location
-  markerEl.getGeometry().setCoordinates(position);
-  markerEl.setStyle(markerElStyle(heading, speed))
+  markerEl.getGeometry().setCoordinates(position); // move marker to current location
+  markerElHeading.getGeometry().setCoordinates(position);
+  markerElHeading.getStyle().getImage().setRotation(heading);
 
   if (speed > 3.6) {
+    // change marker if speed
+    markerEl.getStyle().getImage().setOpacity(0);
+    markerElHeading.getStyle().getImage().setOpacity(1);
+
     // change view if no interaction occurred last 10 seconds
     if (currentTime - lastInteraction > interactionDelay) {
       updateView(position, heading);
@@ -316,6 +320,11 @@ geolocation.on("change", function () {
     line.appendCoordinate(position);
   }
 
+  if (speed < 3.6) {
+    markerEl.getStyle().getImage().setOpacity(1);
+    markerElHeading.getStyle().getImage().setOpacity(0);
+  }
+
   if (speed > maxSpeed) {
     maxSpeed = Math.floor(speed);
   }
@@ -344,50 +353,40 @@ geolocation.on("error", function () {
 });
 
 // Geolocation marker
-// const markerEl = document.getElementById("geolocation_marker");
-// markerEl.style.display = "unset";
-// const marker = new Overlay({
-//   positioning: "center-center",
-//   element: markerEl,
-//   stopEvent: false,
-// });
-// map.addOverlay(marker);
-
 var markerEl = new Feature({
   geometry: new Point({})
 });
+var markerElHeading = new Feature({
+  geometry: new Point({})
+});
 
-var markerElStyle = function (heading, speed) {
-  if (speed > 1) {
-    return [
-      new Style({
-        image: new Icon({
-          anchor: [0.5, 0.67],
-          src: "https://openlayers.org/en/latest/examples/data/geolocation_marker_heading.png",
-          rotation: (heading || 0),
-          rotateWithView: true
-        }),
-      })
-    ]
-  } else {
-    return [
-      new Style({
-        image: new Icon({
-          anchor: [0.5, 0.5],
-          src: "https://openlayers.org/en/latest/examples/data/geolocation_marker.png",
-          rotation: (heading || 0),
-          rotateWithView: true
-        }),
-      })
-    ]
-  };
-}
-map.addLayer(new VectorLayer({
-  source: new VectorSource({
-    features: [markerEl],
-  }),
-  style: markerElStyle
-}))
+map.addLayer(
+  new VectorLayer({
+    source: new VectorSource({
+      features: [markerEl, markerElHeading],
+    }),
+  })
+);
+
+markerEl.setStyle(
+  new Style({
+    image: new Icon({
+      anchor: [0.5, 0.5],
+      src: "https://openlayers.org/en/latest/examples/data/geolocation_marker.png",
+    }),
+  })
+);
+
+markerElHeading.setStyle(
+  new Style({
+    image: new Icon({
+      opacity: 0,
+      anchor: [0.5, 0.67],
+      src: "https://openlayers.org/en/latest/examples/data/geolocation_marker_heading.png",
+      rotateWithView: true
+    }),
+  })
+);
 
 // recenters the view by putting the given coordinates at 3/4 from the top of the screen
 function getCenterWithHeading(position, rotation) {
