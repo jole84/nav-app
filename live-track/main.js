@@ -918,8 +918,8 @@ function getDeviations() {
           var feature = new Feature({
             geometry: position,
             name: breakSentence(
-              (item.Deviation[0].RoadNumber ||
-                item.Deviation[0].LocationDescriptor ||
+              (item.Deviation[0].LocationDescriptor ||
+                item.Deviation[0].RoadNumber ||
                 "Väg") +
                 ": " +
                 (item.Deviation[0].Message || "-") +
