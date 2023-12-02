@@ -282,10 +282,10 @@ geolocation.on("change", function () {
   const currentTime = new Date();
   markerEl.getGeometry().setCoordinates(position); // move marker to current location
   markerElHeading.getGeometry().setCoordinates(position);
-  markerElHeading.getStyle().getImage().setRotation(heading);
-
+  
   if (speed > 3.6) {
     // change marker if speed
+    markerElHeading.getStyle().getImage().setRotation(heading);
     markerEl.getStyle().getImage().setOpacity(0);
     markerElHeading.getStyle().getImage().setOpacity(1);
 
@@ -670,8 +670,6 @@ var destinationCoordinates = [];
 // right click/long press to route
 map.on("contextmenu", function (event) {
   var currentPostition = toLonLat(geolocation.getPosition());
-  console.log(toLonLat(event.coordinate)[1]);
-  console.log(toLonLat(event.coordinate)[0]);
   console.log(
     Math.round(getDistance(currentPostition, toLonLat(event.coordinate))) +
       " m",
