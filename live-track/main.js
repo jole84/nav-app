@@ -913,10 +913,6 @@ function getDeviations() {
           var position = format
             .readGeometry(item.Deviation[0].Geometry.WGS84)
             .transform("EPSG:4326", "EPSG:3857");
-          var distance = getDistance(
-            toLonLat(position.getCoordinates()),
-            toLonLat(geolocation.getPosition() || [0, 0]),
-          );
           var feature = new Feature({
             geometry: position,
             name: breakSentence(
@@ -938,7 +934,7 @@ function getDeviations() {
         var closestAccident = trafikLayer
           .getSource()
           .getClosestFeatureToCoordinate(
-            geolocation.getPosition() || [0, 0],
+            geolocation.getPosition(),
             function (feature) {
               return feature.get("iconId") === "roadAccident";
             },
