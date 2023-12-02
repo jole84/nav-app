@@ -928,34 +928,38 @@ function getDeviations() {
                   .toLocaleTimeString()
                   .slice(0, 5),
             ),
-            roadNumber: item.Deviation[0].RoadNumber,
+            roadNumber: (item.Deviation[0].RoadNumber || "väg"),
             iconId: item.Deviation[0].IconId,
             locationDescriptor: item.Deviation[0].LocationDescriptor,
           });
           trafikLayer.getSource().addFeature(feature);
         });
         // if roadAccident < 30000 meters
-        var closestAccident = trafikLayer
-          .getSource()
-          .getClosestFeatureToCoordinate(
-            geolocation.getPosition(),
-            function (feature) {
-              return feature.get("iconId") === "roadAccident";
-            },
+        try {
+          var closestAccident = trafikLayer
+            .getSource()
+            .getClosestFeatureToCoordinate(
+              geolocation.getPosition(),
+              function (feature) {
+                return feature.get("iconId") === "roadAccident";
+              },
+            );
+          var closestAccidentCoords = toLonLat(
+            closestAccident.getGeometry().getCoordinates(),
           );
-        var closestAccidentCoords = toLonLat(
-          closestAccident.getGeometry().getCoordinates(),
-        );
-        var closestAccidentDistance = getDistance(
-          closestAccidentCoords,
-          toLonLat(geolocation.getPosition()),
-        );
-        var closestAccidentRoadNumber = closestAccident.get("roadNumber");
-        var locationDescriptor = closestAccident.get("locationDescriptor");
-        if (closestAccidentDistance < 30000) {
+          var closestAccidentDistance = getDistance(
+            closestAccidentCoords,
+            toLonLat(geolocation.getPosition()),
+          );
+          var closestAccidentRoadNumber = closestAccident.get("roadNumber");
+          var locationDescriptor = closestAccident.get("locationDescriptor");
+          if (closestAccidentDistance < 30000) {
           trafficWarning.innerHTML =
-            "Olycka på " + closestAccidentRoadNumber + "!";
-        } else {
+              "Olycka på " + closestAccidentRoadNumber + "!";
+            } else {
+              trafficWarning.innerHTML = "";
+            }
+        } catch {
           trafficWarning.innerHTML = "";
         }
       } catch (ex) {
