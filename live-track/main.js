@@ -501,12 +501,12 @@ function switchMap() {
   } else if (enableLnt && mapMode == 4) {
     // mapMode 4: topoweb
     topoweb.setVisible(true);
-    topoweb.setMinZoom(6);
+    topoweb.setMinZoom(0);
     topoweb.setMaxZoom(20);
   } else if (enableLnt && mapMode == 5) {
     // mapMode 4: orto
     ortofoto.setVisible(true);
-    ortofoto.setMinZoom(6);
+    ortofoto.setMinZoom(0);
   }
 
   infoGroup.style.fontSize = preferredFontSize;
