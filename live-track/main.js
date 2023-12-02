@@ -2,7 +2,6 @@ import { Feature, Map, View } from "ol";
 import XYZ from "ol/source/XYZ.js";
 import { fromLonLat, toLonLat } from "ol/proj.js";
 import TileLayer from "ol/layer/Tile.js";
-// import Overlay from "ol/Overlay.js";
 import LineString from "ol/geom/LineString";
 import Geolocation from "ol/Geolocation.js";
 import VectorSource from "ol/source/Vector.js";
@@ -282,7 +281,7 @@ geolocation.on("change", function () {
   const currentTime = new Date();
   markerEl.getGeometry().setCoordinates(position); // move marker to current location
   markerElHeading.getGeometry().setCoordinates(position);
-  
+
   if (speed > 3.6) {
     // change marker if speed
     markerElHeading.getStyle().getImage().setRotation(heading);
@@ -354,10 +353,10 @@ geolocation.on("error", function () {
 
 // Geolocation marker
 var markerEl = new Feature({
-  geometry: new Point({})
+  geometry: new Point({}),
 });
 var markerElHeading = new Feature({
-  geometry: new Point({})
+  geometry: new Point({}),
 });
 
 map.addLayer(
@@ -365,7 +364,7 @@ map.addLayer(
     source: new VectorSource({
       features: [markerEl, markerElHeading],
     }),
-  })
+  }),
 );
 
 markerEl.setStyle(
@@ -374,7 +373,7 @@ markerEl.setStyle(
       anchor: [0.5, 0.5],
       src: "https://openlayers.org/en/latest/examples/data/geolocation_marker.png",
     }),
-  })
+  }),
 );
 
 markerElHeading.setStyle(
@@ -383,9 +382,9 @@ markerElHeading.setStyle(
       opacity: 0,
       anchor: [0.5, 0.67],
       src: "https://openlayers.org/en/latest/examples/data/geolocation_marker_heading.png",
-      rotateWithView: true
+      rotateWithView: true,
     }),
-  })
+  }),
 );
 
 // recenters the view by putting the given coordinates at 3/4 from the top of the screen
@@ -656,12 +655,12 @@ function routeMe(destinationCoordinates) {
   });
 }
 
-map.on("singleclick", function(evt) {
+map.on("singleclick", function (evt) {
   if (evt.originalEvent.ctrlKey) {
     var coordinate = toLonLat(evt.coordinate).reverse();
     window.open(
       "http://maps.google.com/maps?q=&layer=c&cbll=" + coordinate,
-      "_blank"
+      "_blank",
     );
   }
 });
@@ -923,8 +922,11 @@ function getDeviations() {
             name: breakSentence(
               (item.Deviation[0].RoadNumber || "Väg") +
                 ": " +
-                item.Deviation[0].Message
-              + "\n" + new Date(item.Deviation[0].EndTime).toLocaleTimeString().slice(0, 5)
+                item.Deviation[0].Message +
+                "\n" +
+                new Date(item.Deviation[0].EndTime)
+                  .toLocaleTimeString()
+                  .slice(0, 5),
             ),
             roadNumber: item.Deviation[0].RoadNumber,
             iconId: item.Deviation[0].IconId,
@@ -933,13 +935,26 @@ function getDeviations() {
           trafikLayer.getSource().addFeature(feature);
         });
         // if roadAccident < 30000 meters
-        var closestAccident = trafikLayer.getSource().getClosestFeatureToCoordinate(geolocation.getPosition() || [0, 0], function(feature) {return feature.get("iconId") === "roadAccident"});
-        var closestAccidentCoords = toLonLat(closestAccident.getGeometry().getCoordinates());
-        var closestAccidentDistance = getDistance(closestAccidentCoords, toLonLat(geolocation.getPosition()));
+        var closestAccident = trafikLayer
+          .getSource()
+          .getClosestFeatureToCoordinate(
+            geolocation.getPosition() || [0, 0],
+            function (feature) {
+              return feature.get("iconId") === "roadAccident";
+            },
+          );
+        var closestAccidentCoords = toLonLat(
+          closestAccident.getGeometry().getCoordinates(),
+        );
+        var closestAccidentDistance = getDistance(
+          closestAccidentCoords,
+          toLonLat(geolocation.getPosition()),
+        );
         var closestAccidentRoadNumber = closestAccident.get("roadNumber");
         var locationDescriptor = closestAccident.get("locationDescriptor");
         if (closestAccidentDistance < 30000) {
-          trafficWarning.innerHTML = "Olycka på " + closestAccidentRoadNumber + "!";
+          trafficWarning.innerHTML =
+            "Olycka på " + closestAccidentRoadNumber + "!";
         } else {
           trafficWarning.innerHTML = "";
         }
