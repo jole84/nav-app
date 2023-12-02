@@ -268,6 +268,12 @@ const geolocation = new Geolocation({
   tracking: true,
 });
 
+// run once when first position is recieved
+geolocation.once("change", function () {
+  getDeviations();
+  centerFunction();
+});
+
 // runs when position changes
 let prevCoordinate = geolocation.getPosition();
 let lastFix = new Date();
@@ -346,6 +352,7 @@ geolocation.on("change", function () {
 
 // alert user if geolocation fails
 geolocation.on("error", function () {
+  getDeviations();
   setExtraInfo([
     "&#128543 Aktivera platsjänster för <br>att se din position på kartan!",
   ]);
@@ -440,11 +447,6 @@ view.on("change:resolution", function () {
   if (view.getRotation() != 0 && view.getZoom() < 11) {
     view.setRotation(0);
   }
-});
-
-// run once when first position is recieved
-geolocation.once("change", function () {
-  centerFunction();
 });
 
 layerSelector.addEventListener("change", function () {
@@ -960,7 +962,5 @@ function getDeviations() {
     },
   });
 }
-
-getDeviations();
 
 setInterval(getDeviations, 60000); // getDeviations interval
