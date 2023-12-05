@@ -270,8 +270,10 @@ const geolocation = new Geolocation({
 
 // run once when first position is recieved
 geolocation.once("change", function () {
+  if (new Date() - lastInteraction > interactionDelay) {
+    centerFunction();
+  }
   getDeviations();
-  centerFunction();
 });
 
 // runs when position changes
@@ -439,7 +441,7 @@ function updateView(position, heading) {
   }
   view.setCenter(getCenterWithHeading(position, -heading));
   view.setRotation(-heading);
-  map.render();
+  // map.render();
 }
 
 view.on("change:resolution", function () {
