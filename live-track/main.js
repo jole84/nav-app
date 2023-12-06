@@ -436,7 +436,7 @@ function centerFunction() {
 }
 
 function updateView(position, heading) {
-  if (view.getZoom() < 11) {
+  if (view.getZoom() <= 11) {
     view.setZoom(defaultZoom);
   }
   view.setCenter(getCenterWithHeading(position, -heading));
@@ -483,20 +483,21 @@ function switchMap() {
     ortofoto.setVisible(true);
     slitlagerkarta.setMaxZoom(15.5);
     ortofoto.setMinZoom(15.5);
-  } else if (mapMode == 1) {
+  } else if (mapMode == 1 || mapMode == 2) {
     // mapMode 1: slitlagerkarta_nedtonad
     slitlagerkarta_nedtonad.setVisible(true);
     topoweb.setVisible(true);
-    ortofoto.setVisible(true);
     slitlagerkarta_nedtonad.setMaxZoom(15.5);
     topoweb.setMinZoom(15.5);
-    topoweb.setMaxZoom(17.5);
-    ortofoto.setMinZoom(17.5);
-  } else if (mapMode == 2) {
-    // mapMode 2: slitlagerkarta_nedtonad + night mode
-    slitlagerkarta_nedtonad.setVisible(true);
-    slitlagerkarta_nedtonad.setMaxZoom(20);
-    mapDiv.setAttribute("style", "filter: invert(1) hue-rotate(180deg);");
+    if (mapMode == 2) {
+      // mapMode 2: slitlagerkarta_nedtonad + night mode
+      topoweb.setMaxZoom(20);
+      mapDiv.setAttribute("style", "filter: invert(1) hue-rotate(180deg);");
+    } else {
+      ortofoto.setVisible(true);
+      topoweb.setMaxZoom(17.5);
+      ortofoto.setMinZoom(17.5);
+    }
   } else if (mapMode == 3) {
     // mapMode 3: Openstreetmap
     osm.setVisible(true);
@@ -673,6 +674,7 @@ var destinationCoordinates = [];
 // right click/long press to route
 map.on("contextmenu", function (event) {
   var currentPostition = toLonLat(geolocation.getPosition());
+  console.log(toLonLat(event.coordinate).reverse());
   console.log(
     Math.round(getDistance(currentPostition, toLonLat(event.coordinate))) +
       " m",
@@ -956,17 +958,33 @@ function getDeviations() {
           var closestAccidentRoadNumber = closestAccident.get("roadNumber");
           var locationDescriptor = closestAccident.get("locationDescriptor");
           if (closestAccidentDistance < 30000) {
-          trafficWarning.innerHTML =
-              "Olycka på " + closestAccidentRoadNumber + "!";
-            } else {
-              trafficWarning.innerHTML = "";
-            }
+            trafficWarning.innerHTML =
+            "Olycka " + closestAccidentRoadNumber + " (" + Math.round(closestAccidentDistance / 1000) + "km)";
+          } else {
+            trafficWarning.innerHTML = "";
+          }
         } catch {
           trafficWarning.innerHTML = "";
         }
       } catch (ex) {
         console.log(ex);
       }
+      trafficWarning.addEventListener("click", function () {
+        lastInteraction += interactionDelay;
+        var duration = 500;
+        view.animate({
+          center: fromLonLat(closestAccidentCoords),
+          duration: duration,
+        });
+        view.animate({
+          zoom: 11,
+          duration: duration,
+        });
+        view.animate({
+          rotation: 0,
+          duration: duration,
+        });
+      })
     },
   });
 }
