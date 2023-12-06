@@ -948,11 +948,9 @@ function getDeviations() {
                 return feature.get("iconId") === "roadAccident";
               },
             );
-          var closestAccidentCoords = toLonLat(
-            closestAccident.getGeometry().getCoordinates(),
-          );
+          var closestAccidentCoords = closestAccident.getGeometry().getCoordinates();
           var closestAccidentDistance = getDistance(
-            closestAccidentCoords,
+            toLonLat(closestAccidentCoords),
             toLonLat(geolocation.getPosition()),
           );
           var closestAccidentRoadNumber = closestAccident.get("roadNumber");
@@ -971,9 +969,17 @@ function getDeviations() {
       }
       trafficWarning.addEventListener("click", function () {
         lastInteraction += interactionDelay;
+        var closestAccidentCoords = trafikLayer
+          .getSource()
+          .getClosestFeatureToCoordinate(
+            geolocation.getPosition(),
+            function (feature) {
+              return feature.get("iconId") === "roadAccident";
+            },
+          ).getGeometry().getCoordinates();
         var duration = 500;
         view.animate({
-          center: fromLonLat(closestAccidentCoords),
+          center: closestAccidentCoords,
           duration: duration,
         });
         view.animate({
