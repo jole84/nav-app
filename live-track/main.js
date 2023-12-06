@@ -959,7 +959,7 @@ function getDeviations() {
           var locationDescriptor = closestAccident.get("locationDescriptor");
           if (closestAccidentDistance < 30000) {
             trafficWarning.innerHTML =
-            "Olycka " + closestAccidentRoadNumber + " (" + Math.round(closestAccidentDistance / 1000) + "km)";
+            "Olycka " + closestAccidentRoadNumber.replace(/^V/, "v") + " (" + Math.round(closestAccidentDistance / 1000) + "km)";
           } else {
             trafficWarning.innerHTML = "";
           }
