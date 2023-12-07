@@ -968,7 +968,7 @@ function getDeviations() {
         console.log(ex);
       }
       trafficWarning.addEventListener("click", function () {
-        lastInteraction += interactionDelay;
+        lastInteraction = new Date();
         var closestAccidentCoords = trafikLayer
           .getSource()
           .getClosestFeatureToCoordinate(
