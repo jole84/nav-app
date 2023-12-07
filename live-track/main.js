@@ -967,32 +967,33 @@ function getDeviations() {
       } catch (ex) {
         console.log(ex);
       }
-      trafficWarning.addEventListener("click", function () {
-        lastInteraction = new Date();
-        var closestAccidentCoords = trafikLayer
-          .getSource()
-          .getClosestFeatureToCoordinate(
-            geolocation.getPosition(),
-            function (feature) {
-              return feature.get("iconId") === "roadAccident";
-            },
-          ).getGeometry().getCoordinates();
-        var duration = 500;
-        view.animate({
-          center: closestAccidentCoords,
-          duration: duration,
-        });
-        view.animate({
-          zoom: 11,
-          duration: duration,
-        });
-        view.animate({
-          rotation: 0,
-          duration: duration,
-        });
-      })
     },
   });
 }
+
+trafficWarning.addEventListener("click", function () {
+  lastInteraction = new Date();
+  var closestAccidentCoords = trafikLayer
+    .getSource()
+    .getClosestFeatureToCoordinate(
+      geolocation.getPosition(),
+      function (feature) {
+        return feature.get("iconId") === "roadAccident";
+      },
+    ).getGeometry().getCoordinates();
+  var duration = 500;
+  view.animate({
+    center: closestAccidentCoords,
+    duration: duration,
+  });
+  view.animate({
+    zoom: 11,
+    duration: duration,
+  });
+  view.animate({
+    rotation: 0,
+    duration: duration,
+  });
+})
 
 setInterval(getDeviations, 60000); // getDeviations interval
