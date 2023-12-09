@@ -340,14 +340,14 @@ geolocation.on("change", function () {
   const html = [
     lonlat[1].toFixed(5) + ", " + lonlat[0].toFixed(5),
     (distanceTraveled / 1000).toFixed(2) +
-      " km / " +
-      Math.round(accuracy) +
-      " m",
+    " km / " +
+    Math.round(accuracy) +
+    " m",
     '<b style="font-size:120%">' +
-      Math.floor(speed) +
-      '</b> (<font style="color:#e60000;">' +
-      maxSpeed +
-      "</font>) km/h",
+    Math.floor(speed) +
+    '</b> (<font style="color:#e60000;">' +
+    maxSpeed +
+    "</font>) km/h",
   ].join("<br />");
   document.getElementById("info").innerHTML = html;
 });
@@ -539,8 +539,8 @@ function saveLog() {
 </metadata>
 <trk>
 <name>${startTime.toLocaleString()}, max ${maxSpeed.toFixed(1)} km/h, total ${(
-    distanceTraveled / 1000
-  ).toFixed(2)} km, ${toHHMMSS(new Date() - startTime)}</name>
+      distanceTraveled / 1000
+    ).toFixed(2)} km, ${toHHMMSS(new Date() - startTime)}</name>
 <trkseg>`;
 
   for (let i = 0; i < trackLog.length; i++) {
@@ -607,10 +607,10 @@ function routeMe(destinationCoordinates) {
 
   fetch(
     "https://brouter.de/brouter" +
-      // fetch('https://jole84.se:17777/brouter' +
-      "?lonlats=" +
-      destinationCoordinates.join("|") +
-      "&profile=car-fast&alternativeidx=0&format=geojson",
+    // fetch('https://jole84.se:17777/brouter' +
+    "?lonlats=" +
+    destinationCoordinates.join("|") +
+    "&profile=car-fast&alternativeidx=0&format=geojson",
   ).then(function (response) {
     response.json().then(function (result) {
       const route = new GeoJSON()
@@ -628,16 +628,12 @@ function routeMe(destinationCoordinates) {
         "Avstånd: " + trackLength.toFixed(2) + " km",
         "Restid: " + toHHMMSS(totalTime),
         "Ankomsttid: " +
-          new Date(new Date().valueOf() + totalTime).toString().slice(16, 25),
-        `<a href="http://maps.google.com/maps?q=${
-          destinationCoordinates[destinationCoordinates.length - 1][1]
-        },${
-          destinationCoordinates[destinationCoordinates.length - 1][0]
+        new Date(new Date().valueOf() + totalTime).toString().slice(16, 25),
+        `<a href="http://maps.google.com/maps?q=${destinationCoordinates[destinationCoordinates.length - 1][1]
+        },${destinationCoordinates[destinationCoordinates.length - 1][0]
         }" target="_blank">Gmap</a>`,
-        `<a href="http://maps.google.com/maps?layer=c&cbll=${
-          destinationCoordinates[destinationCoordinates.length - 1][1]
-        },${
-          destinationCoordinates[destinationCoordinates.length - 1][0]
+        `<a href="http://maps.google.com/maps?layer=c&cbll=${destinationCoordinates[destinationCoordinates.length - 1][1]
+        },${destinationCoordinates[destinationCoordinates.length - 1][0]
         }" target="_blank">Streetview</a>`,
       ]);
 
@@ -677,7 +673,7 @@ map.on("contextmenu", function (event) {
   console.log(toLonLat(event.coordinate).reverse());
   console.log(
     Math.round(getDistance(currentPostition, toLonLat(event.coordinate))) +
-      " m",
+    " m",
   );
 
   if (destinationCoordinates.length == 0) {
@@ -717,7 +713,7 @@ map.on("contextmenu", function (event) {
     clearLayer(routeLayer);
     setExtraInfo([
       Math.round(getDistance(currentPostition, toLonLat(event.coordinate))) +
-        " m",
+      " m",
     ]);
     destinationCoordinates = [];
   } else if (destinationCoordinates.length >= 2) {
@@ -925,12 +921,12 @@ function getDeviations() {
               (item.Deviation[0].LocationDescriptor ||
                 item.Deviation[0].RoadNumber ||
                 "Väg") +
-                ": " +
-                (item.Deviation[0].Message || "-") +
-                "\n" +
-                new Date(item.Deviation[0].EndTime)
-                  .toLocaleTimeString()
-                  .slice(0, 5),
+              ": " +
+              (item.Deviation[0].Message || "-") +
+              "\n" +
+              new Date(item.Deviation[0].EndTime)
+                .toLocaleTimeString()
+                .slice(0, 5),
             ),
             roadNumber: (item.Deviation[0].RoadNumber || "väg"),
             iconId: item.Deviation[0].IconId,
@@ -957,7 +953,7 @@ function getDeviations() {
           var locationDescriptor = closestAccident.get("locationDescriptor");
           if (closestAccidentDistance < 30000) {
             trafficWarning.innerHTML =
-            "Olycka " + closestAccidentRoadNumber.replace(/^V/, "v") + " (" + Math.round(closestAccidentDistance / 1000) + "km)";
+              "Olycka " + closestAccidentRoadNumber.replace(/^V/, "v") + " (" + Math.round(closestAccidentDistance / 1000) + "km)";
           } else {
             trafficWarning.innerHTML = "";
           }

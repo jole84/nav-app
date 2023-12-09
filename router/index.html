@@ -1,302 +1,294 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet" />
-    <!-- MDB -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.css" rel="stylesheet" />
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg" href="https://jole84.se/84.svg" />
-    <meta name="HandheldFriendly" content="true" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <title>jole84 Ruttplanerare</title>
-    <style>
-      :root {
-        touch-action: pan-x pan-y;
-        height: 100% 
-      }
-      html, body, #map{
-        background-color: #bfe6ff;
-        overscroll-behavior-y: contain !important;
-        touch-action: none;
-        height: 100%;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-      }
 
-      #map {
-        pointer-events: none;
-      }
+<head>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet" />
+  <!-- MDB -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.css" rel="stylesheet" />
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg" href="https://jole84.se/84.svg" />
+  <meta name="HandheldFriendly" content="true" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>jole84 Ruttplanerare</title>
+  <style>
+    :root {
+      touch-action: pan-x pan-y;
+      height: 100%
+    }
 
-      .destinationButtons {
-        position: absolute;
-        z-index: 10;
-        bottom: 5px;
-        right: 5px;
-        text-align: right;
-      }
-      .btn-group-lg {
-        margin-bottom: 5px;
-        /* min-width: 100px;
+    html,
+    body,
+    #map {
+      background-color: #bfe6ff;
+      overscroll-behavior-y: contain !important;
+      touch-action: none;
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    #map {
+      pointer-events: none;
+    }
+
+    .destinationButtons {
+      position: absolute;
+      z-index: 10;
+      bottom: 5px;
+      right: 5px;
+      text-align: right;
+    }
+
+    .btn-group-lg {
+      margin-bottom: 5px;
+      /* min-width: 100px;
         min-height: 150px; */
-      }
+    }
 
-      .topRightDiv {
-        position: absolute;
-        bottom: 5px;
-        left: 5px;
+    .topRightDiv {
+      position: absolute;
+      bottom: 5px;
+      left: 5px;
+      -webkit-transition: scale 200ms;
+      transition: scale 200ms;
+      transform-origin: left bottom;
+    }
+
+    #helpText {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      color: rgb(32, 32, 32);
+      backdrop-filter: blur(5px);
+      background-color: rgba(251, 251, 251, 0.6);
+      border: 1px solid rgb(32, 32, 32);
+      border-radius: 5px;
+      font-size: 1.1em;
+      letter-spacing: 1.3px;
+      line-height: 1.4;
+      z-index: 10;
+      word-wrap: break-word;
+      padding: 10px;
+      -ms-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+    }
+
+    #helpTextOk {
+      float: right;
+    }
+
+    @media only screen and (max-width: 600px) {
+      .infoGroup {
         -webkit-transition: scale 200ms;
         transition: scale 200ms;
         transform-origin: left bottom;
-      }
-      
-      #helpText {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        color: rgb(32,32,32);
-        backdrop-filter: blur(5px);
-        background-color: rgba(251, 251, 251, 0.6);
-        border: 1px solid rgb(32,32,32);
-        border-radius: 5px;
-        font-size: 1.1em;
-        letter-spacing: 1.3px;
-        line-height: 1.4;
-        z-index: 10;
-        word-wrap: break-word;
-        padding: 10px;
-        -ms-transform: translate(-50%, -50%);
-        transform: translate(-50%, -50%);
+        scale: 0.5;
       }
 
-      #helpTextOk {
-        float: right;
+      .topRightDiv:hover .infoGroup {
+        -webkit-transition: scale 200ms;
+        transition: scale 200ms;
+        display: inline-block;
+        scale: 1.5;
       }
-      
-      @media only screen and (max-width: 600px) {
-        .infoGroup {
-          -webkit-transition: scale 200ms;
-          transition: scale 200ms;
-          transform-origin: left bottom;
-          scale: 0.5;
-        }
-        .topRightDiv:hover .infoGroup {
-          -webkit-transition: scale 200ms;
-          transition: scale 200ms;
-          display: inline-block;
-          scale: 1.5;
-        }
-      }
-      
-      .optionButtons {
-        z-index: 10;
-        bottom: 5px;
-        left: 5px;
-      }
+    }
 
-      #savePoiNameButton {
-        margin-top: 12px;
-      }
-      #fileNameForm {
-        text-align: right;
-      }
-      #customFileButton {
-        width: 83px;
-      }
-      #showGPXdiv {
-        display: none;
-      }
-      #layerSelector {
-        display: inline-flex;
-        /* height: 37px; */
-        margin-bottom: 5px;
-        /* max-width: 234px; */
-      }
+    .optionButtons {
+      z-index: 10;
+      bottom: 5px;
+      left: 5px;
+    }
 
-      .infoGroup {
-        color: rgb(32,32,32);
-        backdrop-filter: blur(5px);
-        background-color: rgba(251, 251, 251, 0.6);
-        border: 1px solid rgb(32,32,32);
-        border-radius: 5px;
-        font-size: 1.1em;
-        letter-spacing: 1.3px;
-        line-height: 1.4;
-        z-index: 10;
-        word-wrap: break-word;
-        padding-right: 5px;
-        padding-left: 5px;
-        margin-bottom: 5px;
-      }
+    #savePoiNameButton {
+      margin-top: 12px;
+    }
 
-      #crosshair {
-        pointer-events: none;
-        opacity: 0.8;
-        -ms-transform: translate(-50%, -50%);
-        transform: translate(-50%, -50%);
-        position: absolute;
-        z-index: 10;
-        top: 50%;
-        left: 50%;
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        -khtml-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-      }
-      .ol-popup {
-        position: absolute;
-        background-color: white;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-        padding: 12px;
-        border-radius: 10px;
-        border: 1px solid #cccccc;
-        bottom: 12px;
-        left: -50px;
-        min-width: 250px;
-      }
-      .ol-popup:after, .ol-popup:before {
-        top: 100%;
-        border: solid transparent;
-        content: " ";
-        height: 0;
-        width: 0;
-        position: absolute;
-        pointer-events: none;
-      }
-      .ol-popup:after {
-        border-top-color: white;
-        border-width: 10px;
-        left: 48px;
-        margin-left: -10px;
-      }
-      .ol-popup:before {
-        border-top-color: #cccccc;
-        border-width: 11px;
-        left: 48px;
-        margin-left: -11px;
-      }
-      .ol-popup-closer {
-        text-decoration: none;
-        position: absolute;
-        top: 2px;
-        right: 8px;
-      }
-      .ol-popup-closer:after {
-        content: "✖";
-      }
-      .popup-content {
-        margin-bottom: 8px;
-      }
-    </style>
-  </head>
-  <body oncontextmenu="return false;">
-    <script type="module" src="./main.js"></script>
-    <div id="map"></div>
+    #fileNameForm {
+      text-align: right;
+    }
 
-    <div class="destinationButtons" id="destinationButtons">
-      <div class="btn-group-vertical btn-group-lg" role="group">
-        <button class="btn btn-success" id="addPositionButton">Lägg till +</button>
-        <button class="btn btn-danger" id="removePositionButton">Ta bort -</button>
+    #customFileButton {
+      width: 83px;
+    }
+
+    #showGPXdiv {
+      display: none;
+    }
+
+    #layerSelector {
+      display: inline-flex;
+      /* height: 37px; */
+      margin-bottom: 5px;
+      /* max-width: 234px; */
+    }
+
+    .infoGroup {
+      color: rgb(32, 32, 32);
+      backdrop-filter: blur(5px);
+      background-color: rgba(251, 251, 251, 0.6);
+      border: 1px solid rgb(32, 32, 32);
+      border-radius: 5px;
+      font-size: 1.1em;
+      letter-spacing: 1.3px;
+      line-height: 1.4;
+      z-index: 10;
+      word-wrap: break-word;
+      padding-right: 5px;
+      padding-left: 5px;
+      margin-bottom: 5px;
+    }
+
+    #crosshair {
+      pointer-events: none;
+      opacity: 0.8;
+      -ms-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+      position: absolute;
+      z-index: 10;
+      top: 50%;
+      left: 50%;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    .ol-popup {
+      position: absolute;
+      background-color: white;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #cccccc;
+      bottom: 12px;
+      left: -50px;
+      min-width: 250px;
+    }
+
+    .ol-popup:after,
+    .ol-popup:before {
+      top: 100%;
+      border: solid transparent;
+      content: " ";
+      height: 0;
+      width: 0;
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .ol-popup:after {
+      border-top-color: white;
+      border-width: 10px;
+      left: 48px;
+      margin-left: -10px;
+    }
+
+    .ol-popup:before {
+      border-top-color: #cccccc;
+      border-width: 11px;
+      left: 48px;
+      margin-left: -11px;
+    }
+
+    .ol-popup-closer {
+      text-decoration: none;
+      position: absolute;
+      top: 2px;
+      right: 8px;
+    }
+
+    .ol-popup-closer:after {
+      content: "✖";
+    }
+
+    .popup-content {
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+
+<body oncontextmenu="return false;">
+  <script type="module" src="./main.js"></script>
+  <div id="map"></div>
+
+  <div class="destinationButtons" id="destinationButtons">
+    <div class="btn-group-vertical btn-group-lg" role="group">
+      <button class="btn btn-success" id="addPositionButton">Lägg till +</button>
+      <button class="btn btn-danger" id="removePositionButton">Ta bort -</button>
+    </div>
+    <br>
+    <button class="btn btn-danger" id="savePoiButton">spara<br>waypoint</button>
+  </div>
+
+  <div class="topRightDiv">
+
+    <div class="infoGroup" id="infoGroup">
+      <div id="coordsDiv"></div>
+      <div id="info"></div>
+      <div id="info2"></div>
+      <div id="info3"></div>
+      <div id="info4"></div>
+      <div id="touchFriendly" class="form-check">
+        <input class="form-check-input" type="checkbox" value="" id="touchFriendlyCheck" />
+        <label class="form-check-label" for="touchFriendlyCheck">touch</label>
       </div>
+      <div id="showGPXdiv" class="form-check">
+        <input class="form-check-input" type="checkbox" value="" id="showGPX" checked />
+        <label class="form-check-label" for="showGPX">Visa GPX</label>
+      </div>
+    </div>
+
+    <div class="optionButtons">
+      <select class="form-select" id="layerSelector">
+        <option value="0">Jole84 Terrängkarta</option>
+        <option value="1">Jole84 Vägkarta</option>
+        <option value="2">Lantmäteriet Topo</option>
+        <option value="3">Lantmäteriet Orto</option>
+        <option value="4">OpenStreetMap</option>
+      </select>
       <br>
-      <button class="btn btn-danger" id="savePoiButton">spara<br>waypoint</button>
+      <button class="btn btn-warning" id="saveRouteButton">Exportera Rutt</button>
+      <label><input type="file" class="form-control" id="customFileButton" multiple
+          accept=".gpx,application/gpx+xml" /></label>
     </div>
+  </div>
 
-    <div class="topRightDiv">
+  <div id="popup" class="ol-popup">
+    <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+    <div id="popup-content">Ange waypointnamn:</div>
+    <form id="fileNameForm">
+      <input type="submit" style="display: none" />
+      <input type="text" id="fileNameInput" class="form-control" />
+      <a href="#" class="btn btn-primary" id="savePoiNameButton">Spara</a>
+    </form>
+  </div>
 
-      <div class="infoGroup" id="infoGroup">
-        <div id="coordsDiv"></div>
-        <div id="info"></div>
-        <div id="info2"></div>
-        <div id="info3"></div>
-        <div id="info4"></div>
-        <div id="touchFriendly" class="form-check">
-          <input class="form-check-input" type="checkbox" value="" id="touchFriendlyCheck"/>
-          <label class="form-check-label" for="touchFriendlyCheck">touch</label>
-        </div>
-        <div id="showGPXdiv" class="form-check">
-          <input class="form-check-input" type="checkbox" value="" id="showGPX" checked/>
-          <label class="form-check-label" for="showGPX">Visa GPX</label>
-        </div>
-      </div>
-      
-      <div class="optionButtons">
-        <select class="form-select" id="layerSelector">
-          <option value="0">Jole84 Terrängkarta</option>
-          <option value="1">Jole84 Vägkarta</option>
-          <option value="2">Lantmäteriet Topo</option>
-          <option value="3">Lantmäteriet Orto</option>
-          <option value="4">OpenStreetMap</option>
-        </select>
-        <br>
-        <button class="btn btn-warning" id="saveRouteButton">Exportera Rutt</button>
-        <label><input type="file" class="form-control" id="customFileButton" multiple accept=".gpx,application/gpx+xml"/></label>
-      </div>
-    </div>
-      
-    <div id="popup" class="ol-popup">
-      <a href="#" id="popup-closer" class="ol-popup-closer"></a>
-      <div id="popup-content">Ange waypointnamn:</div>
-      <form id="fileNameForm">
-        <input type="submit" style="display: none" />
-        <input type="text" id="fileNameInput" class="form-control" />
-        <a href="#" class="btn btn-primary" id="savePoiNameButton">Spara</a>
-      </form>
-    </div>
+  <svg version="1.1" height="60" width="60" id="crosshair" xmlns="http://www.w3.org/2000/svg"
+    xmlns:svg="http://www.w3.org/2000/svg">
+    <line x1="30" y1="0" x2="30" y2="27" style="stroke:rgb(255,0,0);stroke-width:4" id="line1" />
+    <line x1="0" y1="30" x2="27" y2="30" style="stroke:rgb(255,0,0);stroke-width:4" id="line2" />
+    <line x1="30" y1="33" x2="30" y2="60" style="stroke:rgb(255,0,0);stroke-width:4" id="line3" />
+    <line x1="33" y1="30" x2="60" y2="30" style="stroke:rgb(255,0,0);stroke-width:4" id="line4" />
+  </svg>
 
-    <svg
-      version="1.1"
-      height="60"
-      width="60"
-      id="crosshair"
-      xmlns="http://www.w3.org/2000/svg"
-      xmlns:svg="http://www.w3.org/2000/svg">
-      <line
-        x1="30"
-        y1="0"
-        x2="30"
-        y2="27"
-        style="stroke:rgb(255,0,0);stroke-width:4"
-        id="line1" />
-      <line
-        x1="0"
-        y1="30"
-        x2="27"
-        y2="30"
-        style="stroke:rgb(255,0,0);stroke-width:4"
-        id="line2" />
-      <line
-        x1="30"
-        y1="33"
-        x2="30"
-        y2="60"
-        style="stroke:rgb(255,0,0);stroke-width:4"
-        id="line3" />
-      <line
-        x1="33"
-        y1="30"
-        x2="60"
-        y2="30"
-        style="stroke:rgb(255,0,0);stroke-width:4"
-        id="line4" />
-    </svg>
+  <div id="helpText">
+    <h1>Välkommen till Jole84 ruttplanerare!</h1>
+    <b>Vänterklick:</b> lägg till waypoint<br>
+    <b>Alt + vänsterklick:</b> lägg till poi<br>
+    <b>Ctrl + vänsterklick:</b> öppna streetview<br>
+    <b>Shift + vänsterklick:</b> lägg till offroad waypoint<br>
+    <b>Mittknapp:</b> ta bort waypoint<br>
+    <b>Högerklick:</b> byt waypoint till offroad<br>
+    <b>Backspace:</b> ta bort sista waypoint<br>
+    <button class="btn btn-primary" id="helpTextOk">OK</button>
+  </div>
 
-    <div id="helpText">
-      <h1>Välkommen till Jole84 ruttplanerare!</h1>
-      <b>Vänterklick:</b> lägg till waypoint<br>
-      <b>Alt + vänsterklick:</b> lägg till poi<br>
-      <b>Ctrl + vänsterklick:</b> öppna streetview<br>
-      <b>Shift + vänsterklick:</b> lägg till offroad waypoint<br>
-      <b>Mittknapp:</b> ta bort waypoint<br>
-      <b>Högerklick:</b> byt waypoint till offroad<br>
-      <b>Backspace:</b> ta bort sista waypoint<br>
-      <button class="btn btn-primary" id="helpTextOk">OK</button>
-    </div>
+</body>
 
-  </body>
 </html>
