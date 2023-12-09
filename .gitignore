@@ -1,4 +1,3 @@
 
-live-track/combined
-live-track-vector/combined
-live-track-vector/combined.gpkg
+build_npm.sh
+build_npm
