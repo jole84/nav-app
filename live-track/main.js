@@ -741,7 +741,7 @@ for (var i = 0; i < urlParams.length; i++) {
     }
     var titleString = decodeURIComponent(urlParams[i].split("/").pop());
     setExtraInfo([titleString]);
-    fetch(urlParams[i])
+    fetch(urlParams[i], { mode: "no-cors" })
       .then((response) => {
         console.log(response);
         return response.text();
