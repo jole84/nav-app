@@ -226,18 +226,30 @@ function handleFileSelect(evt) {
         dataProjection: "EPSG:4326",
         featureProjection: "EPSG:3857",
       });
+
+      var lineStringCoords = gpxFeatures[0].getGeometry().getCoordinates()[0];
+
+      for (var i = 0; i < lineStringCoords.length - 1; i++) {
+        lineStringCoords[i].pop();
+        var coordDistance = Math.round(getDistance(toLonLat(lineStringCoords[i]), toLonLat(lineStringCoords[i + 1]))) + "m";
+        const nodeMarker = new Feature({
+          name: coordDistance,
+          geometry: new Point(lineStringCoords[i]),
+        });
+        gpxLayer.getSource().addFeature(nodeMarker);
+      }
       gpxLayer.getSource().addFeatures(gpxFeatures);
     };
   }
-  gpxLayer.getSource().once("change", function () {
-    if (gpxLayer.getSource().getState() === "ready") {
-      var padding = 100;
-      view.fit(gpxLayer.getSource().getExtent(), {
-        padding: [200, padding, padding, padding],
-        duration: 500,
-      });
-    }
-  });
+  // gpxLayer.getSource().once("change", function () {
+  //   if (gpxLayer.getSource().getState() === "ready") {
+  //     var padding = 100;
+  //     view.fit(gpxLayer.getSource().getExtent(), {
+  //       padding: [200, padding, padding, padding],
+  //       duration: 500,
+  //     });
+  //   }
+  // });
   setExtraInfo(fileNames);
   // reaquire wake lock again after file select
   acquireWakeLock();
