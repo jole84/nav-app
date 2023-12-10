@@ -232,8 +232,9 @@ function handleFileSelect(evt) {
       for (var i = 0; i < lineStringCoords.length - 1; i++) {
         lineStringCoords[i].pop();
         var coordDistance = Math.round(getDistance(toLonLat(lineStringCoords[i]), toLonLat(lineStringCoords[i + 1]))) + "m";
+        var bearing = calcBearing(toLonLat(lineStringCoords[i]), toLonLat(lineStringCoords[i + 1]))
         const nodeMarker = new Feature({
-          name: coordDistance,
+          name: Math.round(bearing) + "\n" + coordDistance,
           geometry: new Point(lineStringCoords[i]),
         });
         gpxLayer.getSource().addFeature(nodeMarker);
@@ -255,9 +256,25 @@ function handleFileSelect(evt) {
   acquireWakeLock();
 }
 
-// convert degrees to radians
-function degToRad(deg) {
-  return (deg * Math.PI * 2) / 360;
+// Converts from degrees to radians.
+function toRadians(degrees) {
+  return degrees * Math.PI / 180;
+};
+ 
+// Converts from radians to degrees.
+function toDegrees(radians) {
+  return radians * 180 / Math.PI;
+}
+
+function calcBearing([startLng, startLat], [destLng, destLat]){
+  var dL = destLng-startLng;
+  
+  var X = Math.cos(destLat) * Math.sin(dL);
+  var Y = Math.cos(startLat) * Math.sin(destLat) - Math.sin(startLat) * Math.cos(destLat) * Math.cos(dL);
+  
+  var bearingRads = Math.atan2(X, Y);
+  return (toDegrees(bearingRads));
+  // return (toDegrees(bearingRads) * 360) % 360;
 }
 
 // milliseconds to HH:MM:SS
