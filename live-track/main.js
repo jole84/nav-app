@@ -858,7 +858,7 @@ document.addEventListener("keydown", function (event) {
     // store time of last interaction
     lastInteraction = new Date();
   }
-  if (event.key == "c") {
+  if (event.key == "c"|| event.key == "Enter") {
     centerFunction();
   }
   if (event.key == "v") {
