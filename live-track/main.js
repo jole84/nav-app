@@ -334,17 +334,31 @@ const geolocation = new Geolocation({
   tracking: true,
 });
 
-// run once when first position is recieved
+let prevCoordinate;
+let lastFix = new Date();
+// run once to get things going
 geolocation.once("change", function () {
-  if (new Date() - lastInteraction > interactionDelay) {
+  const position = geolocation.getPosition();
+  const altitude = geolocation.getAltitude() || 0;
+  const lonlat = toLonLat(position);
+  const currentTime = new Date();
+  if (currentTime - lastInteraction > interactionDelay) {
     centerFunction();
   }
   getDeviations();
+
+  trackLog.push([
+    lonlat[0].toFixed(6),
+    lonlat[1].toFixed(6),
+    altitude.toFixed(2),
+    currentTime,
+  ]);
+  line.appendCoordinate(position);
+  
+  prevCoordinate = lonlat;
 });
 
 // runs when position changes
-let prevCoordinate = geolocation.getPosition();
-let lastFix = new Date();
 geolocation.on("change", function () {
   const position = geolocation.getPosition();
   const accuracy = geolocation.getAccuracy();
@@ -356,7 +370,23 @@ geolocation.on("change", function () {
   markerEl.getGeometry().setCoordinates(position); // move marker to current location
   markerElHeading.getGeometry().setCoordinates(position);
 
+  if (getDistance([trackLog[trackLog.length - 1][0] , trackLog[trackLog.length - 1][1]], lonlat) > 5 && currentTime - lastFix > 5000) {
+    // measure distance and push log if position change > 5 meters and > 5 seconds
+    
+    trackLog.push([
+      lonlat[0].toFixed(6),
+      lonlat[1].toFixed(6),
+      altitude.toFixed(2),
+      currentTime,
+    ]);
+    line.appendCoordinate(position);
+    
+    lastFix = currentTime;
+  }
+  
   if (speed > 3.6) {
+    distanceTraveled += getDistance(prevCoordinate, lonlat);
+    prevCoordinate = lonlat;
     // change marker if speed
     markerElHeading.getStyle().getImage().setRotation(heading);
     markerEl.getStyle().getImage().setOpacity(0);
@@ -366,31 +396,6 @@ geolocation.on("change", function () {
     if (currentTime - lastInteraction > interactionDelay) {
       updateView(position, heading);
     }
-    // measure distance
-    if (prevCoordinate !== undefined) {
-      distanceTraveled += getDistance(prevCoordinate, lonlat);
-    }
-    prevCoordinate = lonlat;
-    // tracklogger every 5th second
-    if (currentTime - lastFix > 5000) {
-      lastFix = currentTime;
-      trackLog.push([
-        lonlat[0].toFixed(6),
-        lonlat[1].toFixed(6),
-        altitude.toFixed(2),
-        currentTime,
-      ]);
-      line.appendCoordinate(position);
-    }
-  } else if (currentTime - lastFix > 5000 && lastFix > startTime) {
-    lastFix = 0;
-    trackLog.push([
-      lonlat[0].toFixed(6),
-      lonlat[1].toFixed(6),
-      altitude.toFixed(2),
-      currentTime,
-    ]);
-    line.appendCoordinate(position);
   }
 
   if (speed < 3.6) {
@@ -568,9 +573,11 @@ function switchMap() {
       mapDiv.setAttribute("style", "filter: invert(1) hue-rotate(180deg);");
       if (enableLnt) {
         topoweb.setVisible(true);
+        slitlagerkarta_nedtonad.setMaxZoom(15.5);
+        topoweb.setMinZoom(15.5);
         topoweb.setMaxZoom(20);
       }
-    } else if (mapMode == 3) {
+  } else if (mapMode == 3) {
     // mapMode 3: Openstreetmap
     osm.setVisible(true);
   } else if (enableLnt && mapMode == 4) {
@@ -993,7 +1000,7 @@ function getDeviations() {
                 item.Deviation[0].RoadNumber ||
                 "Väg") +
               ": " +
-              (item.Deviation[0].Message || "-") +
+              (item.Deviation[0].Message.replace(/[\t\n\r]/g, '') || "-") +
               "\n" +
               new Date(item.Deviation[0].EndTime)
                 .toLocaleTimeString()
