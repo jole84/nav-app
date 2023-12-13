@@ -282,13 +282,12 @@ geolocation.once("change", function () {
   getDeviations();
 
   trackLog.push([
-    lonlat[0].toFixed(6),
-    lonlat[1].toFixed(6),
-    altitude.toFixed(2),
+    lonlat,
+    altitude,
     currentTime,
   ]);
   line.appendCoordinate(position);
-  
+
   prevCoordinate = lonlat;
 });
 
@@ -304,20 +303,19 @@ geolocation.on("change", function () {
   markerEl.getGeometry().setCoordinates(position); // move marker to current location
   markerElHeading.getGeometry().setCoordinates(position);
 
-  if (getDistance([trackLog[trackLog.length - 1][0] , trackLog[trackLog.length - 1][1]], lonlat) > 5 && currentTime - lastFix > 5000) {
+  if (getDistance(trackLog[trackLog.length - 1][0], lonlat) > 5 && currentTime - lastFix > 5000) {
     // measure distance and push log if position change > 5 meters and > 5 seconds
-    
+
     trackLog.push([
-      lonlat[0].toFixed(6),
-      lonlat[1].toFixed(6),
-      altitude.toFixed(2),
+      lonlat,
+      altitude,
       currentTime,
     ]);
     line.appendCoordinate(position);
-    
+
     lastFix = currentTime;
   }
-  
+
   if (speed > 3.6) {
     distanceTraveled += getDistance(prevCoordinate, lonlat);
     prevCoordinate = lonlat;
@@ -502,15 +500,15 @@ function switchMap() {
       ortofoto.setMinZoom(17.5);
     }
   } else if (mapMode == 2) {
-      // mapMode 2: slitlagerkarta_nedtonad + night mode
-      slitlagerkarta_nedtonad.setVisible(true);
-      mapDiv.setAttribute("style", "filter: invert(1) hue-rotate(180deg);");
-      if (enableLnt) {
-        topoweb.setVisible(true);
-        slitlagerkarta_nedtonad.setMaxZoom(15.5);
-        topoweb.setMinZoom(15.5);
-        topoweb.setMaxZoom(20);
-      }
+    // mapMode 2: slitlagerkarta_nedtonad + night mode
+    slitlagerkarta_nedtonad.setVisible(true);
+    mapDiv.setAttribute("style", "filter: invert(1) hue-rotate(180deg);");
+    if (enableLnt) {
+      topoweb.setVisible(true);
+      slitlagerkarta_nedtonad.setMaxZoom(15.5);
+      topoweb.setMinZoom(15.5);
+      topoweb.setMaxZoom(20);
+    }
   } else if (mapMode == 3) {
     // mapMode 3: Openstreetmap
     osm.setVisible(true);
@@ -555,10 +553,10 @@ function saveLog() {
 <trkseg>`;
 
   for (let i = 0; i < trackLog.length; i++) {
-    const lon = trackLog[i][0];
-    const lat = trackLog[i][1];
-    const ele = trackLog[i][2];
-    const isoTime = trackLog[i][3].toISOString();
+    const lon = trackLog[i][0][0].toFixed(6);
+    const lat = trackLog[i][0][1].toFixed(6);
+    const ele = trackLog[i][1].toFixed(2);
+    const isoTime = trackLog[i][2].toISOString();
     const trkpt = `
   <trkpt lat="${lat}" lon="${lon}"><ele>${ele}</ele><time>${isoTime}</time></trkpt>`;
     gpxFile += trkpt;
@@ -798,7 +796,7 @@ document.addEventListener("keydown", function (event) {
     // store time of last interaction
     lastInteraction = new Date();
   }
-  if (event.key == "c"|| event.key == "Enter") {
+  if (event.key == "c" || event.key == "Enter") {
     centerFunction();
   }
   if (event.key == "v") {
