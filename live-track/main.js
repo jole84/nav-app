@@ -7,7 +7,7 @@ import Geolocation from "ol/Geolocation.js";
 import VectorSource from "ol/source/Vector.js";
 import GPX from "ol/format/GPX.js";
 import { Stroke, Style, Icon, Fill, Text } from "ol/style.js";
-import { Heatmap, Vector as VectorLayer } from "ol/layer.js";
+import { Vector as VectorLayer } from "ol/layer.js";
 import TileWMS from "ol/source/TileWMS.js";
 import Point from "ol/geom/Point.js";
 import GeoJSON from "ol/format/GeoJSON.js";
@@ -156,18 +156,6 @@ var topoweb = new TileLayer({
   visible: false,
 });
 
-var heatmapLayer = new Heatmap({
-  source: new VectorSource({}),
-  weight: function (feature) {
-    return feature.get("degreeToTurn") / (feature.get("coordDistance") * 2);
-  },
-  // opacity: 0.8,
-  minZoom: 11,
-  // radius: 20,
-  // blur: 20,
-  gradient: ["yellow", "red"],
-})
-
 var gpxLayer = new VectorLayer({
   source: new VectorSource(),
   style: function (feature) {
@@ -200,7 +188,6 @@ const map = new Map({
     osm,
     ortofoto,
     topoweb,
-    heatmapLayer,
     gpxLayer,
     routeLayer,
     trackLayer,
@@ -228,7 +215,6 @@ function handleFileSelect(evt) {
   var files = evt.target.files; // FileList object
   // remove previously loaded gpx files
   clearLayer(gpxLayer);
-  clearLayer(heatmapLayer);
   var fileNames = [];
   for (var i = 0; i < files.length; i++) {
     console.log(files[i]);
@@ -257,61 +243,9 @@ function handleFileSelect(evt) {
   acquireWakeLock();
 }
 
-// Converts from degrees to radians.
-function toRadians(degrees) {
-  return degrees * Math.PI / 180;
-};
- 
-// Converts from radians to degrees.
-function toDegrees(radians) {
-  return radians * 180 / Math.PI;
-}
-
-// map.addLayer(heatmapLayer);
-
-function createHeatmap (lineStringCoords) {
-  for (var i = 1; i < lineStringCoords.length - 1; i++) {
-    lineStringCoords[i].pop();
-    
-    var bearing = getBearing(toLonLat(lineStringCoords[i]), toLonLat(lineStringCoords[i + 1]));
-    var prevBearing = getBearing(toLonLat(lineStringCoords[i - 1]), toLonLat(lineStringCoords[i]));
-    
-    var coordDistance = getDistance(toLonLat(lineStringCoords[i]), toLonLat(lineStringCoords[i + 1]));
-    var degreeToTurn = getDegreeToTurn(bearing, prevBearing);    
-
-    const nodeMarker = new Feature({
-      // name: Math.round(degreeToTurn) + "°\n" + Math.round(coordDistance) + "m",
-      geometry: new Point(lineStringCoords[i]),
-      degreeToTurn: degreeToTurn,
-      coordDistance: coordDistance,
-    });
-    heatmapLayer.getSource().addFeature(nodeMarker);
-  }
-}
-
-function getBearing([lon1, lat1], [lon2, lat2]){
-  lat1 = toRadians(lat1);
-  lon1 = toRadians(lon1);
-  lat2 = toRadians(lat2);
-  lon2 = toRadians(lon2);
-
-  var y = Math.sin(lon2 - lon1) * Math.cos(lat2);
-  var x = Math.cos(lat1) * Math.sin(lat2) -
-        Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1);
-  var brng = Math.atan2(y, x);
-  brng = toDegrees(brng);
-  return (brng + 360) % 360;
-}
-
-function getDegreeToTurn (bearing, prevBearing) {
-  var riktning = bearing - prevBearing;
-  if (riktning < 0) {
-    riktning += 360
-  }
-  if (riktning > 180) {
-    riktning -= 360
-  }
-  return riktning
+// convert degrees to radians
+function degToRad(deg) {
+  return (deg * Math.PI * 2) / 360;
 }
 
 // milliseconds to HH:MM:SS
@@ -824,7 +758,6 @@ for (var i = 0; i < urlParams.length; i++) {
           dataProjection: "EPSG:4326",
           featureProjection: "EPSG:3857",
         });
-        createHeatmap(gpxFeatures[0].getGeometry().getCoordinates()[0]);
         gpxLayer.getSource().addFeatures(gpxFeatures);
       });
     gpxLayer.getSource().once("change", function () {
