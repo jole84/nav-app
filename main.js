@@ -269,7 +269,7 @@ const geolocation = new Geolocation({
 });
 
 let prevCoordinate;
-let lastFix = new Date();
+// let lastFix = new Date();
 // run once to get things going
 geolocation.once("change", function () {
   const position = geolocation.getPosition();
@@ -303,8 +303,9 @@ geolocation.on("change", function () {
   markerEl.getGeometry().setCoordinates(position); // move marker to current location
   markerElHeading.getGeometry().setCoordinates(position);
 
-  if (getDistance(trackLog[trackLog.length - 1][0], lonlat) > 5 && currentTime - lastFix > 5000) {
-    // measure distance and push log if position change > 5 meters and > 5 seconds
+  // if (getDistance(trackLog[trackLog.length - 1][0], lonlat) > 5 && currentTime - lastFix > 5000) {
+  if (getDistance(trackLog[trackLog.length - 1][0], lonlat) > 10) {
+    // measure distance and push log if position change > 10 meters
 
     trackLog.push([
       lonlat,
@@ -313,12 +314,13 @@ geolocation.on("change", function () {
     ]);
     line.appendCoordinate(position);
 
-    lastFix = currentTime;
+    // lastFix = currentTime;
   }
+  
+  distanceTraveled += getDistance(prevCoordinate, lonlat);
+  prevCoordinate = lonlat;
 
   if (speed > 3.6) {
-    distanceTraveled += getDistance(prevCoordinate, lonlat);
-    prevCoordinate = lonlat;
     // change marker if speed
     markerElHeading.getStyle().getImage().setRotation(heading);
     markerEl.getStyle().getImage().setOpacity(0);
