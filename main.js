@@ -248,6 +248,10 @@ function degToRad(deg) {
   return (deg * Math.PI * 2) / 360;
 }
 
+function getPixelDistance (pixel, pixel2) {
+  return Math.sqrt((pixel[1] - pixel2[1]) * (pixel[1] - pixel2[1]) + (pixel[0] - pixel2[0]) * (pixel[0] - pixel2[0]));
+}
+
 // milliseconds to HH:MM:SS
 function toHHMMSS(milliSecondsInt) {
   var dateObj = new Date(milliSecondsInt);
@@ -685,30 +689,30 @@ map.on("contextmenu", function (event) {
   console.log(
     Math.round(getDistance(currentPostition, toLonLat(event.coordinate))) +
     " m",
-  );
-
+    );
+    
   if (destinationCoordinates.length == 0) {
     // set start position
     destinationCoordinates.push(currentPostition);
   }
 
-  // remove last coord if < 0.2 km if click on last coord
+  // remove last point if click < 40 pixels from last point
   if (
     destinationCoordinates.length > 2 &&
-    getDistance(
-      toLonLat(event.coordinate),
-      destinationCoordinates[destinationCoordinates.length - 1],
-    ) < 200
+    getPixelDistance(
+      event.pixel, 
+      map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))
+    ) < 40
   ) {
     destinationCoordinates.pop();
   }
-  // clear route if click < 0.2 km if coord is last
+  // clear route if click < 40 pixels from last point
   else if (
     destinationCoordinates.length == 2 &&
-    getDistance(
-      toLonLat(event.coordinate),
-      destinationCoordinates[destinationCoordinates.length - 1],
-    ) < 200
+    getPixelDistance(
+      event.pixel, 
+      map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))
+    ) < 40
   ) {
     clearLayer(routeLayer);
     setExtraInfo([""]);
