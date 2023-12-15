@@ -723,8 +723,8 @@ map.on("contextmenu", function (event) {
   }
 
   lastInteraction = new Date();
-  // if click less than 0.2km from current position clear route else start route
-  if (getDistance(currentPostition, toLonLat(event.coordinate)) < 200) {
+  // if click less than 0.2km or 50 pixels from current position clear route else start route
+  if (getDistance(currentPostition, toLonLat(event.coordinate)) < 200 || getPixelDistance(event.pixel, map.getPixelFromCoordinate(fromLonLat(currentPostition))) < 50) {
     clearLayer(routeLayer);
     setExtraInfo([
       Math.round(getDistance(currentPostition, toLonLat(event.coordinate))) +
