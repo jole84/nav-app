@@ -844,9 +844,9 @@ var styleFunction = function (feature) {
       text: new Text({
         text: feature.get("name"),
         font: "bold 14px Roboto,monospace",
-        textAlign: "left",
+        textAlign: "center",
         textBaseline: "top",
-        offsetX: 20,
+        offsetY: 20,
         fill: new Fill({
           color: "#b41412",
         }),
@@ -863,7 +863,7 @@ function breakSentence(sentence) {
   var returnSentence = "";
   var x = 0;
   for (var i = 0; i < sentence.length; i++) {
-    if (x > 20 && sentence[i] == " " && sentence.length - i > 15) {
+    if (x > 30 && sentence[i] == " " && sentence.length - i > 15) {
       x = 0;
       returnSentence += "\n";
     } else {
