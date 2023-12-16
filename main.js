@@ -15,6 +15,8 @@ import WKT from "ol/format/WKT.js";
 import { getDistance } from "ol/sphere";
 import OSM from "ol/source/OSM.js";
 
+setExtraInfo(["<font size=1> Build: INSERTDATEHERE</font>"]);
+
 let wakeLock;
 const acquireWakeLock = async () => {
   if ("wakeLock" in navigator) {
