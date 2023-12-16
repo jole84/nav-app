@@ -238,6 +238,7 @@ function handleFileSelect(evt) {
         padding: [200, padding, padding, padding],
         duration: 500,
       });
+      lastInteraction = new Date();
     }
   });
   setExtraInfo(fileNames);
@@ -426,7 +427,7 @@ function centerFunction() {
   const speed = geolocation.getSpeed() || 0;
   const duration = 500;
   if (speed > 1) {
-    lastInteraction -= interactionDelay;
+    lastInteraction = new Date() - interactionDelay;
     view.setZoom(defaultZoom);
     updateView(position, heading);
   } else {
@@ -772,6 +773,7 @@ for (var i = 0; i < urlParams.length; i++) {
         view.fit(gpxLayer.getSource().getExtent(), {
           padding: [padding, padding, padding, padding],
         });
+        lastInteraction = new Date();
       }
     });
   } else if (urlParams[i].includes("Lnt")) {
@@ -800,7 +802,7 @@ switchMap();
 // add keyboard controls
 document.addEventListener("keydown", function (event) {
   const zoomStep = 0.5;
-  if (event.key != "a" && event.key != "Escape") {
+  if (event.key != "a" && event.key != "Escape" && event.key != "§") {
     // store time of last interaction
     lastInteraction = new Date();
   }
@@ -820,7 +822,7 @@ document.addEventListener("keydown", function (event) {
   if (event.key == "s") {
     saveLogButtonFunction();
   }
-  if (event.key == "Escape") {
+  if (event.key == "Escape" || event.key == "§") {
     // carpe iter adventure controller minus button
     view.adjustZoom(-zoomStep);
   }
@@ -861,7 +863,7 @@ function breakSentence(sentence) {
   var returnSentence = "";
   var x = 0;
   for (var i = 0; i < sentence.length; i++) {
-    if (x > 20 && sentence[i] == " ") {
+    if (x > 20 && sentence[i] == " " && sentence.length - i > 15) {
       x = 0;
       returnSentence += "\n";
     } else {
