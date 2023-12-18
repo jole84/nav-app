@@ -830,6 +830,9 @@ document.addEventListener("keydown", function (event) {
     // carpe iter adventure controller plus button
     view.adjustZoom(zoomStep);
   }
+  if (event.code == "Space") {
+    focusTrafficWarning();
+  }
 });
 
 var apiUrl = "https://api.trafikinfo.trafikverket.se/v2/";
@@ -986,8 +989,12 @@ function getDeviations() {
   });
 }
 
-trafficWarning.addEventListener("click", function () {
+trafficWarning.addEventListener("click", focusTrafficWarning);
+
+function focusTrafficWarning() {
   lastInteraction = new Date();
+  var coords;
+  var currentPostition = geolocation.getPosition()
   var closestAccidentCoords = trafikLayer
     .getSource()
     .getClosestFeatureToCoordinate(
@@ -996,9 +1003,21 @@ trafficWarning.addEventListener("click", function () {
         return feature.get("iconId") === "roadAccident";
       },
     ).getGeometry().getCoordinates();
+
+  var closestAccidentDistance = getDistance(
+    toLonLat(closestAccidentCoords),
+    toLonLat(currentPostition),
+  );
+  
+  if (closestAccidentDistance < 30000) {
+    coords = closestAccidentCoords;
+  } else {
+    coords = currentPostition;
+  }
+
   var duration = 500;
   view.animate({
-    center: closestAccidentCoords,
+    center: coords,
     duration: duration,
   });
   view.animate({
@@ -1009,6 +1028,6 @@ trafficWarning.addEventListener("click", function () {
     rotation: 0,
     duration: duration,
   });
-})
+}
 
 setInterval(getDeviations, 60000); // getDeviations interval
