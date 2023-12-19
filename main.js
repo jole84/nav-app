@@ -214,6 +214,7 @@ var gpxFormat = new GPX();
 var gpxFeatures;
 customFileButton.addEventListener("change", handleFileSelect, false);
 function handleFileSelect(evt) {
+  customFileButton.blur();
   var files = evt.target.files; // FileList object
   // remove previously loaded gpx files
   clearLayer(gpxLayer);
@@ -467,6 +468,10 @@ layerSelector.addEventListener("change", function () {
   mapMode = layerSelector.value;
   switchMap();
 });
+
+layerSelector.addEventListener("focus", function () {
+  layerSelector.blur();
+})
 
 // switch map logic
 var mapMode = 0; // default map
@@ -807,6 +812,7 @@ document.addEventListener("keydown", function (event) {
     lastInteraction = new Date();
   }
   if (event.key == "c" || event.key == "Enter") {
+    event.preventDefault();
     centerFunction();
   }
   if (event.key == "v") {
@@ -831,6 +837,7 @@ document.addEventListener("keydown", function (event) {
     view.adjustZoom(zoomStep);
   }
   if (event.code == "Space") {
+    event.preventDefault();
     focusTrafficWarning();
   }
 });
@@ -993,41 +1000,40 @@ trafficWarning.addEventListener("click", focusTrafficWarning);
 
 function focusTrafficWarning() {
   lastInteraction = new Date();
-  var coords;
-  var currentPostition = geolocation.getPosition()
-  var closestAccidentCoords = trafikLayer
-    .getSource()
-    .getClosestFeatureToCoordinate(
-      geolocation.getPosition(),
-      function (feature) {
-        return feature.get("iconId") === "roadAccident";
-      },
-    ).getGeometry().getCoordinates();
-
-  var closestAccidentDistance = getDistance(
-    toLonLat(closestAccidentCoords),
-    toLonLat(currentPostition),
-  );
+  var coordinates = geolocation.getPosition()
+  try {
+    var closestAccidentCoords = trafikLayer
+      .getSource()
+      .getClosestFeatureToCoordinate(
+        geolocation.getPosition(),
+        function (feature) {
+          return feature.get("iconId") === "roadAccident";
+        },
+      ).getGeometry().getCoordinates();
   
-  if (closestAccidentDistance < 30000) {
-    coords = closestAccidentCoords;
-  } else {
-    coords = currentPostition;
+    var closestAccidentDistance = getDistance(
+      toLonLat(closestAccidentCoords),
+      toLonLat(coordinates),
+    );
+    
+    if (closestAccidentDistance < 30000) {
+      coordinates = closestAccidentCoords;
+    } 
+  } finally {
+      var duration = 500;
+      view.animate({
+        center: coordinates,
+        duration: duration,
+      });
+      view.animate({
+        zoom: 11,
+        duration: duration,
+      });
+      view.animate({
+        rotation: 0,
+        duration: duration,
+      });
   }
-
-  var duration = 500;
-  view.animate({
-    center: coords,
-    duration: duration,
-  });
-  view.animate({
-    zoom: 11,
-    duration: duration,
-  });
-  view.animate({
-    rotation: 0,
-    duration: duration,
-  });
 }
 
 setInterval(getDeviations, 60000); // getDeviations interval
