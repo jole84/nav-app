@@ -311,18 +311,14 @@ geolocation.on("change", function () {
   markerEl.getGeometry().setCoordinates(position); // move marker to current location
   markerElHeading.getGeometry().setCoordinates(position);
 
-  // if (getDistance(trackLog[trackLog.length - 1][0], lonlat) > 5 && currentTime - lastFix > 5000) {
-  if (getDistance(trackLog[trackLog.length - 1][0], lonlat) > 10) {
-    // measure distance and push log if position change > 10 meters
-
+  // measure distance and push log if position change > 10 meters and accuracy is good
+  if (getDistance(trackLog[trackLog.length - 1][0], lonlat) > 10 && accuracy < 20) {
     trackLog.push([
       lonlat,
       altitude,
       currentTime,
     ]);
     line.appendCoordinate(position);
-
-    // lastFix = currentTime;
   }
   
   distanceTraveled += getDistance(prevCoordinate, lonlat);
@@ -692,47 +688,51 @@ map.on("singleclick", function (evt) {
 var destinationCoordinates = [];
 // right click/long press to route
 map.on("contextmenu", function (event) {
+  try {
+    var closestWaypoint = gpxLayer
+    .getSource()
+    .getClosestFeatureToCoordinate(
+      event.coordinate,
+      function (feature) {
+        return feature.getGeometry().getType() === "Point";
+      },
+      );
+      
+      var waypointIsClose = getPixelDistance(map.getPixelFromCoordinate(closestWaypoint.getGeometry().getCoordinates()), event.pixel) < 40;      
+    } catch {
+      var waypointIsClose = false;
+    }
+
+  lastInteraction = new Date();
   var currentPostition = toLonLat(geolocation.getPosition());
-  console.log(toLonLat(event.coordinate).reverse());
-  console.log(
-    Math.round(getDistance(currentPostition, toLonLat(event.coordinate))) +
-    " m",
-    );
-    
+
+  // set start position
   if (destinationCoordinates.length == 0) {
-    // set start position
     destinationCoordinates.push(currentPostition);
   }
 
+  var clickedOnCurrentPosition = getDistance(currentPostition, toLonLat(event.coordinate)) < 200 || getPixelDistance(event.pixel, map.getPixelFromCoordinate(fromLonLat(currentPostition))) < 50;
+  var clickedOnLastDestination = getPixelDistance(event.pixel, map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))) < 40;
+
   // remove last point if click < 40 pixels from last point
-  if (
-    destinationCoordinates.length > 2 &&
-    getPixelDistance(
-      event.pixel, 
-      map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))
-    ) < 40
-  ) {
+  if (destinationCoordinates.length > 2 && clickedOnLastDestination) {
     destinationCoordinates.pop();
-  }
-  // clear route if click < 40 pixels from last point
-  else if (
-    destinationCoordinates.length == 2 &&
-    getPixelDistance(
-      event.pixel, 
-      map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))
-    ) < 40
-  ) {
+    // clear route if click < 40 pixels from last point
+  } else if (destinationCoordinates.length == 2 && clickedOnLastDestination) {
     clearLayer(routeLayer);
     setExtraInfo([""]);
     destinationCoordinates = [];
   } else {
-    // else push clicked coord do route
-    destinationCoordinates.push(toLonLat(event.coordinate));
+    // else push clicked coord to destinationCoordinates
+    if (waypointIsClose) {
+      destinationCoordinates.push(toLonLat(closestWaypoint.getGeometry().getCoordinates()));
+    } else {
+      destinationCoordinates.push(toLonLat(event.coordinate));
+    }
   }
 
-  lastInteraction = new Date();
-  // if click less than 0.2km or 50 pixels from current position clear route else start route
-  if (getDistance(currentPostition, toLonLat(event.coordinate)) < 200 || getPixelDistance(event.pixel, map.getPixelFromCoordinate(fromLonLat(currentPostition))) < 50) {
+  // if clicked on current position clear route, else start route
+  if (clickedOnCurrentPosition) {
     clearLayer(routeLayer);
     setExtraInfo([
       Math.round(getDistance(currentPostition, toLonLat(event.coordinate))) +
@@ -827,6 +827,9 @@ document.addEventListener("keydown", function (event) {
   }
   if (event.key == "s") {
     saveLogButtonFunction();
+  }
+  if (event.key == "d") {
+    focusDestination();
   }
   if (event.key == "Escape" || event.key == "§") {
     // carpe iter adventure controller minus button
@@ -1037,3 +1040,24 @@ function focusTrafficWarning() {
 }
 
 setInterval(getDeviations, 60000); // getDeviations interval
+
+function focusDestination() {
+  if (destinationCoordinates.length > 1) {
+    lastInteraction = new Date();
+    var coordinates = fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]);
+  
+    var duration = 500;
+    view.animate({
+      center: coordinates,
+      duration: duration,
+    });
+    view.animate({
+      zoom: 15,
+      duration: duration,
+    });
+    view.animate({
+      rotation: 0,
+      duration: duration,
+    });
+  }
+}
