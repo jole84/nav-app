@@ -321,6 +321,28 @@ geolocation.on("change", function () {
       currentTime,
     ]);
     line.appendCoordinate(position);
+
+    // calculate remaing distance on gpx
+    gpxLayer.getSource().forEachFeature(function (feature) {
+      if (feature.getGeometry().getType() == "MultiLineString") {
+        const featureCoordinates = feature.getGeometry().getLineString().getCoordinates()
+        info3.innerHTML = getRemainingDistance(featureCoordinates, position) + "km";
+      }
+    });
+
+    // recalculate route if position deviate more than 300m from current route
+    routeLayer.getSource().forEachFeature(function (feature) {
+      if (feature.getGeometry().getType() == "LineString") {
+        const closestPoint = feature.getGeometry().getClosestPoint(position);
+        const distanceToclosestPoint = getDistance(toLonLat(closestPoint), lonlat);
+        const featureCoordinates = feature.getGeometry().getCoordinates();
+        info3.innerHTML = getRemainingDistance(featureCoordinates, position) + "km";
+        if (distanceToclosestPoint > 300) {
+          destinationCoordinates[0] = lonlat;
+          routeMe(destinationCoordinates);
+        }
+      }
+    });
   }
 
   distanceTraveled += getDistance(prevCoordinate, lonlat);
@@ -361,30 +383,6 @@ geolocation.on("change", function () {
     "</font>) km/h",
   ].join("<br />");
   document.getElementById("info").innerHTML = html;
-
-  // recalculate route if position deviate more than 300m from current route
-  routeLayer.getSource().forEachFeature(function (feature) {
-    if (feature.getGeometry().getType() == "LineString") {
-      const closestPoint = feature.getGeometry().getClosestPoint(position);
-      const distanceToclosestPoint = getDistance(toLonLat(closestPoint), lonlat);
-      const featureCoordinates = feature.getGeometry().getCoordinates();
-
-      info3.innerHTML = getRemainingDistance(featureCoordinates, position) + "km";
-
-      if (distanceToclosestPoint > 300) {
-        destinationCoordinates[0] = lonlat;
-        routeMe(destinationCoordinates);
-      }
-    }
-  });
-
-  // calculate remaing distance on gpx
-  gpxLayer.getSource().forEachFeature(function (feature) {
-    if (feature.getGeometry().getType() == "MultiLineString") {
-      const featureCoordinates = feature.getGeometry().getLineString().getCoordinates()
-      info3.innerHTML = getRemainingDistance(featureCoordinates, position) + "km";
-    }
-  });
 });
 
 function getRemainingDistance(featureCoordinates, position) {
@@ -693,7 +691,7 @@ function routeMe(destinationCoordinates) {
 
       // add route information to info box
       setExtraInfo([
-        // "Avstånd: " + trackLength.toFixed(2) + " km",
+        "Avstånd: " + trackLength.toFixed(2) + " km",
         "Restid: " + toHHMMSS(totalTime),
         "Ankomsttid: " +
         new Date(new Date().valueOf() + totalTime).toString().slice(16, 25),
