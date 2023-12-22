@@ -252,7 +252,7 @@ function degToRad(deg) {
   return (deg * Math.PI * 2) / 360;
 }
 
-function getPixelDistance (pixel, pixel2) {
+function getPixelDistance(pixel, pixel2) {
   return Math.sqrt((pixel[1] - pixel2[1]) * (pixel[1] - pixel2[1]) + (pixel[0] - pixel2[0]) * (pixel[0] - pixel2[0]));
 }
 
@@ -320,7 +320,7 @@ geolocation.on("change", function () {
     ]);
     line.appendCoordinate(position);
   }
-  
+
   distanceTraveled += getDistance(prevCoordinate, lonlat);
   prevCoordinate = lonlat;
 
@@ -690,18 +690,18 @@ var destinationCoordinates = [];
 map.on("contextmenu", function (event) {
   try {
     var closestWaypoint = gpxLayer
-    .getSource()
-    .getClosestFeatureToCoordinate(
-      event.coordinate,
-      function (feature) {
-        return feature.getGeometry().getType() === "Point";
-      },
+      .getSource()
+      .getClosestFeatureToCoordinate(
+        event.coordinate,
+        function (feature) {
+          return feature.getGeometry().getType() === "Point";
+        },
       );
-      
-      var waypointIsClose = getPixelDistance(map.getPixelFromCoordinate(closestWaypoint.getGeometry().getCoordinates()), event.pixel) < 40;      
-    } catch {
-      var waypointIsClose = false;
-    }
+
+    var waypointIsClose = getPixelDistance(map.getPixelFromCoordinate(closestWaypoint.getGeometry().getCoordinates()), event.pixel) < 40;
+  } catch {
+    var waypointIsClose = false;
+  }
 
   lastInteraction = new Date();
   var currentPostition = toLonLat(geolocation.getPosition());
@@ -1013,29 +1013,29 @@ function focusTrafficWarning() {
           return feature.get("iconId") === "roadAccident";
         },
       ).getGeometry().getCoordinates();
-  
+
     var closestAccidentDistance = getDistance(
       toLonLat(closestAccidentCoords),
       toLonLat(coordinates),
     );
-    
+
     if (closestAccidentDistance < 30000) {
       coordinates = closestAccidentCoords;
-    } 
+    }
   } finally {
-      var duration = 500;
-      view.animate({
-        center: coordinates,
-        duration: duration,
-      });
-      view.animate({
-        zoom: 11,
-        duration: duration,
-      });
-      view.animate({
-        rotation: 0,
-        duration: duration,
-      });
+    var duration = 500;
+    view.animate({
+      center: coordinates,
+      duration: duration,
+    });
+    view.animate({
+      zoom: 11,
+      duration: duration,
+    });
+    view.animate({
+      rotation: 0,
+      duration: duration,
+    });
   }
 }
 
@@ -1045,14 +1045,10 @@ function focusDestination() {
   if (destinationCoordinates.length > 1) {
     lastInteraction = new Date();
     var coordinates = fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]);
-  
+
     var duration = 500;
     view.animate({
       center: coordinates,
-      duration: duration,
-    });
-    view.animate({
-      zoom: 15,
       duration: duration,
     });
     view.animate({
