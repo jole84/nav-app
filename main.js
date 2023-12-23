@@ -401,8 +401,8 @@ function getRemainingDistance(featureCoordinates, position) {
     remainingDistance += getDistance(toLonLat(featureCoordinates[i]), toLonLat(featureCoordinates[i + 1]))
   }
 
-  if (distanceToclosestPoint < 1000) {
-    return (remainingDistance / 1000).toFixed(2) + "km";
+  if (distanceToclosestPoint < 500) {
+    return (remainingDistance / 1000).toFixed(2) + " km";
   } else {
     return "";
   }
