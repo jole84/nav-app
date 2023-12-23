@@ -201,16 +201,6 @@ const map = new Map({
   keyboardEventTarget: document,
 });
 
-// clear layer when new feature is added
-function clearLayer(layerToClear) {
-  layerToClear
-    .getSource()
-    .getFeatures()
-    .forEach(function (feature) {
-      layerToClear.getSource().removeFeature(feature);
-    });
-}
-
 // gpx loader
 var gpxFormat = new GPX();
 var gpxFeatures;
@@ -219,7 +209,7 @@ function handleFileSelect(evt) {
   customFileButton.blur();
   var files = evt.target.files; // FileList object
   // remove previously loaded gpx files
-  clearLayer(gpxLayer);
+  gpxLayer.getSource().clear();
   var fileNames = [];
   for (var i = 0; i < files.length; i++) {
     console.log(files[i]);
@@ -690,17 +680,18 @@ function routeMe(destinationCoordinates) {
 
       // add route information to info box
       setExtraInfo([
-        "Avstånd: " + trackLength.toFixed(2) + " km",
-        "Restid: " + toHHMMSS(totalTime),
-        "Ankomsttid: " +
-        new Date(new Date().valueOf() + totalTime).toString().slice(16, 25),
+        // "Avstånd: " + trackLength.toFixed(2) + " km",
+        // "Ankomsttid: " +
+        // new Date(new Date().valueOf() + totalTime).toString().slice(16, 25),
         `<a href="http://maps.google.com/maps?q=${destinationCoordinates[destinationCoordinates.length - 1][1]
         },${destinationCoordinates[destinationCoordinates.length - 1][0]
         }" target="_blank">Gmap</a>`,
         `<a href="http://maps.google.com/maps?layer=c&cbll=${destinationCoordinates[destinationCoordinates.length - 1][1]
         },${destinationCoordinates[destinationCoordinates.length - 1][0]
         }" target="_blank">Streetview</a>`,
+        "Restid: " + toHHMMSS(totalTime),
       ]);
+      info3.innerHTML = getRemainingDistance(route.getCoordinates(), geolocation.getPosition());
 
       const routeFeature = new Feature({
         type: "route",
@@ -713,7 +704,7 @@ function routeMe(destinationCoordinates) {
       });
 
       // remove previus route
-      clearLayer(routeLayer);
+      routeLayer.getSource().clear();
 
       // finally add route to map
       routeLayer.getSource().addFeatures([routeFeature, endMarker]);
@@ -765,7 +756,7 @@ map.on("contextmenu", function (event) {
     destinationCoordinates.pop();
     // clear route if click < 40 pixels from last point
   } else if (destinationCoordinates.length == 2 && clickedOnLastDestination) {
-    clearLayer(routeLayer);
+    routeLayer.getSource().clear();
     setExtraInfo([""]);
     info3.innerHTML = "";
     destinationCoordinates = [];
@@ -780,7 +771,7 @@ map.on("contextmenu", function (event) {
 
   // if clicked on current position clear route, else start route
   if (clickedOnCurrentPosition) {
-    clearLayer(routeLayer);
+    routeLayer.getSource().clear();
     setExtraInfo([
       Math.round(getDistance(currentPostition, toLonLat(event.coordinate))) +
       " m",
@@ -951,7 +942,7 @@ var trafikLayer = new VectorLayer({
 map.addLayer(trafikLayer);
 
 function getDeviations() {
-  clearLayer(trafikLayer);
+  trafikLayer.getSource().clear();
 
   var xmlRequest =
     "<REQUEST>" +
