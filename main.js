@@ -12,7 +12,7 @@ import TileWMS from "ol/source/TileWMS.js";
 import Point from "ol/geom/Point.js";
 import GeoJSON from "ol/format/GeoJSON.js";
 import WKT from "ol/format/WKT.js";
-import { getDistance } from "ol/sphere";
+import { getDistance, getLength } from "ol/sphere";
 import OSM from "ol/source/OSM.js";
 import MultiPoint from 'ol/geom/MultiPoint.js';
 
@@ -386,28 +386,27 @@ geolocation.on("change", function () {
 });
 
 function getRemainingDistance(featureCoordinates, position) {
+  var newLineString = new LineString([]);
   var newMultiPoint = new MultiPoint(
     featureCoordinates.reverse(),
   );
-
+  
   const newLineStringclosestPoint = newMultiPoint.getClosestPoint(position);
   const distanceToclosestPoint = getDistance(toLonLat(newLineStringclosestPoint), toLonLat(position));
 
-  var remainingDistance = 0;
   for (var i = 0; i < featureCoordinates.length; i++) {
-    if (featureCoordinates[i].toString() == newLineStringclosestPoint.toString()) {
+    newLineString.appendCoordinate([featureCoordinates[i]]);
+    if (featureCoordinates[i].toString() === newLineStringclosestPoint.toString()) {
       break;
     }
-    remainingDistance += getDistance(toLonLat(featureCoordinates[i]), toLonLat(featureCoordinates[i + 1]))
   }
 
   if (distanceToclosestPoint < 500) {
-    return (remainingDistance / 1000).toFixed(2) + " km";
+    return (getLength(newLineString) / 1000).toFixed(2) + " km";
   } else {
     return "";
   }
 }
-
 // alert user if geolocation fails
 geolocation.on("error", function () {
   getDeviations();
