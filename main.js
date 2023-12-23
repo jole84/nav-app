@@ -1105,24 +1105,3 @@ function focusDestination() {
     });
   }
 }
-
-// document.addEventListener("mouseup", function (event) {
-//   if (event.button == 1) {
-//     var eventPixel = [event.clientX, event.clientY];
-//     var eventCoordinate = map.getCoordinateFromPixel(eventPixel);
-//     var currentPostition = geolocation.getPosition();
-//     var lonlat = toLonLat(eventCoordinate);
-
-//     gpxLayer.getSource().forEachFeature(function (feature) {
-//       if (feature.getGeometry().getType() == "MultiLineString") {
-
-//         const featureCoordinates = feature.getGeometry().getLineString().getCoordinates()
-//         info3.innerHTML = getRemainingDistance(featureCoordinates, eventCoordinate) + "km";
-
-//         const closestPoint = feature.getGeometry().getClosestPoint(eventCoordinate);
-//         line.setCoordinates([closestPoint, eventCoordinate]);
-//         return true;
-//       }
-//     })
-//   }
-// });
