@@ -754,8 +754,8 @@ map.on("contextmenu", function (event) {
   // remove last point if click < 40 pixels from last point
   if (destinationCoordinates.length > 2 && clickedOnLastDestination) {
     destinationCoordinates.pop();
-    // clear route if click < 40 pixels from last point
-  } else if (destinationCoordinates.length == 2 && clickedOnLastDestination) {
+    // clear route if click < 40 pixels from last point or click on current position
+  } else if (destinationCoordinates.length == 2 && clickedOnLastDestination || clickedOnCurrentPosition) {
     routeLayer.getSource().clear();
     setExtraInfo([""]);
     info3.innerHTML = "";
@@ -769,15 +769,8 @@ map.on("contextmenu", function (event) {
     }
   }
 
-  // if clicked on current position clear route, else start route
-  if (clickedOnCurrentPosition) {
-    routeLayer.getSource().clear();
-    setExtraInfo([
-      Math.round(getDistance(currentPostition, toLonLat(event.coordinate))) +
-      " m",
-    ]);
-    destinationCoordinates = [];
-  } else if (destinationCoordinates.length >= 2) {
+  // start routing
+  if (destinationCoordinates.length >= 2) {
     routeMe(destinationCoordinates);
   }
 });
