@@ -326,7 +326,7 @@ geolocation.on("change", function () {
     gpxLayer.getSource().forEachFeature(function (feature) {
       if (feature.getGeometry().getType() == "MultiLineString") {
         const featureCoordinates = feature.getGeometry().getLineString().getCoordinates()
-        info3.innerHTML = getRemainingDistance(featureCoordinates, position) + "km";
+        info3.innerHTML = getRemainingDistance(featureCoordinates, position);
       }
     });
 
@@ -336,7 +336,7 @@ geolocation.on("change", function () {
         const closestPoint = feature.getGeometry().getClosestPoint(position);
         const distanceToclosestPoint = getDistance(toLonLat(closestPoint), lonlat);
         const featureCoordinates = feature.getGeometry().getCoordinates();
-        info3.innerHTML = getRemainingDistance(featureCoordinates, position) + "km";
+        info3.innerHTML = getRemainingDistance(featureCoordinates, position);
         if (distanceToclosestPoint > 300) {
           destinationCoordinates[0] = lonlat;
           routeMe(destinationCoordinates);
@@ -402,9 +402,9 @@ function getRemainingDistance(featureCoordinates, position) {
   }
 
   if (distanceToclosestPoint < 1000) {
-    return (remainingDistance / 1000).toFixed(2);
+    return (remainingDistance / 1000).toFixed(2) + "km";
   } else {
-    return ">1";
+    return "";
   }
 }
 
