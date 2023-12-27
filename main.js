@@ -400,7 +400,7 @@ function getRemainingDistance(featureCoordinates, position) {
   }
 
   if (distanceToclosestPoint < 500) {
-    return (getLength(newLineString) / 1000).toFixed(2) + " km";
+    return "-> " + (getLength(newLineString) / 1000).toFixed(1) + " km";
   } else {
     return "";
   }
