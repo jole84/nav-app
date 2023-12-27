@@ -210,6 +210,21 @@ const map = new Map({
 });
 
 // gpx loader
+gpxLayer.addEventListener("change", function() {
+  if (gpxLayer.getSource().getFeatures().length == 0) {
+    info3.innerHTML = "";
+  } else {
+    if (gpxLayer.getSource().getState() === "ready") {
+      var padding = 100;
+      lastInteraction = new Date();
+      view.fit(gpxLayer.getSource().getExtent(), {
+        padding: [200, padding, padding, padding],
+        duration: 500,
+      });
+    }
+  }
+});
+
 var gpxFormat = new GPX();
 var gpxFeatures;
 customFileButton.addEventListener("change", handleFileSelect, false);
@@ -232,16 +247,6 @@ function handleFileSelect(evt) {
       gpxLayer.getSource().addFeatures(gpxFeatures);
     };
   }
-  gpxLayer.getSource().once("change", function () {
-    if (gpxLayer.getSource().getState() === "ready") {
-      var padding = 100;
-      view.fit(gpxLayer.getSource().getExtent(), {
-        padding: [200, padding, padding, padding],
-        duration: 500,
-      });
-      lastInteraction = new Date();
-    }
-  });
   setExtraInfo(fileNames);
   // reaquire wake lock again after file select
   acquireWakeLock();
@@ -811,15 +816,6 @@ for (var i = 0; i < urlParams.length; i++) {
         });
         gpxLayer.getSource().addFeatures(gpxFeatures);
       });
-    gpxLayer.getSource().once("change", function () {
-      if (gpxLayer.getSource().getState() === "ready") {
-        var padding = 100;
-        view.fit(gpxLayer.getSource().getExtent(), {
-          padding: [padding, padding, padding, padding],
-        });
-        lastInteraction = new Date();
-      }
-    });
   } else if (urlParams[i].includes("Lnt")) {
     var option4 = document.createElement("option");
     var option5 = document.createElement("option");
