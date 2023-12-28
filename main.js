@@ -407,7 +407,7 @@ function getRemainingDistance(featureCoordinates, position) {
         break;
       }
     }
-    return "-> " + (getLength(newLineString) / 1000).toFixed(1) + " km";
+    return "-> " + (getLength(newLineString) / 1000).toFixed(1) + " km<br>";
   }
 }
 // alert user if geolocation fails
