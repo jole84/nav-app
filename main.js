@@ -210,17 +210,13 @@ const map = new Map({
 
 // gpx loader
 gpxLayer.getSource().addEventListener("addfeature", function() {
-  if (gpxLayer.getSource().getFeatures().length == 0) {
-    info3.innerHTML = "";
-  } else {
-    if (gpxLayer.getSource().getState() === "ready") {
-      var padding = 100;
-      lastInteraction = new Date();
-      view.fit(gpxLayer.getSource().getExtent(), {
-        padding: [200, padding, padding, padding],
-        duration: 500,
-      });
-    }
+  if (gpxLayer.getSource().getState() === "ready") {
+    var padding = 100;
+    lastInteraction = new Date();
+    view.fit(gpxLayer.getSource().getExtent(), {
+      padding: [200, padding, padding, padding],
+      duration: 500,
+    });
   }
 });
 
@@ -336,7 +332,10 @@ geolocation.on("change", function () {
     // calculate remaing distance on route
     if (routeLayer.getSource().getFeatureById(0) != null) {
       const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
-      info3.innerHTML += "Rutt " + getRemainingDistance(featureCoordinates, position);
+      const routeRemainingDistance = getRemainingDistance(featureCoordinates, position);
+      if (routeRemainingDistance != "") {
+        info3.innerHTML += "Rutt " + routeRemainingDistance;
+      }
     }
   }
 
