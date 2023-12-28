@@ -326,10 +326,11 @@ geolocation.on("change", function () {
     line.appendCoordinate(position);
 
     // calculate remaing distance on gpx
+    info3.innerHTML = "";
     gpxLayer.getSource().forEachFeature(function (feature) {
       if (feature.getGeometry().getType() == "MultiLineString") {
         const featureCoordinates = feature.getGeometry().getLineString().getCoordinates()
-        info3.innerHTML = getRemainingDistance(featureCoordinates, position);
+        info3.innerHTML += getRemainingDistance(featureCoordinates, position);
       }
     });
 
