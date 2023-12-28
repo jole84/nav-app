@@ -340,7 +340,7 @@ geolocation.on("change", function () {
         const closestPoint = feature.getGeometry().getClosestPoint(position);
         const distanceToclosestPoint = getDistance(toLonLat(closestPoint), lonlat);
         const featureCoordinates = feature.getGeometry().getCoordinates();
-        info3.innerHTML = getRemainingDistance(featureCoordinates, position);
+        info3.innerHTML += "Rutt " + getRemainingDistance(featureCoordinates, position);
         if (distanceToclosestPoint > 300) {
           destinationCoordinates[0] = lonlat;
           routeMe(destinationCoordinates);
@@ -704,7 +704,7 @@ function routeMe(destinationCoordinates) {
         }" target="_blank">Streetview</a>`,
         "Restid: " + toHHMMSS(totalTime),
       ]);
-      info3.innerHTML = getRemainingDistance(route.getCoordinates(), geolocation.getPosition());
+      info3.innerHTML = "Rutt " + getRemainingDistance(route.getCoordinates(), geolocation.getPosition());
 
       const routeFeature = new Feature({
         type: "route",
