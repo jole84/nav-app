@@ -334,12 +334,10 @@ geolocation.on("change", function () {
     });
 
     // calculate remaing distance on route
-    routeLayer.getSource().forEachFeature(function (feature) {
-      if (feature.getGeometry().getType() == "LineString") {
-        const featureCoordinates = feature.getGeometry().getCoordinates();
-        info3.innerHTML += "Rutt " + getRemainingDistance(featureCoordinates, position);
-      }
-    });
+    if (routeLayer.getSource().getFeatureById(0) != null) {
+      const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
+      info3.innerHTML += "Rutt " + getRemainingDistance(featureCoordinates, position);
+    }
   }
 
   distanceTraveled += getDistance(prevCoordinate, lonlat);
@@ -703,6 +701,7 @@ function routeMe(destinationCoordinates) {
         type: "route",
         geometry: route,
       });
+      routeFeature.setId(0);
 
       const endMarker = new Feature({
         type: "icon",
