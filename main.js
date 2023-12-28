@@ -126,7 +126,6 @@ var trackLine = new Feature({
 
 var osm = new MapboxVectorLayer({
   // styleUrl: "mapbox://styles/mapbox/streets-v12",
-  // styleUrl: "mapbox://styles/tryckluft/clql1f8m400n701o972p56brv",
   styleUrl: "mapbox://styles/tryckluft/clqmovmf100pb01o9g1li1hxb",
   accessToken : "pk.eyJ1IjoidHJ5Y2tsdWZ0IiwiYSI6ImNrcTU1YTIzeTFlem8yd3A4MXRsMTZreWQifQ.lI612CDqRgWujJDv6zlBqw",
 });
@@ -210,7 +209,7 @@ const map = new Map({
 });
 
 // gpx loader
-gpxLayer.addEventListener("change", function() {
+gpxLayer.getSource().addEventListener("addfeature", function() {
   if (gpxLayer.getSource().getFeatures().length == 0) {
     info3.innerHTML = "";
   } else {
@@ -334,17 +333,11 @@ geolocation.on("change", function () {
       }
     });
 
-    // recalculate route if position deviate more than 300m from current route
+    // calculate remaing distance on route
     routeLayer.getSource().forEachFeature(function (feature) {
       if (feature.getGeometry().getType() == "LineString") {
-        const closestPoint = feature.getGeometry().getClosestPoint(position);
-        const distanceToclosestPoint = getDistance(toLonLat(closestPoint), lonlat);
         const featureCoordinates = feature.getGeometry().getCoordinates();
         info3.innerHTML += "Rutt " + getRemainingDistance(featureCoordinates, position);
-        if (distanceToclosestPoint > 300) {
-          destinationCoordinates[0] = lonlat;
-          routeMe(destinationCoordinates);
-        }
       }
     });
   }
@@ -675,7 +668,7 @@ function routeMe(destinationCoordinates) {
 
   fetch(
     "https://brouter.de/brouter" +
-    // fetch('https://jole84.se:17777/brouter' +
+    // "https://jole84.se:17777/brouter" +
     "?lonlats=" +
     destinationCoordinates.join("|") +
     "&profile=car-fast&alternativeidx=0&format=geojson",
