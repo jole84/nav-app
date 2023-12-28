@@ -16,7 +16,7 @@ import { getDistance, getLength } from "ol/sphere";
 // import OSM from "ol/source/OSM.js";
 import {MapboxVectorLayer} from 'ol-mapbox-style';
 import MultiPoint from 'ol/geom/MultiPoint.js';
-
+import { saveAs } from 'file-saver';
 
 setExtraInfo(["<font size=1> Build: INSERTDATEHERE</font>"]);
 
@@ -632,25 +632,9 @@ function setExtraInfo(infoText) {
   }, 60000);
 }
 
-// Function to download data to a file
 function download(data, filename) {
   var file = new Blob([data], { type: "application/gpx+xml" });
-  if (window.navigator.msSaveOrOpenBlob) {
-    // IE10+
-    window.navigator.msSaveOrOpenBlob(file, filename);
-  } else {
-    // Others
-    var a = document.createElement("a"),
-      url = URL.createObjectURL(file);
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(function () {
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    }, 0);
-  }
+  saveAs(file, filename);
 }
 
 // brouter routing
