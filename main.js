@@ -397,17 +397,16 @@ function getRemainingDistance(featureCoordinates, position) {
   const newLineStringclosestPoint = newMultiPoint.getClosestPoint(position);
   const distanceToclosestPoint = getDistance(toLonLat(newLineStringclosestPoint), toLonLat(position));
 
-  for (var i = 0; i < featureCoordinates.length; i++) {
-    newLineString.appendCoordinate([featureCoordinates[i]]);
-    if (featureCoordinates[i].toString() === newLineStringclosestPoint.toString()) {
-      break;
-    }
-  }
-
-  if (distanceToclosestPoint < 500) {
-    return "-> " + (getLength(newLineString) / 1000).toFixed(1) + " km";
-  } else {
+  if (distanceToclosestPoint > 500) {
     return "";
+  } else {
+    for (var i = 0; i < featureCoordinates.length; i++) {
+      newLineString.appendCoordinate([featureCoordinates[i]]);
+      if (featureCoordinates[i].toString() === newLineStringclosestPoint.toString()) {
+        break;
+      }
+    }
+    return "-> " + (getLength(newLineString) / 1000).toFixed(1) + " km";
   }
 }
 // alert user if geolocation fails
