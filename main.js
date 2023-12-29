@@ -745,7 +745,7 @@ map.on("contextmenu", function (event) {
     // clear route if click < 40 pixels from last point or click on current position
   } else if (destinationCoordinates.length == 2 && clickedOnLastDestination || clickedOnCurrentPosition) {
     routeLayer.getSource().clear();
-    setExtraInfo([""]);
+    setExtraInfo([Math.round(getDistance(currentPostition, toLonLat(event.coordinate))) + " m"]);
     info3.innerHTML = "";
     destinationCoordinates = [];
   } else {
