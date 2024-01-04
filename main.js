@@ -239,6 +239,42 @@ function handleFileSelect(evt) {
         dataProjection: "EPSG:4326",
         featureProjection: "EPSG:3857",
       });
+      if (files.length > 1) {
+        // set random color if two or more files is loaded
+        var color = [
+          Math.floor(Math.random() * 255),
+          Math.floor(Math.random() * 255),
+          Math.floor(Math.random() * 255),
+          0.8,
+        ];
+        gpxFeatures.forEach((f) => {
+          f.setStyle(
+            new Style({
+              stroke: new Stroke({
+                color: color,
+                width: 10,
+              }),
+              text: new Text({
+                text: f.get("name"),
+                font: "bold 14px Roboto,monospace",
+                textAlign: "left",
+                fill: new Fill({
+                  color: color,
+                }),
+                stroke: new Stroke({
+                  color: "white",
+                  width: 4,
+                }),
+              }),
+              image: new Icon({
+                anchor: [0.5, 1],
+                color: color,
+                src: "https://jole84.se/white-marker.svg",
+              }),
+            }),
+          );
+        });
+      }
       gpxLayer.getSource().addFeatures(gpxFeatures);
     };
   }
