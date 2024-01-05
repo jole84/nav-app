@@ -357,11 +357,12 @@ geolocation.on("change", function () {
     line.appendCoordinate(position);
 
     // calculate remaing distance on gpx
-    info3.innerHTML = "";
+    info3.innerHTML = Math.round(getAvgSpeed()) + "km/h medel<br>";
     gpxLayer.getSource().forEachFeature(function (feature) {
       if (feature.getGeometry().getType() == "MultiLineString") {
         const featureCoordinates = feature.getGeometry().getLineString().getCoordinates()
-        info3.innerHTML += getRemainingDistance(featureCoordinates, position);
+        const routeRemainingDistance = getRemainingDistance(featureCoordinates, position);
+        info3.innerHTML += "-> " + routeRemainingDistance.toFixed(1) + "  km, " + Math.round(routeRemainingDistance / (getAvgSpeed() / 60)) + " min<br>";
       }
     });
 
@@ -370,7 +371,7 @@ geolocation.on("change", function () {
       const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
       const routeRemainingDistance = getRemainingDistance(featureCoordinates, position);
       if (routeRemainingDistance != "") {
-        info3.innerHTML += "Rutt " + routeRemainingDistance;
+        info3.innerHTML += "Rutt -> " + routeRemainingDistance.toFixed(1) + "  km, " + Math.round(routeRemainingDistance / (getAvgSpeed() / 60)) + " min<br>";
       }
     }
   }
@@ -415,6 +416,19 @@ geolocation.on("change", function () {
   document.getElementById("info").innerHTML = html;
 });
 
+function getAvgSpeed() {
+  // km / (Avg km/h / 60) = minute
+  var distance = 0;
+  var lastFixTime = trackLog[trackLog.length - 1][2]; // newest
+  var fixTime // oldest
+  for (var i = trackLog.length - 1; i > 0 && distance < 5000; i--) {
+    distance += getDistance(trackLog[i][0], trackLog[i-1][0]);
+    fixTime = trackLog[i-1][2];
+  }
+  // console.log(distance + "m, " + (lastFixTime - fixTime) / 1000 + "sek");
+  return (distance / ((lastFixTime - fixTime) / 1000)) * 3.6;
+}
+
 function getRemainingDistance(featureCoordinates, position) {
   var newLineString = new LineString([]);
   var newMultiPoint = new MultiPoint(
@@ -433,7 +447,7 @@ function getRemainingDistance(featureCoordinates, position) {
         break;
       }
     }
-    return "-> " + (getLength(newLineString) / 1000).toFixed(1) + " km<br>";
+    return getLength(newLineString) / 1000;
   }
 }
 // alert user if geolocation fails
@@ -714,7 +728,7 @@ function routeMe(destinationCoordinates) {
         }" target="_blank">Streetview</a>`,
         "Restid: " + toHHMMSS(totalTime),
       ]);
-      info3.innerHTML = "Rutt " + getRemainingDistance(route.getCoordinates(), geolocation.getPosition());
+      info3.innerHTML = "Rutt -> " + getRemainingDistance(route.getCoordinates(), geolocation.getPosition()).toFixed(1) + " km<br>";
 
       const routeFeature = new Feature({
         type: "route",
@@ -1000,7 +1014,7 @@ function getDeviations() {
                 item.Deviation[0].RoadNumber ||
                 "Väg") +
               ": " +
-              (item.Deviation[0].Message.replace(/[\t\n\r]/g, '') || "-") +
+              (item.Deviation[0].Message || "-") +
               "\n" +
               new Date(item.Deviation[0].EndTime)
                 .toLocaleTimeString()
@@ -1075,7 +1089,7 @@ function focusTrafficWarning() {
       duration: duration,
     });
     view.animate({
-      zoom: 11,
+      zoom: 10,
       duration: duration,
     });
     view.animate({
