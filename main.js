@@ -13,8 +13,8 @@ import Point from "ol/geom/Point.js";
 import GeoJSON from "ol/format/GeoJSON.js";
 import WKT from "ol/format/WKT.js";
 import { getDistance, getLength } from "ol/sphere";
-// import OSM from "ol/source/OSM.js";
-import {MapboxVectorLayer} from 'ol-mapbox-style';
+import OSM from "ol/source/OSM.js";
+// import {MapboxVectorLayer} from 'ol-mapbox-style';
 import MultiPoint from 'ol/geom/MultiPoint.js';
 import { saveAs } from 'file-saver';
 
@@ -119,16 +119,16 @@ var trackLine = new Feature({
   geometry: line,
 });
 
-// var osm = new TileLayer({
-//   source: new OSM(),
-//   visible: false,
-// });
-
-var osm = new MapboxVectorLayer({
-  // styleUrl: "mapbox://styles/mapbox/streets-v12",
-  styleUrl: "mapbox://styles/tryckluft/clqmovmf100pb01o9g1li1hxb",
-  accessToken : "pk.eyJ1IjoidHJ5Y2tsdWZ0IiwiYSI6ImNrcTU1YTIzeTFlem8yd3A4MXRsMTZreWQifQ.lI612CDqRgWujJDv6zlBqw",
+var osm = new TileLayer({
+  source: new OSM(),
+  visible: false,
 });
+
+// var osm = new MapboxVectorLayer({
+//   // styleUrl: "mapbox://styles/mapbox/streets-v12",
+//   styleUrl: "mapbox://styles/tryckluft/clqmovmf100pb01o9g1li1hxb",
+//   accessToken : "pk.eyJ1IjoidHJ5Y2tsdWZ0IiwiYSI6ImNrcTU1YTIzeTFlem8yd3A4MXRsMTZreWQifQ.lI612CDqRgWujJDv6zlBqw",
+// });
 
 var slitlagerkarta = new TileLayer({
   source: new XYZ({
@@ -1089,7 +1089,7 @@ function focusTrafficWarning() {
       duration: duration,
     });
     view.animate({
-      zoom: 10,
+      zoom: 11,
       duration: duration,
     });
     view.animate({
