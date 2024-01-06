@@ -95,7 +95,7 @@ gpxStyle["MultiLineString"] = gpxStyle["LineString"];
 const trackStyle = {
   LineString: new Style({
     stroke: new Stroke({
-      color: [255, 0, 0, 0.6],
+      color: [255, 0, 0, 0.7],
       width: 6,
     }),
   }),
