@@ -209,7 +209,7 @@ const map = new Map({
 });
 
 // gpx loader
-gpxLayer.getSource().addEventListener("addfeature", function() {
+gpxLayer.getSource().addEventListener("addfeature", function () {
   if (gpxLayer.getSource().getState() === "ready") {
     var padding = 100;
     lastInteraction = new Date();
@@ -357,12 +357,12 @@ geolocation.on("change", function () {
     line.appendCoordinate(position);
 
     // calculate remaing distance on gpx
-    info3.innerHTML = Math.round(getAvgSpeed()) + "km/h medel<br>";
+    routeInfo.innerHTML = Math.round(getAvgSpeed()) + "km/h medel<br>";
     gpxLayer.getSource().forEachFeature(function (feature) {
       if (feature.getGeometry().getType() == "MultiLineString") {
         const featureCoordinates = feature.getGeometry().getLineString().getCoordinates()
         const routeRemainingDistance = getRemainingDistance(featureCoordinates, position);
-        info3.innerHTML += "-> " + routeRemainingDistance.toFixed(1) + "  km, " + Math.round(routeRemainingDistance / (getAvgSpeed() / 60)) + " min<br>";
+        routeInfo.innerHTML += "-> " + routeRemainingDistance.toFixed(1) + "  km, " + Math.round(routeRemainingDistance / (getAvgSpeed() / 60)) + " min<br>";
       }
     });
 
@@ -371,7 +371,7 @@ geolocation.on("change", function () {
       const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
       const routeRemainingDistance = getRemainingDistance(featureCoordinates, position);
       if (routeRemainingDistance != "") {
-        info3.innerHTML += "Rutt -> " + routeRemainingDistance.toFixed(1) + "  km, " + Math.round(routeRemainingDistance / (getAvgSpeed() / 60)) + " min<br>";
+        routeInfo.innerHTML += "Rutt -> " + routeRemainingDistance.toFixed(1) + "  km, " + Math.round(routeRemainingDistance / (getAvgSpeed() / 60)) + " min<br>";
       }
     }
   }
@@ -422,8 +422,8 @@ function getAvgSpeed() {
   var lastFixTime = trackLog[trackLog.length - 1][2]; // newest
   var fixTime // oldest
   for (var i = trackLog.length - 1; i > 0 && distance < 5000; i--) {
-    distance += getDistance(trackLog[i][0], trackLog[i-1][0]);
-    fixTime = trackLog[i-1][2];
+    distance += getDistance(trackLog[i][0], trackLog[i - 1][0]);
+    fixTime = trackLog[i - 1][2];
   }
   // console.log(distance + "m, " + (lastFixTime - fixTime) / 1000 + "sek");
   return (distance / ((lastFixTime - fixTime) / 1000)) * 3.6;
@@ -434,7 +434,7 @@ function getRemainingDistance(featureCoordinates, position) {
   var newMultiPoint = new MultiPoint(
     featureCoordinates.reverse(),
   );
-  
+
   const newLineStringclosestPoint = newMultiPoint.getClosestPoint(position);
   const distanceToclosestPoint = getDistance(toLonLat(newLineStringclosestPoint), toLonLat(position));
 
@@ -543,7 +543,6 @@ function updateView(position, heading) {
 }
 
 view.on("change:resolution", function () {
-  // document.getElementById("info3").innerHTML = view.getZoom().toFixed(1);
   if (view.getRotation() != 0 && view.getZoom() < 11) {
     view.setRotation(0);
   }
@@ -676,9 +675,9 @@ var timeOut; // create timeout variable so it can be cleared
 function setExtraInfo(infoText) {
   window.clearTimeout(timeOut);
   var extraInfo = infoText.join("<br />");
-  document.getElementById("info2").innerHTML = extraInfo;
+  document.getElementById("extraInfo").innerHTML = extraInfo;
   timeOut = setTimeout(function () {
-    document.getElementById("info2").innerHTML = "";
+    document.getElementById("extraInfo").innerHTML = "";
   }, 60000);
 }
 
@@ -728,7 +727,7 @@ function routeMe(destinationCoordinates) {
         }" target="_blank">Streetview</a>`,
         "Restid: " + toHHMMSS(totalTime),
       ]);
-      info3.innerHTML = "Rutt -> " + getRemainingDistance(route.getCoordinates(), geolocation.getPosition()).toFixed(1) + " km<br>";
+      routeInfo.innerHTML = "Rutt -> " + getRemainingDistance(route.getCoordinates(), geolocation.getPosition()).toFixed(1) + " km<br>";
 
       const routeFeature = new Feature({
         type: "route",
@@ -796,7 +795,7 @@ map.on("contextmenu", function (event) {
   } else if (destinationCoordinates.length == 2 && clickedOnLastDestination || clickedOnCurrentPosition) {
     routeLayer.getSource().clear();
     setExtraInfo([Math.round(getDistance(currentPostition, toLonLat(event.coordinate))) + " m"]);
-    info3.innerHTML = "";
+    routeInfo.innerHTML = "";
     destinationCoordinates = [];
   } else {
     // else push clicked coord to destinationCoordinates

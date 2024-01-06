@@ -49,7 +49,7 @@
       word-wrap: break-word;
     }
 
-    #infoGroup:has(#info:empty):has(#info2:empty):has(#info3:empty):has(#trafficWarning:empty) {
+    #infoGroup:has(#info:empty):has(#extraInfo:empty):has(#routeInfo:empty):has(#trafficWarning:empty) {
       display: none;
     }
 
@@ -103,8 +103,8 @@
   <div id="map">
     <div class="infoGroup" id="infoGroup">
       <div id="info"></div>
-      <div id="info2"></div>
-      <div id="info3"></div>
+      <div id="extraInfo"></div>
+      <div id="routeInfo"></div>
       <div id="trafficWarning"></div>
     </div>
     <div id="optionButtons">
