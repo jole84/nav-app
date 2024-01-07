@@ -419,14 +419,17 @@ geolocation.on("change", function () {
 function getAvgSpeed() {
   // km / (Avg km/h / 60) = minute
   var distance = 0;
-  var lastFixTime = trackLog[trackLog.length - 1][2]; // newest
-  var fixTime // oldest
-  for (var i = trackLog.length - 1; i > 0 && distance < 5000; i--) {
-    distance += getDistance(trackLog[i][0], trackLog[i - 1][0]);
-    fixTime = trackLog[i - 1][2];
+  var lastFixTime = trackLog[trackLog.length - 1][2]; // senaste
+  var fixTime;
+
+  for (var i = trackLog.length - 2; i >= 0 && distance < 5000; i--) {
+    distance += getDistance(trackLog[i][0], trackLog[i + 1][0]);
+    fixTime = trackLog[i][2];
   }
-  // console.log(distance + "m, " + (lastFixTime - fixTime) / 1000 + "sek");
-  return (distance / ((lastFixTime - fixTime) / 1000)) * 3.6;
+  
+  var elapsedTime = ((lastFixTime - fixTime) / 1000); // milliseconds / 1000 = seconds
+  // console.log(distance + "m, " + elapsedTime + "sek");
+  return (distance / elapsedTime) * 3.6; // m/s * 3.6 = km/h
 }
 
 function getRemainingDistance(featureCoordinates, position) {
