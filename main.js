@@ -364,7 +364,9 @@ geolocation.on("change", function () {
       if (feature.getGeometry().getType() == "MultiLineString") {
         const featureCoordinates = feature.getGeometry().getLineString().getCoordinates()
         const gpxRemainingDistance = getRemainingDistance(featureCoordinates, position);
-        routeInfo.innerHTML += "-> " + gpxRemainingDistance.toFixed(1) + "  km, " + Math.round(gpxRemainingDistance / (avgSpeed / 60)) + " min<br>";
+        if (gpxRemainingDistance != null) {
+          routeInfo.innerHTML += "-> " + gpxRemainingDistance.toFixed(1) + "  km, " + Math.round(gpxRemainingDistance / (avgSpeed / 60)) + " min<br>";
+        }
       }
     });
 
@@ -372,7 +374,7 @@ geolocation.on("change", function () {
     if (routeLayer.getSource().getFeatureById(0) != null) {
       const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
       const routeRemainingDistance = getRemainingDistance(featureCoordinates, position);
-      if (routeRemainingDistance != "") {
+      if (routeRemainingDistance != null) {
         routeInfo.innerHTML += "Rutt -> " + routeRemainingDistance.toFixed(1) + "  km, " + Math.round(routeRemainingDistance / (avgSpeed / 60)) + " min<br>";
       }
     }
@@ -443,8 +445,8 @@ function getRemainingDistance(featureCoordinates, position) {
   const newLineStringclosestPoint = newMultiPoint.getClosestPoint(position);
   const distanceToclosestPoint = getDistance(toLonLat(newLineStringclosestPoint), toLonLat(position));
 
-  if (distanceToclosestPoint > 500) {
-    return "";
+  if (distanceToclosestPoint > 200) {
+    return;
   } else {
     for (var i = 0; i < featureCoordinates.length; i++) {
       newLineString.appendCoordinate([featureCoordinates[i]]);
