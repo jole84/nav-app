@@ -426,7 +426,7 @@ function getAvgSpeed() {
 
   for (var i = trackLog.length - 2; i >= 0 && distance < 5000; i--) {
     distance += getDistance(trackLog[i][0], trackLog[i + 1][0]);
-    fixTime = trackLog[i][2];
+    fixTime = trackLog[i + 1][2];
   }
   
   var elapsedTime = ((lastFixTime - fixTime) / 1000); // milliseconds / 1000 = seconds
