@@ -446,7 +446,7 @@ function getRemainingDistance(featureCoordinates, position) {
   const distanceToclosestPoint = getDistance(toLonLat(newLineStringclosestPoint), toLonLat(position));
 
   if (distanceToclosestPoint > 200) {
-    return;
+    return null;
   } else {
     for (var i = 0; i < featureCoordinates.length; i++) {
       newLineString.appendCoordinate([featureCoordinates[i]]);
