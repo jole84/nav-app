@@ -356,13 +356,15 @@ geolocation.on("change", function () {
     ]);
     line.appendCoordinate(position);
 
+    var avgSpeed = getAvgSpeed();
+
     // calculate remaing distance on gpx
-    routeInfo.innerHTML = Math.round(getAvgSpeed()) + " km/h medel<br>";
+    routeInfo.innerHTML = Math.round(avgSpeed) + " km/h medel<br>";
     gpxLayer.getSource().forEachFeature(function (feature) {
       if (feature.getGeometry().getType() == "MultiLineString") {
         const featureCoordinates = feature.getGeometry().getLineString().getCoordinates()
-        const routeRemainingDistance = getRemainingDistance(featureCoordinates, position);
-        routeInfo.innerHTML += "-> " + routeRemainingDistance.toFixed(1) + "  km, " + Math.round(routeRemainingDistance / (getAvgSpeed() / 60)) + " min<br>";
+        const gpxRemainingDistance = getRemainingDistance(featureCoordinates, position);
+        routeInfo.innerHTML += "-> " + gpxRemainingDistance.toFixed(1) + "  km, " + Math.round(gpxRemainingDistance / (avgSpeed / 60)) + " min<br>";
       }
     });
 
@@ -371,7 +373,7 @@ geolocation.on("change", function () {
       const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
       const routeRemainingDistance = getRemainingDistance(featureCoordinates, position);
       if (routeRemainingDistance != "") {
-        routeInfo.innerHTML += "Rutt -> " + routeRemainingDistance.toFixed(1) + "  km, " + Math.round(routeRemainingDistance / (getAvgSpeed() / 60)) + " min<br>";
+        routeInfo.innerHTML += "Rutt -> " + routeRemainingDistance.toFixed(1) + "  km, " + Math.round(routeRemainingDistance / (avgSpeed / 60)) + " min<br>";
       }
     }
   }
