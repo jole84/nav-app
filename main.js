@@ -96,7 +96,7 @@ const trackStyle = {
   LineString: new Style({
     stroke: new Stroke({
       color: [255, 0, 0, 0.8],
-      width: 4,
+      width: 5,
     }),
   }),
   route: new Style({
@@ -214,8 +214,8 @@ gpxLayer.getSource().addEventListener("addfeature", function () {
     var padding = 100;
     lastInteraction = new Date();
     view.fit(gpxLayer.getSource().getExtent(), {
-      padding: [200, padding, padding, padding],
-      duration: 500,
+      padding: [padding, padding, padding, padding],
+      // duration: 500,
     });
   }
 });
@@ -364,7 +364,7 @@ geolocation.on("change", function () {
       if (feature.getGeometry().getType() == "MultiLineString") {
         const featureCoordinates = feature.getGeometry().getLineString().getCoordinates()
         const gpxRemainingDistance = getRemainingDistance(featureCoordinates, position);
-        if (gpxRemainingDistance != null) {
+        if (gpxRemainingDistance != undefined) {
           routeInfo.innerHTML += "-> " + gpxRemainingDistance.toFixed(1) + "  km, " + Math.round(gpxRemainingDistance / (avgSpeed / 60)) + " min<br>";
         }
       }
@@ -374,8 +374,8 @@ geolocation.on("change", function () {
     if (routeLayer.getSource().getFeatureById(0) != null) {
       const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
       const routeRemainingDistance = getRemainingDistance(featureCoordinates, position);
-      if (routeRemainingDistance != null) {
-        routeInfo.innerHTML += "Rutt -> " + routeRemainingDistance.toFixed(1) + "  km, " + Math.round(routeRemainingDistance / (avgSpeed / 60)) + " min<br>";
+      if (routeRemainingDistance != undefined) {
+        routeInfo.innerHTML += "-> " + routeRemainingDistance.toFixed(1) + "  km, " + Math.round(routeRemainingDistance / (avgSpeed / 60)) + " min<br>";
       }
     }
   }
@@ -421,19 +421,18 @@ geolocation.on("change", function () {
 });
 
 function getAvgSpeed() {
-  // km / (Avg km/h / 60) = minute
+  let trackLogReversed = trackLog.slice().reverse();
   var distance = 0;
-  var lastFixTime = trackLog[trackLog.length - 1][2]; // senaste
-  var fixTime;
-
-  for (var i = trackLog.length - 2; i >= 0 && distance < 5000; i--) {
-    distance += getDistance(trackLog[i][0], trackLog[i + 1][0]);
-    fixTime = trackLog[i][2];
+  var totalTime = 0;
+  for (var i = 0; i < trackLogReversed.length - 1 && distance < 5000; i++) {
+    var segmentDistance = getDistance(trackLogReversed[i][0], trackLogReversed[i + 1][0]);
+    var elapsedSeconds = (trackLogReversed[i][2] - trackLogReversed[i + 1][2]) / 1000;
+    if (segmentDistance / elapsedSeconds > 5) {
+      distance += segmentDistance;
+      totalTime += elapsedSeconds;
+    }
   }
-  
-  var elapsedTime = ((lastFixTime - fixTime) / 1000); // milliseconds / 1000 = seconds
-  // console.log(distance + "m, " + elapsedTime + "sek");
-  return (distance / elapsedTime) * 3.6; // m/s * 3.6 = km/h
+  return (distance / totalTime) * 3.6; // m/s * 3.6 = km/h
 }
 
 function getRemainingDistance(featureCoordinates, position) {
@@ -445,8 +444,8 @@ function getRemainingDistance(featureCoordinates, position) {
   const newLineStringclosestPoint = newMultiPoint.getClosestPoint(position);
   const distanceToclosestPoint = getDistance(toLonLat(newLineStringclosestPoint), toLonLat(position));
 
-  if (distanceToclosestPoint > 200) {
-    return null;
+  if (distanceToclosestPoint > 500) {
+    return;
   } else {
     for (var i = 0; i < featureCoordinates.length; i++) {
       newLineString.appendCoordinate([featureCoordinates[i]]);
@@ -457,6 +456,7 @@ function getRemainingDistance(featureCoordinates, position) {
     return getLength(newLineString) / 1000;
   }
 }
+
 // alert user if geolocation fails
 geolocation.on("error", function () {
   getDeviations();
