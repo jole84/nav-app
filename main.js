@@ -427,12 +427,12 @@ function getAvgSpeed() {
   for (var i = 0; i < trackLogReversed.length - 1 && distance < 5000; i++) {
     var segmentDistance = getDistance(trackLogReversed[i][0], trackLogReversed[i + 1][0]);
     var elapsedSeconds = (trackLogReversed[i][2] - trackLogReversed[i + 1][2]) / 1000;
-    if (segmentDistance / elapsedSeconds > 5) {
+    if (segmentDistance / elapsedSeconds > 10) {
       distance += segmentDistance;
       totalTime += elapsedSeconds;
     }
   }
-  return (distance / totalTime) * 3.6; // m/s * 3.6 = km/h
+  return (distance / totalTime) * 3.6 || 0; // m/s * 3.6 = km/h
 }
 
 function getRemainingDistance(featureCoordinates, position) {
@@ -734,7 +734,7 @@ function routeMe(destinationCoordinates) {
         }" target="_blank">Streetview</a>`,
         "Restid: " + toHHMMSS(totalTime),
       ]);
-      routeInfo.innerHTML = "Rutt -> " + getRemainingDistance(route.getCoordinates(), geolocation.getPosition()).toFixed(1) + " km<br>";
+      routeInfo.innerHTML = "-> " + getRemainingDistance(route.getCoordinates(), geolocation.getPosition()).toFixed(1) + " km<br>";
 
       const routeFeature = new Feature({
         type: "route",
@@ -1094,10 +1094,10 @@ function focusTrafficWarning() {
       center: coordinates,
       duration: duration,
     });
-    view.animate({
-      zoom: 11,
-      duration: duration,
-    });
+    // view.animate({
+    //   zoom: 11,
+    //   duration: duration,
+    // });
     view.animate({
       rotation: 0,
       duration: duration,
