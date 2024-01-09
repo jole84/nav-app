@@ -1,22 +1,21 @@
 import { Feature, Map, View } from "ol";
-import XYZ from "ol/source/XYZ.js";
 import { fromLonLat, toLonLat } from "ol/proj.js";
-import TileLayer from "ol/layer/Tile.js";
-import LineString from "ol/geom/LineString";
-import Geolocation from "ol/Geolocation.js";
-import VectorSource from "ol/source/Vector.js";
-import GPX from "ol/format/GPX.js";
+import { getDistance, getLength } from "ol/sphere";
+import { saveAs } from 'file-saver';
 import { Stroke, Style, Icon, Fill, Text } from "ol/style.js";
 import { Vector as VectorLayer } from "ol/layer.js";
-import TileWMS from "ol/source/TileWMS.js";
-import Point from "ol/geom/Point.js";
 import GeoJSON from "ol/format/GeoJSON.js";
-import WKT from "ol/format/WKT.js";
-import { getDistance, getLength } from "ol/sphere";
-import OSM from "ol/source/OSM.js";
-// import {MapboxVectorLayer} from 'ol-mapbox-style';
+import Geolocation from "ol/Geolocation.js";
+import GPX from "ol/format/GPX.js";
+import LineString from "ol/geom/LineString";
 import MultiPoint from 'ol/geom/MultiPoint.js';
-import { saveAs } from 'file-saver';
+import OSM from "ol/source/OSM.js";
+import Point from "ol/geom/Point.js";
+import TileLayer from "ol/layer/Tile.js";
+import TileWMS from "ol/source/TileWMS.js";
+import VectorSource from "ol/source/Vector.js";
+import WKT from "ol/format/WKT.js";
+import XYZ from "ol/source/XYZ.js";
 
 setExtraInfo(["<font size=1> Build: INSERTDATEHERE</font>"]);
 
@@ -37,31 +36,32 @@ document.addEventListener("visibilitychange", async () => {
   }
 });
 
+const startTime = new Date();
+var destinationCoordinates = [];
+let distanceTraveled = 0;
 var center = fromLonLat([14.18, 57.786]);
 var defaultZoom = 14;
-let distanceTraveled = 0;
 var interactionDelay = 10000;
 var lastInteraction = new Date() - interactionDelay;
-var preferredFontSize;
-const startTime = new Date();
-var trackLog = [];
+var mapMode = 0; // default map
 var maxSpeed = 0;
+var preferredFontSize;
+var trackLog = [];
 var mapDiv = document.getElementById("map");
-var infoGroup = document.getElementById("infoGroup");
 var centerButton = document.getElementById("centerButton");
-var saveLogButton = document.getElementById("saveLogButton");
 var customFileButton = document.getElementById("customFileButton");
+var infoGroup = document.getElementById("infoGroup");
+var saveLogButton = document.getElementById("saveLogButton");
 var trafficWarning = document.getElementById("trafficWarning");
-saveLogButton.onclick = saveLogButtonFunction;
 centerButton.onclick = centerFunction;
+customFileButton.addEventListener("change", handleFileSelect, false);
+saveLogButton.onclick = saveLogButtonFunction;
 
 const view = new View({
   center: center,
   zoom: 8,
-  // minZoom: 6,
   maxZoom: 20,
   constrainRotation: false,
-  // extent: [900000, 7200000, 2900000, 11000000]
 });
 
 const gpxStyle = {
@@ -125,7 +125,6 @@ var osm = new TileLayer({
 });
 
 // var osm = new MapboxVectorLayer({
-//   // styleUrl: "mapbox://styles/mapbox/streets-v12",
 //   styleUrl: "mapbox://styles/tryckluft/clqmovmf100pb01o9g1li1hxb",
 //   accessToken : "pk.eyJ1IjoidHJ5Y2tsdWZ0IiwiYSI6ImNrcTU1YTIzeTFlem8yd3A4MXRsMTZreWQifQ.lI612CDqRgWujJDv6zlBqw",
 // });
@@ -215,14 +214,12 @@ gpxLayer.getSource().addEventListener("addfeature", function () {
     lastInteraction = new Date();
     view.fit(gpxLayer.getSource().getExtent(), {
       padding: [padding, padding, padding, padding],
-      // duration: 500,
     });
   }
 });
 
 var gpxFormat = new GPX();
 var gpxFeatures;
-customFileButton.addEventListener("change", handleFileSelect, false);
 function handleFileSelect(evt) {
   customFileButton.blur();
   var files = evt.target.files; // FileList object
@@ -313,7 +310,6 @@ const geolocation = new Geolocation({
 });
 
 let prevCoordinate;
-// let lastFix = new Date();
 // run once to get things going
 geolocation.once("change", function () {
   const position = geolocation.getPosition();
@@ -546,7 +542,6 @@ function updateView(position, heading) {
   }
   view.setCenter(getCenterWithHeading(position, -heading));
   view.setRotation(-heading);
-  // map.render();
 }
 
 view.on("change:resolution", function () {
@@ -565,8 +560,6 @@ layerSelector.addEventListener("focus", function () {
 })
 
 // switch map logic
-var mapMode = 0; // default map
-
 function switchMap() {
   slitlagerkarta_nedtonad.setVisible(false);
   slitlagerkarta.setVisible(false);
@@ -723,9 +716,6 @@ function routeMe(destinationCoordinates) {
 
       // add route information to info box
       setExtraInfo([
-        // "Avstånd: " + trackLength.toFixed(2) + " km",
-        // "Ankomsttid: " +
-        // new Date(new Date().valueOf() + totalTime).toString().slice(16, 25),
         `<a href="http://maps.google.com/maps?q=${destinationCoordinates[destinationCoordinates.length - 1][1]
         },${destinationCoordinates[destinationCoordinates.length - 1][0]
         }" target="_blank">Gmap</a>`,
@@ -766,7 +756,6 @@ map.on("singleclick", function (evt) {
   }
 });
 
-var destinationCoordinates = [];
 // right click/long press to route
 map.on("contextmenu", function (event) {
   try {
@@ -964,7 +953,6 @@ $.support.cors = true; // Enable Cross domain requests
 var trafikLayer = new VectorLayer({
   //Creates a layer for deviations
   source: new VectorSource(),
-  // declutter: true,
   style: styleFunction,
 });
 map.addLayer(trafikLayer);
@@ -977,19 +965,11 @@ function getDeviations() {
     "<LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />" +
     "<QUERY objecttype='Situation' schemaversion='1.2'>" +
     "<FILTER>" +
-    // "<OR>" +
     "<ELEMENTMATCH>" +
     "<EQ name='Deviation.ManagedCause' value='true' />" +
     "<EQ name='Deviation.MessageType' value='Olycka' />" +
     "<GTE name='Deviation.EndTime' value='$now'/>" +
     "</ELEMENTMATCH>" +
-    // "<ELEMENTMATCH>" +
-    // "<GTE name='Deviation.SeverityCode' value='5' />" +
-    // "</ELEMENTMATCH>" +
-    // "<ELEMENTMATCH>" +
-    // "<EQ name='Deviation.IconId' value='roadClosed' />" +
-    // "</ELEMENTMATCH>" +
-    // "</OR>" +
     "</FILTER>" +
     "<INCLUDE>Deviation.Message</INCLUDE>" +
     "<INCLUDE>Deviation.IconId</INCLUDE>" +
