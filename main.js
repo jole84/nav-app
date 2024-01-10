@@ -45,6 +45,7 @@ var interactionDelay = 10000;
 var lastInteraction = new Date() - interactionDelay;
 var mapMode = 0; // default map
 var maxSpeed = 0;
+var maxSpeedCoord;
 var preferredFontSize;
 var trackLog = [];
 var mapDiv = document.getElementById("map");
@@ -398,6 +399,7 @@ geolocation.on("change", function () {
 
   if (speed > maxSpeed) {
     maxSpeed = Math.floor(speed);
+    maxSpeedCoord = lonlat;
   }
 
   // send text to info box
@@ -420,10 +422,10 @@ function getAvgSpeed() {
   let trackLogReversed = trackLog.slice().reverse();
   var distance = 0;
   var totalTime = 0;
-  for (var i = 0; i < trackLogReversed.length - 1 && distance < 5000; i++) {
+  for (var i = 0; i < trackLogReversed.length - 1 && distance < 30000; i++) {
     var segmentDistance = getDistance(trackLogReversed[i][0], trackLogReversed[i + 1][0]);
     var elapsedSeconds = (trackLogReversed[i][2] - trackLogReversed[i + 1][2]) / 1000;
-    if (segmentDistance / elapsedSeconds > 10) {
+    if (segmentDistance / elapsedSeconds > 20) {
       distance += segmentDistance;
       totalTime += elapsedSeconds;
     }
@@ -644,6 +646,7 @@ function saveLog() {
   <desc>GPX log created by jole84 webapp</desc>
   <time>${startTime.toISOString()}</time>
 </metadata>
+<wpt lat="${maxSpeedCoord[1]}" lon="${maxSpeedCoord[0]}"><name>max ${maxSpeed} km/h</name></wpt>
 <trk>
 <name>${startTime.toLocaleString()}, max ${maxSpeed.toFixed(1)} km/h, total ${(
       distanceTraveled / 1000
