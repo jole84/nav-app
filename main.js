@@ -399,7 +399,7 @@ geolocation.on("change", function () {
 
   if (speed > maxSpeed) {
     maxSpeed = Math.floor(speed);
-    maxSpeedCoord = lonlat;
+    maxSpeedCoord = [lonlat, new Date()];
   }
 
   // send text to info box
@@ -646,7 +646,7 @@ function saveLog() {
   <desc>GPX log created by jole84 webapp</desc>
   <time>${startTime.toISOString()}</time>
 </metadata>
-<wpt lat="${maxSpeedCoord[1]}" lon="${maxSpeedCoord[0]}"><name>max ${maxSpeed} km/h</name></wpt>
+<wpt lat="${maxSpeedCoord[0][1]}" lon="${maxSpeedCoord[0][0]}"><name>max ${Math.floor(maxSpeed)} km/h ${maxSpeedCoord[1].toLocaleTimeString()}</name></wpt>
 <trk>
 <name>${startTime.toLocaleString()}, max ${maxSpeed.toFixed(1)} km/h, total ${(
       distanceTraveled / 1000
