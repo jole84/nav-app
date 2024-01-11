@@ -647,6 +647,8 @@ function saveLog() {
   <time>${startTime.toISOString()}</time>
 </metadata>
 <wpt lat="${maxSpeedCoord[0][1]}" lon="${maxSpeedCoord[0][0]}"><name>max ${Math.floor(maxSpeed)} km/h ${maxSpeedCoord[1].toLocaleTimeString()}</name></wpt>
+<wpt lat="${trackLog[0][0][1]}" lon="${trackLog[0][0][0]}"><name>Start ${trackLog[0][1].toLocaleString()}</name></wpt>
+<wpt lat="${trackLog[trackLog.length - 1][0][1]}" lon="${trackLog[trackLog.length - 1][0][0]}"><name>Slut ${trackLog[trackLog.length - 1][1].toLocaleString()}</name></wpt>
 <trk>
 <name>${startTime.toLocaleString()}, max ${maxSpeed.toFixed(1)} km/h, total ${(
       distanceTraveled / 1000
