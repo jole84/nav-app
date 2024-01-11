@@ -137,6 +137,7 @@ var slitlagerkarta = new TileLayer({
     maxZoom: 14,
   }),
   visible: false,
+  useInterimTilesOnError: false,
 });
 
 var slitlagerkarta_nedtonad = new TileLayer({
@@ -146,6 +147,7 @@ var slitlagerkarta_nedtonad = new TileLayer({
     maxZoom: 14,
   }),
   visible: false,
+  useInterimTilesOnError: false,
 });
 
 var ortofoto = new TileLayer({
@@ -353,16 +355,14 @@ geolocation.on("change", function () {
     ]);
     line.appendCoordinate(position);
 
-    var avgSpeed = getAvgSpeed();
-
     // calculate remaing distance on gpx
-    routeInfo.innerHTML = Math.round(avgSpeed) + " km/h medel<br>";
+    routeInfo.innerHTML = "";
     gpxLayer.getSource().forEachFeature(function (feature) {
       if (feature.getGeometry().getType() == "MultiLineString") {
         const featureCoordinates = feature.getGeometry().getLineString().getCoordinates()
         const gpxRemainingDistance = getRemainingDistance(featureCoordinates, position);
         if (gpxRemainingDistance != undefined) {
-          routeInfo.innerHTML += "-> " + gpxRemainingDistance.toFixed(1) + "  km, " + Math.round(gpxRemainingDistance / (avgSpeed / 60)) + " min<br>";
+          routeInfo.innerHTML += "-> " + gpxRemainingDistance.toFixed(1) + "  km, " + Math.round(gpxRemainingDistance / (speed / 60)) + " min<br>";
         }
       }
     });
@@ -372,7 +372,7 @@ geolocation.on("change", function () {
       const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
       const routeRemainingDistance = getRemainingDistance(featureCoordinates, position);
       if (routeRemainingDistance != undefined) {
-        routeInfo.innerHTML += "-> " + routeRemainingDistance.toFixed(1) + "  km, " + Math.round(routeRemainingDistance / (avgSpeed / 60)) + " min<br>";
+        routeInfo.innerHTML += "-> " + routeRemainingDistance.toFixed(1) + "  km, " + Math.round(routeRemainingDistance / (speed / 60)) + " min<br>";
       }
     }
   }
@@ -668,10 +668,11 @@ function saveLog() {
 </trk>
 </gpx>`;
 
-  const filename =
-    startTime.toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + ".gpx";
+  const filename = startTime.toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + ".gpx";
   setExtraInfo(["Sparar fil:", filename]);
-  download(gpxFile, filename);
+  
+  var file = new Blob([gpxFile], { type: "application/gpx+xml" });
+  saveAs(file, filename);
 }
 
 var timeOut; // create timeout variable so it can be cleared
@@ -682,11 +683,6 @@ function setExtraInfo(infoText) {
   timeOut = setTimeout(function () {
     document.getElementById("extraInfo").innerHTML = "";
   }, 60000);
-}
-
-function download(data, filename) {
-  var file = new Blob([data], { type: "application/gpx+xml" });
-  saveAs(file, filename);
 }
 
 // brouter routing
@@ -778,13 +774,14 @@ map.on("contextmenu", function (event) {
 
   lastInteraction = new Date();
   var currentPostition = toLonLat(geolocation.getPosition());
+  var eventLonLat = toLonLat(event.coordinate);
 
   // set start position
   if (destinationCoordinates.length == 0) {
     destinationCoordinates.push(currentPostition);
   }
 
-  var clickedOnCurrentPosition = getDistance(currentPostition, toLonLat(event.coordinate)) < 200 || getPixelDistance(event.pixel, map.getPixelFromCoordinate(fromLonLat(currentPostition))) < 50;
+  var clickedOnCurrentPosition = getDistance(currentPostition, eventLonLat) < 200 || getPixelDistance(event.pixel, map.getPixelFromCoordinate(fromLonLat(currentPostition))) < 50;
   var clickedOnLastDestination = getPixelDistance(event.pixel, map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))) < 40;
 
   // remove last point if click < 40 pixels from last point
@@ -793,7 +790,7 @@ map.on("contextmenu", function (event) {
     // clear route if click < 40 pixels from last point or click on current position
   } else if (destinationCoordinates.length == 2 && clickedOnLastDestination || clickedOnCurrentPosition) {
     routeLayer.getSource().clear();
-    setExtraInfo([Math.round(getDistance(currentPostition, toLonLat(event.coordinate))) + " m"]);
+    setExtraInfo([Math.round(getDistance(currentPostition, eventLonLat)) + " m"]);
     routeInfo.innerHTML = "";
     destinationCoordinates = [];
   } else {
@@ -801,7 +798,7 @@ map.on("contextmenu", function (event) {
     if (waypointIsClose) {
       destinationCoordinates.push(toLonLat(closestWaypoint.getGeometry().getCoordinates()));
     } else {
-      destinationCoordinates.push(toLonLat(event.coordinate));
+      destinationCoordinates.push(eventLonLat);
     }
   }
 
@@ -1077,10 +1074,10 @@ function focusTrafficWarning() {
       center: coordinates,
       duration: duration,
     });
-    // view.animate({
-    //   zoom: 11,
-    //   duration: duration,
-    // });
+    view.animate({
+      zoom: 11,
+      duration: duration,
+    });
     view.animate({
       rotation: 0,
       duration: duration,
