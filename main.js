@@ -40,6 +40,7 @@ const startTime = new Date();
 var destinationCoordinates = [];
 let distanceTraveled = 0;
 var center = fromLonLat([14.18, 57.786]);
+var closestAccident;
 var defaultZoom = 14;
 var interactionDelay = 10000;
 var lastInteraction = new Date() - interactionDelay;
@@ -417,21 +418,6 @@ geolocation.on("change", function () {
   ].join("<br />");
   document.getElementById("info").innerHTML = html;
 });
-
-function getAvgSpeed() {
-  let trackLogReversed = trackLog.slice().reverse();
-  var distance = 0;
-  var totalTime = 0;
-  for (var i = 0; i < trackLogReversed.length - 1 && distance < 30000; i++) {
-    var segmentDistance = getDistance(trackLogReversed[i][0], trackLogReversed[i + 1][0]);
-    var elapsedSeconds = (trackLogReversed[i][2] - trackLogReversed[i + 1][2]) / 1000;
-    if (segmentDistance / elapsedSeconds > 20) {
-      distance += segmentDistance;
-      totalTime += elapsedSeconds;
-    }
-  }
-  return (distance / totalTime) * 3.6 || 0; // m/s * 3.6 = km/h
-}
 
 function getRemainingDistance(featureCoordinates, position) {
   var newLineString = new LineString([]);
@@ -1012,32 +998,7 @@ function getDeviations() {
           });
           trafikLayer.getSource().addFeature(feature);
         });
-        // if roadAccident < 30000 meters
-        try {
-          var closestAccident = trafikLayer
-            .getSource()
-            .getClosestFeatureToCoordinate(
-              geolocation.getPosition(),
-              function (feature) {
-                return feature.get("iconId") === "roadAccident";
-              },
-            );
-          var closestAccidentCoords = closestAccident.getGeometry().getCoordinates();
-          var closestAccidentDistance = getDistance(
-            toLonLat(closestAccidentCoords),
-            toLonLat(geolocation.getPosition()),
-          );
-          var closestAccidentRoadNumber = closestAccident.get("roadNumber");
-          var locationDescriptor = closestAccident.get("locationDescriptor");
-          if (closestAccidentDistance < 30000) {
-            trafficWarning.innerHTML =
-              "Olycka " + closestAccidentRoadNumber.replace(/^V/, "v") + " (" + Math.round(closestAccidentDistance / 1000) + "km)";
-          } else {
-            trafficWarning.innerHTML = "";
-          }
-        } catch {
-          trafficWarning.innerHTML = "";
-        }
+        getClosestAccident();
       } catch (ex) {
         console.log(ex);
       }
@@ -1050,39 +1011,22 @@ trafficWarning.addEventListener("click", focusTrafficWarning);
 function focusTrafficWarning() {
   lastInteraction = new Date();
   var coordinates = geolocation.getPosition()
-  try {
-    var closestAccidentCoords = trafikLayer
-      .getSource()
-      .getClosestFeatureToCoordinate(
-        geolocation.getPosition(),
-        function (feature) {
-          return feature.get("iconId") === "roadAccident";
-        },
-      ).getGeometry().getCoordinates();
-
-    var closestAccidentDistance = getDistance(
-      toLonLat(closestAccidentCoords),
-      toLonLat(coordinates),
-    );
-
-    if (closestAccidentDistance < 30000) {
-      coordinates = closestAccidentCoords;
-    }
-  } finally {
-    var duration = 500;
-    view.animate({
-      center: coordinates,
-      duration: duration,
-    });
-    view.animate({
-      zoom: 11,
-      duration: duration,
-    });
-    view.animate({
-      rotation: 0,
-      duration: duration,
-    });
+  if (closestAccident != undefined) {
+    coordinates = closestAccident.getGeometry().getCoordinates()
   }
+  var duration = 500;
+  view.animate({
+    center: coordinates,
+    duration: duration,
+  });
+  view.animate({
+    zoom: 11,
+    duration: duration,
+  });
+  view.animate({
+    rotation: 0,
+    duration: duration,
+  });
 }
 
 setInterval(getDeviations, 60000); // getDeviations interval
@@ -1101,5 +1045,46 @@ function focusDestination() {
       rotation: 0,
       duration: duration,
     });
+  }
+}
+
+function getClosestAccident() {
+  if (trafikLayer.getSource().getFeatures().length >= 1) {
+
+    closestAccident = trafikLayer.getSource().getClosestFeatureToCoordinate(
+      geolocation.getPosition(),
+      function (feature) {
+        return feature.get("iconId") === "roadAccident";
+      },
+    );
+
+    // check route for accidents
+    var routeHasAccident = false;
+    if (routeLayer.getSource().getFeatureById(0) != undefined) {
+      trafikLayer.getSource().forEachFeature(function (feature) {
+        var closestLineStringPoint = routeLayer.getSource().getFeatureById(0).getGeometry().getClosestPoint(feature.getGeometry().getCoordinates());
+        var closestLineStringPointDistance = getDistance(toLonLat(closestLineStringPoint), toLonLat(feature.getGeometry().getCoordinates()));
+        if ( closestLineStringPointDistance < 50) {
+          console.log(closestLineStringPointDistance, feature.get("name"));
+          routeHasAccident = true;
+          closestAccident = feature;
+        }
+      });
+    }
+
+    var closestAccidentRoadNumber = closestAccident.get("roadNumber");
+    var closestAccidentCoords = closestAccident.getGeometry().getCoordinates();
+    var closestAccidentDistance = getDistance(
+      toLonLat(closestAccidentCoords),
+      toLonLat(geolocation.getPosition()),
+    );
+
+    if (closestAccidentDistance < 30000 || routeHasAccident) {
+      trafficWarning.innerHTML =
+        "Olycka " + closestAccidentRoadNumber.replace(/^V/, "v") + " (" + Math.round(closestAccidentDistance / 1000) + "km)";
+    } else {
+      closestAccident = null;
+      trafficWarning.innerHTML = "";
+    }
   }
 }
