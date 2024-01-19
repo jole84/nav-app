@@ -1060,12 +1060,28 @@ function getClosestAccident() {
 
     // check route for accidents
     var routeHasAccident = false;
-    if (routeLayer.getSource().getFeatureById(0) != undefined) {
+    var routeIsActive = routeLayer.getSource().getFeatureById(0) != undefined;
+    if (routeIsActive) {
+      var featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
+      var newLineString = new LineString([]);
+      var newMultiPoint = new MultiPoint(
+        featureCoordinates.reverse(),
+      );
+
+      const newLineStringclosestPoint = newMultiPoint.getClosestPoint(geolocation.getPosition());
+
+      for (var i = 0; i < featureCoordinates.length; i++) {
+        newLineString.appendCoordinate([featureCoordinates[i][0], featureCoordinates[i][1]]);
+        if (featureCoordinates[i].toString() === newLineStringclosestPoint.toString()) {
+          break;
+        }
+      }
+
       trafikLayer.getSource().forEachFeature(function (feature) {
-        var closestLineStringPoint = routeLayer.getSource().getFeatureById(0).getGeometry().getClosestPoint(feature.getGeometry().getCoordinates());
+        // var closestLineStringPoint = routeLayer.getSource().getFeatureById(0).getGeometry().getClosestPoint(feature.getGeometry().getCoordinates());
+        var closestLineStringPoint = newLineString.getClosestPoint(feature.getGeometry().getCoordinates());
         var closestLineStringPointDistance = getDistance(toLonLat(closestLineStringPoint), toLonLat(feature.getGeometry().getCoordinates()));
         if ( closestLineStringPointDistance < 50) {
-          console.log(closestLineStringPointDistance, feature.get("name"));
           routeHasAccident = true;
           closestAccident = feature;
         }
@@ -1079,12 +1095,15 @@ function getClosestAccident() {
       toLonLat(geolocation.getPosition()),
     );
 
-    if (closestAccidentDistance < 30000 || routeHasAccident) {
+    if (closestAccidentDistance < 30000 && !routeIsActive || routeHasAccident) {
       trafficWarning.innerHTML =
         "Olycka " + closestAccidentRoadNumber.replace(/^V/, "v") + " (" + Math.round(closestAccidentDistance / 1000) + "km)";
     } else {
       closestAccident = null;
       trafficWarning.innerHTML = "";
     }
+  } else {
+    closestAccident = null;
+    trafficWarning.innerHTML = "";
   }
 }
