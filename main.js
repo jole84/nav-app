@@ -58,6 +58,7 @@ var trafficWarning = document.getElementById("trafficWarning");
 centerButton.onclick = centerFunction;
 customFileButton.addEventListener("change", handleFileSelect, false);
 saveLogButton.onclick = saveLogButtonFunction;
+trafficWarning.addEventListener("click", focusTrafficWarning);
 
 const view = new View({
   center: center,
@@ -115,6 +116,32 @@ const trackStyle = {
   }),
 };
 trackStyle["MultiLineString"] = trackStyle["LineString"];
+
+var styleFunction = function (feature) {
+  //Function to determine style of icons
+  return [
+    new Style({
+      image: new Icon({
+        anchor: [0.5, 0.5],
+        src: apiUrl + "icons/" + feature.get("iconId") + "?type=png32x32",
+      }),
+      text: new Text({
+        text: feature.get("name"),
+        font: "bold 14px Roboto,monospace",
+        textAlign: "center",
+        textBaseline: "top",
+        offsetY: 20,
+        fill: new Fill({
+          color: "#b41412",
+        }),
+        stroke: new Stroke({
+          color: "yellow",
+          width: 4,
+        }),
+      }),
+    }),
+  ];
+};
 
 var line = new LineString([]);
 var trackLine = new Feature({
@@ -194,6 +221,11 @@ var routeLayer = new VectorLayer({
   },
 });
 
+var trafikLayer = new VectorLayer({
+  source: new VectorSource(),
+  style: styleFunction,
+});
+
 // creating the map
 const map = new Map({
   layers: [
@@ -205,6 +237,7 @@ const map = new Map({
     gpxLayer,
     routeLayer,
     trackLayer,
+    trafikLayer,
   ],
   target: "map",
   view: view,
@@ -887,31 +920,6 @@ document.addEventListener("keydown", function (event) {
 });
 
 var apiUrl = "https://api.trafikinfo.trafikverket.se/v2/";
-var styleFunction = function (feature) {
-  //Function to determine style of icons
-  return [
-    new Style({
-      image: new Icon({
-        anchor: [0.5, 0.5],
-        src: apiUrl + "icons/" + feature.get("iconId") + "?type=png32x32",
-      }),
-      text: new Text({
-        text: feature.get("name"),
-        font: "bold 14px Roboto,monospace",
-        textAlign: "center",
-        textBaseline: "top",
-        offsetY: 20,
-        fill: new Fill({
-          color: "#b41412",
-        }),
-        stroke: new Stroke({
-          color: "yellow",
-          width: 4,
-        }),
-      }),
-    }),
-  ];
-};
 
 function breakSentence(sentence) {
   var returnSentence = "";
@@ -936,12 +944,6 @@ $.ajaxSetup({
 });
 
 $.support.cors = true; // Enable Cross domain requests
-var trafikLayer = new VectorLayer({
-  //Creates a layer for deviations
-  source: new VectorSource(),
-  style: styleFunction,
-});
-map.addLayer(trafikLayer);
 
 function getDeviations() {
   trafikLayer.getSource().clear();
@@ -1006,7 +1008,7 @@ function getDeviations() {
   });
 }
 
-trafficWarning.addEventListener("click", focusTrafficWarning);
+setInterval(getDeviations, 60000); // getDeviations interval
 
 function focusTrafficWarning() {
   lastInteraction = new Date();
@@ -1028,8 +1030,6 @@ function focusTrafficWarning() {
     duration: duration,
   });
 }
-
-setInterval(getDeviations, 60000); // getDeviations interval
 
 function focusDestination() {
   if (destinationCoordinates.length > 1) {
