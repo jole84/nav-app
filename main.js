@@ -1062,8 +1062,7 @@ function getClosestAccident() {
     var routeHasAccident = false;
     var routeIsActive = routeLayer.getSource().getFeatureById(0) != undefined;
     if (routeIsActive) {
-      var featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().simplify(100).getCoordinates();
-      var newLineString = new LineString([]);
+      var featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
       var newMultiPoint = new MultiPoint(
         featureCoordinates.reverse(),
       );
@@ -1071,21 +1070,19 @@ function getClosestAccident() {
       const newLineStringclosestPoint = newMultiPoint.getClosestPoint(geolocation.getPosition());
 
       for (var i = 0; i < featureCoordinates.length; i++) {
-        newLineString.appendCoordinate([featureCoordinates[i][0], featureCoordinates[i][1]]);
+        var closestLineStringPoint = trafikLayer.getSource().getClosestFeatureToCoordinate(featureCoordinates[i]);
+        var closestLineStringPointDistance = getDistance(
+          toLonLat(closestLineStringPoint.getGeometry().getCoordinates()), 
+          toLonLat(featureCoordinates[i])
+        );
+        if ( closestLineStringPointDistance < 500) {
+          routeHasAccident = true;
+          closestAccident = closestLineStringPoint;
+        }
         if (featureCoordinates[i].toString() === newLineStringclosestPoint.toString()) {
           break;
         }
       }
-
-      trafikLayer.getSource().forEachFeature(function (feature) {
-        // var closestLineStringPoint = routeLayer.getSource().getFeatureById(0).getGeometry().getClosestPoint(feature.getGeometry().getCoordinates());
-        var closestLineStringPoint = newLineString.getClosestPoint(feature.getGeometry().getCoordinates());
-        var closestLineStringPointDistance = getDistance(toLonLat(closestLineStringPoint), toLonLat(feature.getGeometry().getCoordinates()));
-        if ( closestLineStringPointDistance < 50) {
-          routeHasAccident = true;
-          closestAccident = feature;
-        }
-      });
     }
 
     var closestAccidentRoadNumber = closestAccident.get("roadNumber");
