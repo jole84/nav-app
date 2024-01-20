@@ -1062,7 +1062,7 @@ function getClosestAccident() {
     var routeHasAccident = false;
     var routeIsActive = routeLayer.getSource().getFeatureById(0) != undefined;
     if (routeIsActive) {
-      var featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
+      var featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().simplify(100).getCoordinates();
       var newLineString = new LineString([]);
       var newMultiPoint = new MultiPoint(
         featureCoordinates.reverse(),
