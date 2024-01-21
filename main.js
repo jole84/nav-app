@@ -705,7 +705,7 @@ function setExtraInfo(infoText) {
 }
 
 // brouter routing
-function routeMe(destinationCoordinates) {
+function routeMe() {
   const endMarker = new Feature({
     type: "icon",
     geometry: new Point(
@@ -721,6 +721,12 @@ function routeMe(destinationCoordinates) {
     destinationCoordinates.join("|") +
     "&profile=car-fast&alternativeidx=0&format=geojson",
   ).then(function (response) {
+    if (!response.ok) {
+      setExtraInfo(["Felaktig rutt"]);
+      routeInfo.innerHTML = "";
+      destinationCoordinates = [];
+      return;
+    }
     response.json().then(function (result) {
       const route = new GeoJSON()
         .readFeature(result.features[0], {
@@ -823,7 +829,7 @@ map.on("contextmenu", function (event) {
 
   // start routing
   if (destinationCoordinates.length >= 2) {
-    routeMe(destinationCoordinates);
+    routeMe();
   }
 });
 
