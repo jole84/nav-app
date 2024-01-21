@@ -17,7 +17,7 @@ import VectorSource from "ol/source/Vector.js";
 import WKT from "ol/format/WKT.js";
 import XYZ from "ol/source/XYZ.js";
 
-setExtraInfo(["<font size=1> Build: INSERTDATEHERE</font>"]);
+setExtraInfo(['<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>']);
 
 let wakeLock;
 const acquireWakeLock = async () => {
