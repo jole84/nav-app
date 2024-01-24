@@ -884,6 +884,48 @@ for (var i = 0; i < urlParams.length; i++) {
 }
 switchMap();
 
+var xmlRequest = `
+  <REQUEST>
+    <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
+    <QUERY objecttype='Situation' schemaversion='1.2'>
+      <FILTER>
+        <ELEMENTMATCH>
+          <EQ name='Deviation.ManagedCause' value='true' />
+          <EQ name='Deviation.MessageType' value='Olycka' />
+          <GTE name='Deviation.EndTime' value='$now'/>
+        </ELEMENTMATCH>
+      </FILTER>
+      <INCLUDE>Deviation.Message</INCLUDE>
+      <INCLUDE>Deviation.IconId</INCLUDE>
+      <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
+      <INCLUDE>Deviation.RoadNumber</INCLUDE>
+      <INCLUDE>Deviation.EndTime</INCLUDE>
+      <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
+    </QUERY>
+  </REQUEST>
+`;
+
+if (urlParams.includes("extraTrafik")) {
+  xmlRequest = `
+    <REQUEST>
+      <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
+      <QUERY objecttype='Situation' schemaversion='1.2'>
+        <FILTER>
+          <ELEMENTMATCH>
+            <GTE name='Deviation.EndTime' value='$now'/>
+          </ELEMENTMATCH>
+        </FILTER>
+        <INCLUDE>Deviation.Message</INCLUDE>
+        <INCLUDE>Deviation.IconId</INCLUDE>
+        <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
+        <INCLUDE>Deviation.RoadNumber</INCLUDE>
+        <INCLUDE>Deviation.EndTime</INCLUDE>
+        <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
+      </QUERY>
+    </REQUEST>
+  `;
+}
+
 // add keyboard controls
 document.addEventListener("keydown", function (event) {
   const zoomStep = 0.5;
@@ -953,27 +995,6 @@ $.support.cors = true; // Enable Cross domain requests
 
 function getDeviations() {
   trafikLayer.getSource().clear();
-
-  var xmlRequest =
-    "<REQUEST>" +
-    "<LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />" +
-    "<QUERY objecttype='Situation' schemaversion='1.2'>" +
-    "<FILTER>" +
-    "<ELEMENTMATCH>" +
-    "<EQ name='Deviation.ManagedCause' value='true' />" +
-    "<EQ name='Deviation.MessageType' value='Olycka' />" +
-    "<GTE name='Deviation.EndTime' value='$now'/>" +
-    "</ELEMENTMATCH>" +
-    "</FILTER>" +
-    "<INCLUDE>Deviation.Message</INCLUDE>" +
-    "<INCLUDE>Deviation.IconId</INCLUDE>" +
-    "<INCLUDE>Deviation.Geometry.WGS84</INCLUDE>" +
-    "<INCLUDE>Deviation.RoadNumber</INCLUDE>" +
-    "<INCLUDE>Deviation.EndTime</INCLUDE>" +
-    "<INCLUDE>Deviation.LocationDescriptor</INCLUDE>" +
-    "</QUERY>" +
-    "</REQUEST>";
-
   $.ajax({
     type: "POST",
     contentType: "text/xml",
@@ -1076,7 +1097,12 @@ function getClosestAccident() {
       const newLineStringclosestPoint = newMultiPoint.getClosestPoint(geolocation.getPosition());
 
       for (var i = 0; i < featureCoordinates.length; i++) {
-        var closestLineStringPoint = trafikLayer.getSource().getClosestFeatureToCoordinate(featureCoordinates[i]);
+        var closestLineStringPoint = trafikLayer.getSource().getClosestFeatureToCoordinate(
+          featureCoordinates[i],
+          function (feature) {
+            return feature.get("iconId") === "roadAccident";
+          },
+        );
         var closestLineStringPointDistance = getDistance(
           toLonLat(closestLineStringPoint.getGeometry().getCoordinates()), 
           toLonLat(featureCoordinates[i])
