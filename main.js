@@ -143,6 +143,18 @@ var styleFunction = function (feature) {
   ];
 };
 
+var styleFunctionIcon = function (feature) {
+  //Function to determine style of icons
+  return [
+    new Style({
+      image: new Icon({
+        anchor: [0.5, 0.5],
+        src: apiUrl + "icons/" + feature.get("iconId") + "?type=png32x32",
+      }),
+    }),
+  ];
+};
+
 var line = new LineString([]);
 var trackLine = new Feature({
   geometry: line,
@@ -565,7 +577,17 @@ function updateView(position, heading) {
   view.setRotation(-heading);
 }
 
+var zoomChange = view.getZoom() < 11;
 view.on("change:resolution", function () {
+  if (view.getZoom() < 11 == zoomChange) {
+    zoomChange = !zoomChange;
+    if (view.getZoom() < 11) {
+      trafikLayer.setStyle(styleFunctionIcon);
+    } else {
+      trafikLayer.setStyle(styleFunction);
+    }
+  }
+  
   if (view.getRotation() != 0 && view.getZoom() < 11) {
     view.setRotation(0);
   }
