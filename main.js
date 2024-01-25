@@ -992,6 +992,7 @@ document.addEventListener("keydown", function (event) {
 var apiUrl = "https://api.trafikinfo.trafikverket.se/v2/";
 
 function breakSentence(sentence) {
+  sentence = sentence.replace(/\n/g, "");
   var returnSentence = "";
   var x = 0;
   for (var i = 0; i < sentence.length; i++) {
@@ -1037,12 +1038,10 @@ function getDeviations() {
                 item.Deviation[0].RoadNumber ||
                 "Väg") +
               ": " +
-              (item.Deviation[0].Message || "-") +
+              (item.Deviation[0].Message || "-")) +
               "\n" +
               new Date(item.Deviation[0].EndTime)
-                .toLocaleTimeString()
-                .slice(0, 5),
-            ),
+                .toLocaleString().slice(0,-3),
             roadNumber: (item.Deviation[0].RoadNumber || "väg"),
             iconId: item.Deviation[0].IconId,
             locationDescriptor: item.Deviation[0].LocationDescriptor,
