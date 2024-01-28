@@ -577,14 +577,14 @@ function updateView(position, heading) {
   view.setRotation(-heading);
 }
 
-var zoomChange = view.getZoom() < 11;
+var zoomBelow11 = view.getZoom() < 11;
 view.on("change:resolution", function () {
-  if (view.getZoom() < 11 == zoomChange) {
-    zoomChange = !zoomChange;
-    if (view.getZoom() < 11) {
-      trafikLayer.setStyle(styleFunctionIcon);
-    } else {
+  if (view.getZoom() < 11 == zoomBelow11) {
+    zoomBelow11 = view.getZoom() >= 11;
+    if (zoomBelow11) {
       trafikLayer.setStyle(styleFunction);
+    } else {
+      trafikLayer.setStyle(styleFunctionIcon);
     }
   }
   
