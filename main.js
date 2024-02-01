@@ -304,6 +304,8 @@ function handleFileSelect(evt) {
                 text: f.get("name"),
                 font: "bold 14px Roboto,monospace",
                 textAlign: "left",
+                placement: "line",
+                repeat: 500,
                 fill: new Fill({
                   color: color,
                 }),
@@ -587,7 +589,7 @@ view.on("change:resolution", function () {
       trafikLayer.setStyle(styleFunctionIcon);
     }
   }
-  
+
   if (view.getRotation() != 0 && view.getZoom() < 11) {
     view.setRotation(0);
   }
@@ -711,7 +713,7 @@ function saveLog() {
 
   const filename = startTime.toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + ".gpx";
   setExtraInfo(["Sparar fil:", filename]);
-  
+
   var file = new Blob([gpxFile], { type: "application/gpx+xml" });
   saveAs(file, filename);
 }
@@ -1041,7 +1043,7 @@ function getDeviations() {
               (item.Deviation[0].Message || "-")) +
               "\n" +
               new Date(item.Deviation[0].EndTime)
-                .toLocaleString().slice(0,-3),
+                .toLocaleString().slice(0, -3),
             roadNumber: (item.Deviation[0].RoadNumber || "väg"),
             iconId: item.Deviation[0].IconId,
             locationDescriptor: item.Deviation[0].LocationDescriptor,
@@ -1125,10 +1127,10 @@ function getClosestAccident() {
           },
         );
         var closestLineStringPointDistance = getDistance(
-          toLonLat(closestLineStringPoint.getGeometry().getCoordinates()), 
+          toLonLat(closestLineStringPoint.getGeometry().getCoordinates()),
           toLonLat(featureCoordinates[i])
         );
-        if ( closestLineStringPointDistance < 500) {
+        if (closestLineStringPointDistance < 500) {
           routeHasAccident = true;
           closestAccident = closestLineStringPoint;
         }
