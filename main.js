@@ -131,6 +131,7 @@ var styleFunction = function (feature) {
         textAlign: "center",
         textBaseline: "top",
         offsetY: 20,
+        padding: [-20, -20, -20, -20],
         fill: new Fill({
           color: "#b41412",
         }),
@@ -236,6 +237,7 @@ var routeLayer = new VectorLayer({
 var trafikLayer = new VectorLayer({
   source: new VectorSource(),
   style: styleFunction,
+  declutter: true,
 });
 
 // creating the map
