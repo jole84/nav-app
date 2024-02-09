@@ -151,6 +151,15 @@ var trafficWarningIconStyleFunction = function (feature) {
   ];
 };
 
+var roadConditionStyleFunction = function (feature) {    //Function to determine style of icons
+  return [new Style({
+    stroke: new Stroke({
+      color: roadColor[feature.get("conditionCode")] || "white",
+      width: 16,
+    }),
+  })];
+};
+
 var line = new LineString([]);
 var trackLine = new Feature({
   geometry: line,
@@ -229,6 +238,18 @@ var routeLayer = new VectorLayer({
   },
 });
 
+const roadColor = {
+  1: [0, 255, 0, 0.4], // "green",
+  2: [255, 255, 0, 0.4], // "yellow",
+  3: [255, 0, 0, 0.4], // "red",
+  4: [0, 0, 100, 0.4], // "blue"
+}
+
+var roadConditionLayer = new VectorLayer({     //Creates a layer for deviations
+  source: new VectorSource(),
+  style: roadConditionStyleFunction,
+});
+
 var trafficWarningSource = new VectorSource();
 
 var trafficWarningIconLayer = new VectorLayer({
@@ -251,6 +272,7 @@ const map = new Map({
     osm,
     ortofoto,
     topoweb,
+    roadConditionLayer,
     gpxLayer,
     routeLayer,
     trackLayer,
@@ -925,26 +947,7 @@ var xmlRequest = `
   </REQUEST>
 `;
 
-if (urlParams.includes("extraTrafik")) {
-  xmlRequest = `
-    <REQUEST>
-      <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
-      <QUERY objecttype='Situation' schemaversion='1.2'>
-        <FILTER>
-          <ELEMENTMATCH>
-            <GTE name='Deviation.EndTime' value='$now'/>
-          </ELEMENTMATCH>
-        </FILTER>
-        <INCLUDE>Deviation.Message</INCLUDE>
-        <INCLUDE>Deviation.IconId</INCLUDE>
-        <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
-        <INCLUDE>Deviation.RoadNumber</INCLUDE>
-        <INCLUDE>Deviation.EndTime</INCLUDE>
-        <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
-      </QUERY>
-    </REQUEST>
-  `;
-}
+
 
 // add keyboard controls
 document.addEventListener("keydown", function (event) {
@@ -1154,4 +1157,69 @@ function getClosestAccident() {
     closestAccident = null;
     trafficWarningDiv.innerHTML = "";
   }
+}
+
+function getRoadCondition() {
+  $.ajaxSetup({
+    url: apiUrl + "data.json",
+    error: function (msg) {
+      if (msg.statusText == "abort") return;
+      alert("Request failed: " + msg.statusText + "\n" + msg.responseText);
+    }
+  });
+
+  var xmlRequest = `<REQUEST>
+    <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
+    <QUERY objecttype='RoadCondition' schemaversion='1.2' >
+    <FILTER>
+      <GTE name="ConditionCode" value="2" />
+    </FILTER>
+    <INCLUDE>Geometry.WGS84</INCLUDE>
+    <INCLUDE>ConditionCode</INCLUDE>
+    </QUERY>
+    </REQUEST>`;
+
+  $.ajax({
+    type: "POST",
+    contentType: "text/xml",
+    dataType: "json",
+    data: xmlRequest,
+    success: function (response) {
+      if (response == null) return;
+      try {
+        $.each(response.RESPONSE.RESULT[0].RoadCondition, function (index, item) {
+          var format = new WKT();
+          var feature = new Feature({
+            geometry: format.readGeometry(item.Geometry.WGS84).transform("EPSG:4326", "EPSG:3857"),
+            conditionCode: item.ConditionCode,
+          });
+          roadConditionLayer.getSource().addFeature(feature);
+        });
+      }
+      catch (ex) { console.log(ex); }
+    },
+  });
+}
+
+if (urlParams.includes("extraTrafik")) {
+  getRoadCondition();
+  setInterval(getRoadCondition, 60000); // getRoadCondition interval
+  xmlRequest = `
+    <REQUEST>
+      <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
+      <QUERY objecttype='Situation' schemaversion='1.2'>
+        <FILTER>
+          <ELEMENTMATCH>
+            <GTE name='Deviation.EndTime' value='$now'/>
+          </ELEMENTMATCH>
+        </FILTER>
+        <INCLUDE>Deviation.Message</INCLUDE>
+        <INCLUDE>Deviation.IconId</INCLUDE>
+        <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
+        <INCLUDE>Deviation.RoadNumber</INCLUDE>
+        <INCLUDE>Deviation.EndTime</INCLUDE>
+        <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
+      </QUERY>
+    </REQUEST>
+  `;
 }
