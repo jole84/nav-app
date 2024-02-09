@@ -397,8 +397,7 @@ geolocation.on("change", function () {
   const altitude = geolocation.getAltitude() || 0;
   const lonlat = toLonLat(position);
   const currentTime = new Date();
-  markerEl.getGeometry().setCoordinates(position); // move marker to current location
-  markerElHeading.getGeometry().setCoordinates(position);
+  positionMarkerPoint.setCoordinates(position);
 
   // measure distance and push log if position change > 10 meters and accuracy is good
   if (getDistance(trackLog[trackLog.length - 1][0], lonlat) > 10 && accuracy < 20) {
@@ -436,9 +435,9 @@ geolocation.on("change", function () {
 
   if (speed > 3.6) {
     // change marker if speed
-    markerElHeading.getStyle().getImage().setRotation(heading);
-    markerEl.getStyle().getImage().setOpacity(0);
-    markerElHeading.getStyle().getImage().setOpacity(1);
+    positionMarkerHeading.getStyle().getImage().setRotation(heading);
+    positionMarker.getStyle().getImage().setOpacity(0);
+    positionMarkerHeading.getStyle().getImage().setOpacity(1);
 
     // change view if no interaction occurred last 10 seconds
     if (currentTime - lastInteraction > interactionDelay) {
@@ -447,8 +446,8 @@ geolocation.on("change", function () {
   }
 
   if (speed < 3.6) {
-    markerEl.getStyle().getImage().setOpacity(1);
-    markerElHeading.getStyle().getImage().setOpacity(0);
+    positionMarker.getStyle().getImage().setOpacity(1);
+    positionMarkerHeading.getStyle().getImage().setOpacity(0);
   }
 
   if (speed > maxSpeed) {
@@ -503,22 +502,23 @@ geolocation.on("error", function () {
 });
 
 // Geolocation marker
-var markerEl = new Feature({
-  geometry: new Point({}),
+var positionMarkerPoint = new Point({});
+var positionMarker = new Feature({
+  geometry: positionMarkerPoint,
 });
-var markerElHeading = new Feature({
-  geometry: new Point({}),
+var positionMarkerHeading = new Feature({
+  geometry: positionMarkerPoint,
 });
 
 map.addLayer(
   new VectorLayer({
     source: new VectorSource({
-      features: [markerEl, markerElHeading],
+      features: [positionMarker, positionMarkerHeading],
     }),
   }),
 );
 
-markerEl.setStyle(
+positionMarker.setStyle(
   new Style({
     image: new Icon({
       anchor: [0.5, 0.5],
@@ -527,7 +527,7 @@ markerEl.setStyle(
   }),
 );
 
-markerElHeading.setStyle(
+positionMarkerHeading.setStyle(
   new Style({
     image: new Icon({
       opacity: 0,
