@@ -54,11 +54,11 @@ var centerButton = document.getElementById("centerButton");
 var customFileButton = document.getElementById("customFileButton");
 var infoGroup = document.getElementById("infoGroup");
 var saveLogButton = document.getElementById("saveLogButton");
-var trafficWarning = document.getElementById("trafficWarning");
+var trafficWarningDiv = document.getElementById("trafficWarning");
 centerButton.onclick = centerFunction;
 customFileButton.addEventListener("change", handleFileSelect, false);
 saveLogButton.onclick = saveLogButtonFunction;
-trafficWarning.addEventListener("click", focusTrafficWarning);
+trafficWarningDiv.addEventListener("click", focusTrafficWarning);
 
 const view = new View({
   center: center,
@@ -117,21 +117,16 @@ const trackStyle = {
 };
 trackStyle["MultiLineString"] = trackStyle["LineString"];
 
-var styleFunction = function (feature) {
+var trafficWarningTextStyleFunction = function (feature) {
   //Function to determine style of icons
   return [
     new Style({
-      image: new Icon({
-        anchor: [0.5, 0.5],
-        src: apiUrl + "icons/" + feature.get("iconId") + "?type=png32x32",
-      }),
       text: new Text({
         text: feature.get("name"),
         font: "bold 14px Roboto,monospace",
         textAlign: "center",
         textBaseline: "top",
         offsetY: 20,
-        padding: [-20, -20, -20, -20],
         fill: new Fill({
           color: "#b41412",
         }),
@@ -144,7 +139,7 @@ var styleFunction = function (feature) {
   ];
 };
 
-var styleFunctionIcon = function (feature) {
+var trafficWarningIconStyleFunction = function (feature) {
   //Function to determine style of icons
   return [
     new Style({
@@ -234,10 +229,18 @@ var routeLayer = new VectorLayer({
   },
 });
 
-var trafikLayer = new VectorLayer({
-  source: new VectorSource(),
-  style: styleFunction,
+var trafficWarningSource = new VectorSource();
+
+var trafficWarningIconLayer = new VectorLayer({
+  source: trafficWarningSource,
+  style: trafficWarningIconStyleFunction,
+});
+
+var trafficWarningTextLayer = new VectorLayer({
+  source: trafficWarningSource,
+  style: trafficWarningTextStyleFunction,
   declutter: true,
+  minZoom: 10,
 });
 
 // creating the map
@@ -251,7 +254,8 @@ const map = new Map({
     gpxLayer,
     routeLayer,
     trackLayer,
-    trafikLayer,
+    trafficWarningIconLayer,
+    trafficWarningTextLayer,
   ],
   target: "map",
   view: view,
@@ -581,17 +585,7 @@ function updateView(position, heading) {
   view.setRotation(-heading);
 }
 
-var zoomBelow11 = view.getZoom() < 11;
 view.on("change:resolution", function () {
-  if (view.getZoom() < 11 == zoomBelow11) {
-    zoomBelow11 = view.getZoom() >= 11;
-    if (zoomBelow11) {
-      trafikLayer.setStyle(styleFunction);
-    } else {
-      trafikLayer.setStyle(styleFunctionIcon);
-    }
-  }
-
   if (view.getRotation() != 0 && view.getZoom() < 11) {
     view.setRotation(0);
   }
@@ -1021,7 +1015,7 @@ $.ajaxSetup({
 $.support.cors = true; // Enable Cross domain requests
 
 function getDeviations() {
-  trafikLayer.getSource().clear();
+  trafficWarningSource.clear();
   $.ajax({
     type: "POST",
     contentType: "text/xml",
@@ -1050,7 +1044,7 @@ function getDeviations() {
             iconId: item.Deviation[0].IconId,
             locationDescriptor: item.Deviation[0].LocationDescriptor,
           });
-          trafikLayer.getSource().addFeature(feature);
+          trafficWarningSource.addFeature(feature);
         });
         getClosestAccident();
       } catch (ex) {
@@ -1101,9 +1095,9 @@ function focusDestination() {
 }
 
 function getClosestAccident() {
-  if (trafikLayer.getSource().getFeatures().length >= 1) {
+  if (trafficWarningSource.getFeatures().length >= 1) {
 
-    closestAccident = trafikLayer.getSource().getClosestFeatureToCoordinate(
+    closestAccident = trafficWarningSource.getClosestFeatureToCoordinate(
       geolocation.getPosition(),
       function (feature) {
         return feature.get("iconId") === "roadAccident";
@@ -1122,7 +1116,7 @@ function getClosestAccident() {
       const newLineStringclosestPoint = newMultiPoint.getClosestPoint(geolocation.getPosition());
 
       for (var i = 0; i < featureCoordinates.length; i++) {
-        var closestLineStringPoint = trafikLayer.getSource().getClosestFeatureToCoordinate(
+        var closestLineStringPoint = trafficWarningSource.getClosestFeatureToCoordinate(
           featureCoordinates[i],
           function (feature) {
             return feature.get("iconId") === "roadAccident";
@@ -1150,14 +1144,14 @@ function getClosestAccident() {
     );
 
     if (closestAccidentDistance < 30000 && !routeIsActive || routeHasAccident) {
-      trafficWarning.innerHTML =
+      trafficWarningDiv.innerHTML =
         "Olycka " + closestAccidentRoadNumber.replace(/^V/, "v") + " (" + Math.round(closestAccidentDistance / 1000) + "km)";
     } else {
       closestAccident = null;
-      trafficWarning.innerHTML = "";
+      trafficWarningDiv.innerHTML = "";
     }
   } else {
     closestAccident = null;
-    trafficWarning.innerHTML = "";
+    trafficWarningDiv.innerHTML = "";
   }
 }
