@@ -41,12 +41,10 @@ var destinationCoordinates = [];
 let distanceTraveled = 0;
 var center = fromLonLat([14.18, 57.786]);
 var closestAccident;
-var defaultZoom = 14;
 var interactionDelay = 10000;
 var lastInteraction = new Date() - interactionDelay;
 var maxSpeed = 0;
 var maxSpeedCoord;
-var preferredFontSize;
 var trackLog = [];
 var mapDiv = document.getElementById("map");
 var centerButton = document.getElementById("centerButton");
@@ -61,6 +59,10 @@ trafficWarningDiv.addEventListener("click", focusTrafficWarning);
 
 if (localStorage.getItem("mapMode") == undefined) {
   localStorage.setItem("mapMode", 0);
+}
+
+if (localStorage.getItem("defaultZoom") == undefined) {
+  localStorage.setItem("defaultZoom", 14);
 }
 
 const view = new View({
@@ -561,7 +563,7 @@ function centerFunction() {
   const duration = 500;
   if (speed > 1) {
     lastInteraction = new Date() - interactionDelay;
-    view.setZoom(defaultZoom);
+    view.setZoom(localStorage.defaultZoom);
     updateView(position, heading);
   } else {
     view.animate({
@@ -569,7 +571,7 @@ function centerFunction() {
       duration: duration,
     });
     view.animate({
-      zoom: defaultZoom,
+      zoom: localStorage.defaultZoom,
       duration: duration,
     });
     view.animate({
@@ -582,7 +584,7 @@ function centerFunction() {
 
 function updateView(position, heading) {
   if (view.getZoom() <= 11) {
-    view.setZoom(defaultZoom);
+    view.setZoom(localStorage.defaultZoom);
   }
   view.setCenter(getCenterWithHeading(position, -heading));
   view.setRotation(-heading);
@@ -665,7 +667,7 @@ function switchMap() {
     ortofoto.setMinZoom(0);
   }
 
-  infoGroup.style.fontSize = preferredFontSize;
+  infoGroup.style.fontSize = localStorage.preferredFontSize || "1.1em";
 }
 
 // logic for saveLogButton
@@ -895,11 +897,11 @@ for (var i = 0; i < urlParams.length; i++) {
         gpxLayer.getSource().addFeatures(gpxFeatures);
       });
   } else if (urlParams[i].includes("zoom=")) {
-    defaultZoom = urlParams[i].split("=").pop();
+    localStorage.defaultZoom = urlParams[i].split("=").pop();
   } else if (urlParams[i].includes("mapMode=")) {
     localStorage.setItem("mapMode", urlParams[i].split("=").pop());
   } else if (urlParams[i].includes("info=")) {
-    preferredFontSize = urlParams[i].split("=").pop();
+    localStorage.preferredFontSize = urlParams[i].split("=").pop();
   } else if (urlParams[i].includes("onunload")) {
     window.onunload = window.onbeforeunload = function () {
       return "";
@@ -929,7 +931,7 @@ var xmlRequest = `
   </REQUEST>
 `;
 
-if (urlParams.includes("extraTrafik")) {
+if (localStorage.extraTrafik == 'true') {
   xmlRequest = `
     <REQUEST>
       <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
