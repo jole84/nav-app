@@ -620,9 +620,9 @@ function switchMap() {
     "-webkit-filter: initial;filter: initial;background-color: initial;",
   );
 
-  if (localStorage.enableLnt == 'true' && localStorage.getItem("mapMode") > 5) {
+  if (localStorage.enableLnt == "true" && localStorage.getItem("mapMode") > 5) {
     localStorage.setItem("mapMode", 0);
-  } else if (localStorage.enableLnt == 'false' && localStorage.getItem("mapMode") > 3) {
+  } else if ((localStorage.enableLnt == undefined || localStorage.enableLnt == "false") && localStorage.getItem("mapMode") > 3) {
     localStorage.setItem("mapMode", 0);
   }
   layerSelector.value = localStorage.getItem("mapMode");
