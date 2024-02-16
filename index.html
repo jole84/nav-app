@@ -80,12 +80,8 @@
     #layerSelector,
     #centerButton,
     #saveLogButton,
-    #customFileButton {
+    #clickFileButton {
       margin-bottom: 5px;
-    }
-
-    #customFileButton {
-      width: 83px;
     }
 
     #map .ol-rotate {
@@ -118,10 +114,10 @@
       </select>
       <button class="btn btn-danger" id="centerButton">Center</button>
       <button class="btn btn-primary" id="saveLogButton">Spara spår</button>
-      <label><input type="file" class="form-control" id="customFileButton" multiple
-          accept=".gpx,application/gpx+xml" /></label>
+      <button class="btn btn-info" id="clickFileButton">Ladda GPX</button>
     </div>
   </div>
+  <input type="file" id="customFileButton" multiple accept=".gpx,application/gpx+xml" style="display: none;"/>
 </body>
 
 </html>

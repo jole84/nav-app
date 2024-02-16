@@ -54,8 +54,11 @@ var saveLogButton = document.getElementById("saveLogButton");
 var trafficWarningDiv = document.getElementById("trafficWarning");
 centerButton.onclick = centerFunction;
 customFileButton.addEventListener("change", handleFileSelect, false);
-saveLogButton.onclick = saveLogButtonFunction;
 trafficWarningDiv.addEventListener("click", focusTrafficWarning);
+saveLogButton.onclick = saveLogButtonFunction;
+document.getElementById("clickFileButton").onclick = function () {
+  customFileButton.click();
+}
 
 if (localStorage.getItem("mapMode") == undefined) {
   localStorage.setItem("mapMode", 0);
