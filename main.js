@@ -60,9 +60,12 @@ document.getElementById("clickFileButton").onclick = function () {
 }
 
 // menu stuff
+var menuDiv = document.getElementById("menuDiv");
 if (localStorage.firstRun == undefined) {
-  document.getElementById("menu").style.display = "unset";
+  menuDiv.style.display = "unset";
   localStorage.firstRun = false;
+} else {
+  menuDiv.style.display = "none";
 }
 
 localStorage.interactionDelay = (localStorage.interactionDelay || 10000);
@@ -73,6 +76,8 @@ var extraTrafikCheck = document.getElementById("extraTrafikCheck");
 var prefferedZoom = document.getElementById("prefferedZoom");
 var interactionDelay = document.getElementById("interactionDelay");
 var preferredFontSize = document.getElementById("preferredFontSize");
+var openMenu = document.getElementById("openMenu");
+var closeMenu = document.getElementById("closeMenu");
 
 extraTrafikCheck.checked = localStorage.extraTrafik == 'true'
 extraTrafikCheck.addEventListener("change", function () {
@@ -86,8 +91,8 @@ enableLnt.addEventListener("change", function () {
   location.reload();
 });
 
-document.getElementById("closeMenu").onclick = function () {
-  document.getElementById("menu").style.display = "none";
+closeMenu.onclick = function () {
+  menuDiv.style.display = "none";
 };
 
 document.getElementById("clearSettings").onclick = function () {
@@ -95,8 +100,12 @@ document.getElementById("clearSettings").onclick = function () {
   location.reload();
 };
 
-document.getElementById("openMenu").onclick = function () {
-  document.getElementById("menu").style.display = "unset";
+openMenu.onclick = function () {
+  if (menuDiv.style.display == "none") {
+    menuDiv.style.display = "unset";
+  } else {
+    menuDiv.style.display = "none";
+  }
 };
 
 prefferedZoom.value = localStorage.defaultZoom;
@@ -964,7 +973,7 @@ switchMap();
 
 // add keyboard controls
 document.addEventListener("keydown", function (event) {
-  if (document.getElementById("menu").style.display == "unset" || true) {
+  if (menuDiv.style.display == "none") {
     const zoomStep = 0.5;
     if (event.key != "a" && event.key != "Escape" && event.key != "§") {
       // store time of last interaction
