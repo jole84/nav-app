@@ -70,6 +70,8 @@
     }
 
     #optionButtons {
+      max-width: 245;
+      text-align: right;
       bottom: 0px;
       left: 5px;
       position: absolute;
@@ -80,7 +82,8 @@
     #layerSelector,
     #centerButton,
     #saveLogButton,
-    #clickFileButton {
+    #clickFileButton,
+    #openMenu {
       margin-bottom: 5px;
     }
 
@@ -89,13 +92,40 @@
     }
 
     #layerSelector {
-      max-width: 65%;
+      display: inline-block;
+    }
+    #menu {
+      position: absolute;
+      min-width: 350px;
+      left: 50%;
+      top: 50%;
+      color: rgb(32, 32, 32);
+      backdrop-filter: blur(5px);
+      background-color: rgba(251, 251, 251, 0.6);
+      border: 1px solid rgb(32, 32, 32);
+      border-radius: 5px;
+      font-size: 1.1em;
+      letter-spacing: 1.3px;
+      line-height: 1.4;
+      z-index: 10;
+      word-wrap: break-word;
+      padding: 10px;
+      -ms-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+      display: none;
     }
   </style>
   <script type="module" src="./main.js"></script>
 </head>
 
 <body oncontextmenu="return false;">
+  <div id="menu">
+    <h1>Meny</h1>
+    <input type="checkbox" id="extraTrafikCheck"> Extra trafikinformation (vägarbete mm.) <br>
+    <input type="checkbox"> Option...<br>
+    <div id="currentZoom"></div>
+    <button class="btn btn-danger" id="closeMenu">Stäng</button>
+  </div>
   <div id="map">
     <div class="infoGroup" id="infoGroup">
       <div id="info"></div>
@@ -112,6 +142,7 @@
         <!-- <option value="4">Lantmäteriet Topo</option>
         <option value="5">Lantmäteriet Orto</option> -->
       </select>
+      <button class="btn btn-success" id="openMenu">Meny</button><br>
       <button class="btn btn-danger" id="centerButton">Center</button>
       <button class="btn btn-primary" id="saveLogButton">Spara spår</button>
       <button class="btn btn-info" id="clickFileButton">Ladda GPX</button>

@@ -59,6 +59,18 @@ saveLogButton.onclick = saveLogButtonFunction;
 document.getElementById("clickFileButton").onclick = function () {
   customFileButton.click();
 }
+var extraTrafikCheck = document.getElementById("extraTrafikCheck");
+extraTrafikCheck.checked = localStorage.extraTrafik == 'true'
+extraTrafikCheck.addEventListener("change", function () {
+  localStorage.extraTrafik = extraTrafikCheck.checked;
+})
+document.getElementById("closeMenu").onclick = function () {
+  document.getElementById("menu").style.display = "none";
+};
+document.getElementById("openMenu").onclick = function () {
+  document.getElementById("currentZoom").innerHTML = "Zoomnivå: " + (view.getZoom()).toFixed(2);
+  document.getElementById("menu").style.display = "unset";
+};
 
 if (localStorage.getItem("mapMode") == undefined) {
   localStorage.setItem("mapMode", 0);
