@@ -63,6 +63,7 @@ var extraTrafikCheck = document.getElementById("extraTrafikCheck");
 extraTrafikCheck.checked = localStorage.extraTrafik == 'true'
 extraTrafikCheck.addEventListener("change", function () {
   localStorage.extraTrafik = extraTrafikCheck.checked;
+  getDeviations();
 })
 document.getElementById("closeMenu").onclick = function () {
   document.getElementById("menu").style.display = "none";
@@ -71,6 +72,18 @@ document.getElementById("openMenu").onclick = function () {
   document.getElementById("currentZoom").innerHTML = "Zoomnivå: " + (view.getZoom()).toFixed(2);
   document.getElementById("menu").style.display = "unset";
 };
+var prefferedZoom = document.getElementById("prefferedZoom");
+prefferedZoom.value = localStorage.defaultZoom;
+prefferedZoom.addEventListener("change", function () {
+  localStorage.defaultZoom = prefferedZoom.value || 14;
+  centerFunction();
+});
+var preferredFontSize = document.getElementById("preferredFontSize");
+preferredFontSize.value = localStorage.preferredFontSize || "1.1em";
+preferredFontSize.addEventListener("change", function () {
+  localStorage.preferredFontSize = preferredFontSize.value;
+  infoGroup.style.fontSize = localStorage.preferredFontSize || "1.1em";
+})
 
 if (localStorage.getItem("mapMode") == undefined) {
   localStorage.setItem("mapMode", 0);
@@ -606,6 +619,7 @@ function updateView(position, heading) {
 }
 
 view.on("change:resolution", function () {
+  document.getElementById("currentZoom").innerHTML = "Zoomnivå: " + (view.getZoom()).toFixed(2);
   if (view.getRotation() != 0 && view.getZoom() < 11) {
     view.setRotation(0);
   }
@@ -925,86 +939,46 @@ for (var i = 0; i < urlParams.length; i++) {
 }
 switchMap();
 
-var xmlRequest = `
-  <REQUEST>
-    <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
-    <QUERY objecttype='Situation' schemaversion='1.2'>
-      <FILTER>
-        <ELEMENTMATCH>
-          <EQ name='Deviation.ManagedCause' value='true' />
-          <EQ name='Deviation.MessageType' value='Olycka' />
-          <GTE name='Deviation.EndTime' value='$now'/>
-        </ELEMENTMATCH>
-      </FILTER>
-      <INCLUDE>Deviation.Message</INCLUDE>
-      <INCLUDE>Deviation.IconId</INCLUDE>
-      <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
-      <INCLUDE>Deviation.RoadNumber</INCLUDE>
-      <INCLUDE>Deviation.EndTime</INCLUDE>
-      <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
-    </QUERY>
-  </REQUEST>
-`;
-
-if (localStorage.extraTrafik == 'true') {
-  xmlRequest = `
-    <REQUEST>
-      <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
-      <QUERY objecttype='Situation' schemaversion='1.2'>
-        <FILTER>
-          <ELEMENTMATCH>
-            <GTE name='Deviation.EndTime' value='$now'/>
-          </ELEMENTMATCH>
-        </FILTER>
-        <INCLUDE>Deviation.Message</INCLUDE>
-        <INCLUDE>Deviation.IconId</INCLUDE>
-        <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
-        <INCLUDE>Deviation.RoadNumber</INCLUDE>
-        <INCLUDE>Deviation.EndTime</INCLUDE>
-        <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
-      </QUERY>
-    </REQUEST>
-  `;
-}
-
 // add keyboard controls
 document.addEventListener("keydown", function (event) {
-  const zoomStep = 0.5;
-  if (event.key != "a" && event.key != "Escape" && event.key != "§") {
-    // store time of last interaction
-    lastInteraction = new Date();
-  }
-  if (event.key == "c" || event.key == "Enter") {
-    event.preventDefault();
-    centerFunction();
-  }
-  if (event.key == "v") {
-    localStorage.setItem("mapMode", Number(localStorage.getItem("mapMode")) + 1);
-    switchMap();
-  }
-  if (event.key == "z") {
-    view.adjustRotation(0.2);
-  }
-  if (event.key == "x") {
-    view.adjustRotation(-0.2);
-  }
-  if (event.key == "s") {
-    saveLogButtonFunction();
-  }
-  if (event.key == "d") {
-    focusDestination();
-  }
-  if (event.key == "Escape" || event.key == "§") {
-    // carpe iter adventure controller minus button
-    view.adjustZoom(-zoomStep);
-  }
-  if (event.key == "a") {
-    // carpe iter adventure controller plus button
-    view.adjustZoom(zoomStep);
-  }
-  if (event.code == "Space") {
-    event.preventDefault();
-    focusTrafficWarning();
+  if (document.getElementById("menu").style.display == "unset" || true) {
+    const zoomStep = 0.5;
+    if (event.key != "a" && event.key != "Escape" && event.key != "§") {
+      // store time of last interaction
+      lastInteraction = new Date();
+    }
+    if (event.key == "c" || event.key == "Enter") {
+      event.preventDefault();
+      centerFunction();
+    }
+    if (event.key == "v") {
+      localStorage.setItem("mapMode", Number(localStorage.getItem("mapMode")) + 1);
+      switchMap();
+    }
+    if (event.key == "z") {
+      view.adjustRotation(0.2);
+    }
+    if (event.key == "x") {
+      view.adjustRotation(-0.2);
+    }
+    if (event.key == "s") {
+      saveLogButtonFunction();
+    }
+    if (event.key == "d") {
+      focusDestination();
+    }
+    if (event.key == "Escape" || event.key == "§") {
+      // carpe iter adventure controller minus button
+      view.adjustZoom(-zoomStep);
+    }
+    if (event.key == "a") {
+      // carpe iter adventure controller plus button
+      view.adjustZoom(zoomStep);
+    }
+    if (event.code == "Space") {
+      event.preventDefault();
+      focusTrafficWarning();
+    }
   }
 });
 
@@ -1036,6 +1010,47 @@ $.ajaxSetup({
 $.support.cors = true; // Enable Cross domain requests
 
 function getDeviations() {
+  var xmlRequest = `
+  <REQUEST>
+    <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
+    <QUERY objecttype='Situation' schemaversion='1.2'>
+      <FILTER>
+        <ELEMENTMATCH>
+          <EQ name='Deviation.ManagedCause' value='true' />
+          <EQ name='Deviation.MessageType' value='Olycka' />
+          <GTE name='Deviation.EndTime' value='$now'/>
+        </ELEMENTMATCH>
+      </FILTER>
+      <INCLUDE>Deviation.Message</INCLUDE>
+      <INCLUDE>Deviation.IconId</INCLUDE>
+      <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
+      <INCLUDE>Deviation.RoadNumber</INCLUDE>
+      <INCLUDE>Deviation.EndTime</INCLUDE>
+      <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
+    </QUERY>
+  </REQUEST>
+`;
+
+  if (localStorage.extraTrafik == 'true') {
+    xmlRequest = `
+    <REQUEST>
+      <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
+      <QUERY objecttype='Situation' schemaversion='1.2'>
+        <FILTER>
+          <ELEMENTMATCH>
+            <GTE name='Deviation.EndTime' value='$now'/>
+          </ELEMENTMATCH>
+        </FILTER>
+        <INCLUDE>Deviation.Message</INCLUDE>
+        <INCLUDE>Deviation.IconId</INCLUDE>
+        <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
+        <INCLUDE>Deviation.RoadNumber</INCLUDE>
+        <INCLUDE>Deviation.EndTime</INCLUDE>
+        <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
+      </QUERY>
+    </REQUEST>
+  `;
+  }
   trafficWarningSource.clear();
   $.ajax({
     type: "POST",

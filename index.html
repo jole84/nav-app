@@ -101,7 +101,7 @@
       top: 50%;
       color: rgb(32, 32, 32);
       backdrop-filter: blur(5px);
-      background-color: rgba(251, 251, 251, 0.6);
+      background-color: rgba(251, 251, 251, 0.8);
       border: 1px solid rgb(32, 32, 32);
       border-radius: 5px;
       font-size: 1.1em;
@@ -114,19 +114,28 @@
       transform: translate(-50%, -50%);
       display: none;
     }
+    #closeMenu {
+      float: right;
+    }
+    #preferredFontSize {
+      width: 200;
+      display: inline-block;
+    }
   </style>
   <script type="module" src="./main.js"></script>
 </head>
 
 <body oncontextmenu="return false;">
-  <div id="menu">
-    <h1>Meny</h1>
-    <input type="checkbox" id="extraTrafikCheck"> Extra trafikinformation (vägarbete mm.) <br>
-    <input type="checkbox"> Option...<br>
-    <div id="currentZoom"></div>
-    <button class="btn btn-danger" id="closeMenu">Stäng</button>
-  </div>
   <div id="map">
+    <div id="menu">
+      <h2>Inställningar</h2>
+      <input type="checkbox" id="extraTrafikCheck"> Extra trafikinformation (vägarbete mm.) <br>
+      <input type="checkbox"> Option...<br>
+      Förvald zoom: <input type="number" id="prefferedZoom" value="14" min="6" max="20" step="0.1" required placeholder="14"><br>
+      Storlek på infotext: <input class="form-control" id="preferredFontSize" name="preferredFontSize" required placeholder="1em, x-large">
+      <div id="currentZoom"></div>
+      <button class="btn btn-danger" id="closeMenu">Stäng</button>
+    </div>
     <div class="infoGroup" id="infoGroup">
       <div id="info"></div>
       <div id="extraInfo"></div>
