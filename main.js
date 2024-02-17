@@ -1201,7 +1201,7 @@ function getRoadCondition() {
   });
 }
 
-if (urlParams.includes("extraTrafik")) {
+if (localStorage.extraTrafik == "true") {
   getRoadCondition();
   setInterval(getRoadCondition, 60000); // getRoadCondition interval
   xmlRequest = `
