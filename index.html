@@ -117,7 +117,8 @@
     #closeMenu {
       float: right;
     }
-    #preferredFontSize {
+    #preferredFontSize,
+    #interactionDelay {
       width: 200;
       display: inline-block;
     }
@@ -127,15 +128,6 @@
 
 <body oncontextmenu="return false;">
   <div id="map">
-    <div id="menu">
-      <h2>Inställningar</h2>
-      <input type="checkbox" id="extraTrafikCheck"> Extra trafikinformation (vägarbete mm.) <br>
-      <input type="checkbox"> Option...<br>
-      Förvald zoom: <input type="number" id="prefferedZoom" value="14" min="6" max="20" step="0.1" required placeholder="14"><br>
-      Storlek på infotext: <input class="form-control" id="preferredFontSize" name="preferredFontSize" required placeholder="1em, x-large">
-      <div id="currentZoom"></div>
-      <button class="btn btn-danger" id="closeMenu">Stäng</button>
-    </div>
     <div class="infoGroup" id="infoGroup">
       <div id="info"></div>
       <div id="extraInfo"></div>
@@ -155,6 +147,17 @@
       <button class="btn btn-danger" id="centerButton">Center</button>
       <button class="btn btn-primary" id="saveLogButton">Spara spår</button>
       <button class="btn btn-info" id="clickFileButton">Ladda GPX</button>
+    </div>
+    <div id="menu">
+      <h2>Inställningar</h2>
+      <input type="checkbox" id="enableLnt"> Kartor från Lantmäteriet<br>
+      <input type="checkbox" id="extraTrafikCheck"> Extra trafikinformation (vägarbete mm.) <br>
+      interactionDelay: <input type="number" id="interactionDelay"><br>
+      Förvald zoom: <input type="number" id="prefferedZoom" value="14" min="6" max="20" step="0.1" required placeholder="14"><br>
+      Storlek på infotext: <input class="form-control" id="preferredFontSize" name="preferredFontSize" required placeholder="1em, x-large">
+      <div id="currentZoom"></div>
+      <button class="btn btn-danger" id="clearSettings">Återställ</button>
+      <button class="btn btn-success" id="closeMenu">Stäng</button>
     </div>
   </div>
   <input type="file" id="customFileButton" multiple accept=".gpx,application/gpx+xml" style="display: none;"/>

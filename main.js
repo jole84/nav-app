@@ -41,8 +41,7 @@ var destinationCoordinates = [];
 let distanceTraveled = 0;
 var center = fromLonLat([14.18, 57.786]);
 var closestAccident;
-var interactionDelay = 10000;
-var lastInteraction = new Date() - interactionDelay;
+var lastInteraction = new Date() - localStorage.interactionDelay;
 var maxSpeed = 0;
 var maxSpeedCoord;
 var trackLog = [];
@@ -59,39 +58,63 @@ saveLogButton.onclick = saveLogButtonFunction;
 document.getElementById("clickFileButton").onclick = function () {
   customFileButton.click();
 }
+
+// menu stuff
+if (localStorage.firstRun == undefined) {
+  document.getElementById("menu").style.display = "unset";
+  localStorage.firstRun = false;
+}
+
+localStorage.interactionDelay = (localStorage.interactionDelay || 10000);
+localStorage.mapMode = (localStorage.mapMode || 0);
+localStorage.defaultZoom = (localStorage.defaultZoom || 14);
+var enableLnt = document.getElementById("enableLnt");
 var extraTrafikCheck = document.getElementById("extraTrafikCheck");
+var prefferedZoom = document.getElementById("prefferedZoom");
+var interactionDelay = document.getElementById("interactionDelay");
+var preferredFontSize = document.getElementById("preferredFontSize");
+
 extraTrafikCheck.checked = localStorage.extraTrafik == 'true'
 extraTrafikCheck.addEventListener("change", function () {
   localStorage.extraTrafik = extraTrafikCheck.checked;
   getDeviations();
-})
+});
+
+enableLnt.checked = localStorage.enableLnt == 'true'
+enableLnt.addEventListener("change", function () {
+  localStorage.enableLnt = enableLnt.checked;
+  location.reload();
+});
+
 document.getElementById("closeMenu").onclick = function () {
   document.getElementById("menu").style.display = "none";
 };
+
+document.getElementById("clearSettings").onclick = function () {
+  localStorage.clear();
+  location.reload();
+};
+
 document.getElementById("openMenu").onclick = function () {
-  document.getElementById("currentZoom").innerHTML = "Zoomnivå: " + (view.getZoom()).toFixed(2);
   document.getElementById("menu").style.display = "unset";
 };
-var prefferedZoom = document.getElementById("prefferedZoom");
+
 prefferedZoom.value = localStorage.defaultZoom;
 prefferedZoom.addEventListener("change", function () {
   localStorage.defaultZoom = prefferedZoom.value || 14;
   centerFunction();
 });
-var preferredFontSize = document.getElementById("preferredFontSize");
-preferredFontSize.value = localStorage.preferredFontSize || "1.1em";
+
+interactionDelay.value = (localStorage.interactionDelay || 10000) / 1000;
+interactionDelay.addEventListener("change", function () {
+  localStorage.interactionDelay = interactionDelay.value * 1000;
+});
+
+// preferredFontSize.value = localStorage.preferredFontSize || "1.1em";
 preferredFontSize.addEventListener("change", function () {
   localStorage.preferredFontSize = preferredFontSize.value;
   infoGroup.style.fontSize = localStorage.preferredFontSize || "1.1em";
-})
-
-if (localStorage.getItem("mapMode") == undefined) {
-  localStorage.setItem("mapMode", 0);
-}
-
-if (localStorage.getItem("defaultZoom") == undefined) {
-  localStorage.setItem("defaultZoom", 14);
-}
+});
 
 const view = new View({
   center: center,
@@ -406,7 +429,7 @@ geolocation.once("change", function () {
   const altitude = geolocation.getAltitude() || 0;
   const lonlat = toLonLat(position);
   const currentTime = new Date();
-  if (currentTime - lastInteraction > interactionDelay) {
+  if (currentTime - lastInteraction > localStorage.interactionDelay) {
     centerFunction();
   }
   getDeviations();
@@ -473,7 +496,7 @@ geolocation.on("change", function () {
     positionMarkerHeading.getStyle().getImage().setOpacity(1);
 
     // change view if no interaction occurred last 10 seconds
-    if (currentTime - lastInteraction > interactionDelay) {
+    if (currentTime - lastInteraction > localStorage.interactionDelay) {
       updateView(position, heading);
     }
   }
@@ -590,7 +613,7 @@ function centerFunction() {
   const speed = geolocation.getSpeed() || 0;
   const duration = 500;
   if (speed > 1) {
-    lastInteraction = new Date() - interactionDelay;
+    lastInteraction = new Date() - localStorage.interactionDelay;
     view.setZoom(localStorage.defaultZoom);
     updateView(position, heading);
   } else {
@@ -619,7 +642,7 @@ function updateView(position, heading) {
 }
 
 view.on("change:resolution", function () {
-  document.getElementById("currentZoom").innerHTML = "Zoomnivå: " + (view.getZoom()).toFixed(2);
+  document.getElementById("currentZoom").innerHTML = "Zoom: " + (view.getZoom()).toFixed(1);
   if (view.getRotation() != 0 && view.getZoom() < 11) {
     view.setRotation(0);
   }
