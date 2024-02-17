@@ -41,13 +41,10 @@ var destinationCoordinates = [];
 let distanceTraveled = 0;
 var center = fromLonLat([14.18, 57.786]);
 var closestAccident;
-var defaultZoom = 14;
 var interactionDelay = 10000;
 var lastInteraction = new Date() - interactionDelay;
-var mapMode = 0; // default map
 var maxSpeed = 0;
 var maxSpeedCoord;
-var preferredFontSize;
 var trackLog = [];
 var mapDiv = document.getElementById("map");
 var centerButton = document.getElementById("centerButton");
@@ -57,8 +54,19 @@ var saveLogButton = document.getElementById("saveLogButton");
 var trafficWarningDiv = document.getElementById("trafficWarning");
 centerButton.onclick = centerFunction;
 customFileButton.addEventListener("change", handleFileSelect, false);
-saveLogButton.onclick = saveLogButtonFunction;
 trafficWarningDiv.addEventListener("click", focusTrafficWarning);
+saveLogButton.onclick = saveLogButtonFunction;
+document.getElementById("clickFileButton").onclick = function () {
+  customFileButton.click();
+}
+
+if (localStorage.getItem("mapMode") == undefined) {
+  localStorage.setItem("mapMode", 0);
+}
+
+if (localStorage.getItem("defaultZoom") == undefined) {
+  localStorage.setItem("defaultZoom", 14);
+}
 
 const view = new View({
   center: center,
@@ -580,7 +588,7 @@ function centerFunction() {
   const duration = 500;
   if (speed > 1) {
     lastInteraction = new Date() - interactionDelay;
-    view.setZoom(defaultZoom);
+    view.setZoom(localStorage.defaultZoom);
     updateView(position, heading);
   } else {
     view.animate({
@@ -588,7 +596,7 @@ function centerFunction() {
       duration: duration,
     });
     view.animate({
-      zoom: defaultZoom,
+      zoom: localStorage.defaultZoom,
       duration: duration,
     });
     view.animate({
@@ -601,7 +609,7 @@ function centerFunction() {
 
 function updateView(position, heading) {
   if (view.getZoom() <= 11) {
-    view.setZoom(defaultZoom);
+    view.setZoom(localStorage.defaultZoom);
   }
   view.setCenter(getCenterWithHeading(position, -heading));
   view.setRotation(-heading);
@@ -614,7 +622,7 @@ view.on("change:resolution", function () {
 });
 
 layerSelector.addEventListener("change", function () {
-  mapMode = layerSelector.value;
+  localStorage.setItem("mapMode", layerSelector.value);
   switchMap();
 });
 
@@ -634,25 +642,25 @@ function switchMap() {
     "-webkit-filter: initial;filter: initial;background-color: initial;",
   );
 
-  if (enableLnt && mapMode > 5) {
-    mapMode = 0;
-  } else if (!enableLnt && mapMode > 3) {
-    mapMode = 0;
+  if (localStorage.enableLnt == "true" && localStorage.getItem("mapMode") > 5) {
+    localStorage.setItem("mapMode", 0);
+  } else if ((localStorage.enableLnt == undefined || localStorage.enableLnt == "false") && localStorage.getItem("mapMode") > 3) {
+    localStorage.setItem("mapMode", 0);
   }
-  layerSelector.value = mapMode;
+  layerSelector.value = localStorage.getItem("mapMode");
 
-  if (mapMode == 0) {
+  if (localStorage.getItem("mapMode") == 0) {
     // mapMode 0: slitlagerkarta
     slitlagerkarta.setVisible(true);
-    if (enableLnt) {
+    if (localStorage.enableLnt == 'true') {
       ortofoto.setVisible(true);
       slitlagerkarta.setMaxZoom(15.5);
       ortofoto.setMinZoom(15.5);
     }
-  } else if (mapMode == 1) {
+  } else if (localStorage.getItem("mapMode") == 1) {
     // mapMode 1: slitlagerkarta_nedtonad
     slitlagerkarta_nedtonad.setVisible(true);
-    if (enableLnt) {
+    if (localStorage.enableLnt == 'true') {
       topoweb.setVisible(true);
       ortofoto.setVisible(true);
       slitlagerkarta_nedtonad.setMaxZoom(15.5);
@@ -660,31 +668,31 @@ function switchMap() {
       topoweb.setMaxZoom(17.5);
       ortofoto.setMinZoom(17.5);
     }
-  } else if (mapMode == 2) {
+  } else if (localStorage.getItem("mapMode") == 2) {
     // mapMode 2: slitlagerkarta_nedtonad + night mode
     slitlagerkarta_nedtonad.setVisible(true);
     mapDiv.setAttribute("style", "filter: invert(1) hue-rotate(180deg);");
-    if (enableLnt) {
+    if (localStorage.enableLnt == 'true') {
       topoweb.setVisible(true);
       slitlagerkarta_nedtonad.setMaxZoom(15.5);
       topoweb.setMinZoom(15.5);
       topoweb.setMaxZoom(20);
     }
-  } else if (mapMode == 3) {
+  } else if (localStorage.getItem("mapMode") == 3) {
     // mapMode 3: Openstreetmap
     osm.setVisible(true);
-  } else if (enableLnt && mapMode == 4) {
+  } else if (localStorage.enableLnt == 'true' && localStorage.getItem("mapMode") == 4) {
     // mapMode 4: topoweb
     topoweb.setVisible(true);
     topoweb.setMinZoom(0);
     topoweb.setMaxZoom(20);
-  } else if (enableLnt && mapMode == 5) {
+  } else if (localStorage.enableLnt == 'true' && localStorage.getItem("mapMode") == 5) {
     // mapMode 4: orto
     ortofoto.setVisible(true);
     ortofoto.setMinZoom(0);
   }
 
-  infoGroup.style.fontSize = preferredFontSize;
+  infoGroup.style.fontSize = localStorage.preferredFontSize || "1.1em";
 }
 
 // logic for saveLogButton
@@ -882,7 +890,17 @@ map.on("pointerdrag", function () {
 
 // checks url parameters and loads gpx file from url:
 var urlParams = window.location.href.split("?").pop().split("&");
-var enableLnt = urlParams.includes("Lnt");
+if (urlParams.includes("Lnt") || localStorage.enableLnt == 'true') {
+  localStorage.enableLnt = true;
+  var option4 = document.createElement("option");
+  var option5 = document.createElement("option");
+  option4.text = "Lantmäteriet Topo";
+  option4.value = 4;
+  option5.text = "Lantmäteriet Orto";
+  option5.value = 5;
+  layerSelector.add(option4);
+  layerSelector.add(option5);
+}
 for (var i = 0; i < urlParams.length; i++) {
   console.log(decodeURIComponent(urlParams[i]));
   if (urlParams[i].includes(".gpx")) {
@@ -903,21 +921,12 @@ for (var i = 0; i < urlParams.length; i++) {
         });
         gpxLayer.getSource().addFeatures(gpxFeatures);
       });
-  } else if (urlParams[i].includes("Lnt")) {
-    var option4 = document.createElement("option");
-    var option5 = document.createElement("option");
-    option4.text = "Lantmäteriet Topo";
-    option4.value = 4;
-    option5.text = "Lantmäteriet Orto";
-    option5.value = 5;
-    layerSelector.add(option4);
-    layerSelector.add(option5);
   } else if (urlParams[i].includes("zoom=")) {
-    defaultZoom = urlParams[i].split("=").pop();
+    localStorage.defaultZoom = urlParams[i].split("=").pop();
   } else if (urlParams[i].includes("mapMode=")) {
-    mapMode = urlParams[i].split("=").pop();
+    localStorage.setItem("mapMode", urlParams[i].split("=").pop());
   } else if (urlParams[i].includes("info=")) {
-    preferredFontSize = urlParams[i].split("=").pop();
+    localStorage.preferredFontSize = urlParams[i].split("=").pop();
   } else if (urlParams[i].includes("onunload")) {
     window.onunload = window.onbeforeunload = function () {
       return "";
@@ -947,7 +956,26 @@ var xmlRequest = `
   </REQUEST>
 `;
 
-
+if (localStorage.extraTrafik == 'true') {
+  xmlRequest = `
+    <REQUEST>
+      <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
+      <QUERY objecttype='Situation' schemaversion='1.2'>
+        <FILTER>
+          <ELEMENTMATCH>
+            <GTE name='Deviation.EndTime' value='$now'/>
+          </ELEMENTMATCH>
+        </FILTER>
+        <INCLUDE>Deviation.Message</INCLUDE>
+        <INCLUDE>Deviation.IconId</INCLUDE>
+        <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
+        <INCLUDE>Deviation.RoadNumber</INCLUDE>
+        <INCLUDE>Deviation.EndTime</INCLUDE>
+        <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
+      </QUERY>
+    </REQUEST>
+  `;
+}
 
 // add keyboard controls
 document.addEventListener("keydown", function (event) {
@@ -961,7 +989,7 @@ document.addEventListener("keydown", function (event) {
     centerFunction();
   }
   if (event.key == "v") {
-    mapMode++;
+    localStorage.setItem("mapMode", Number(localStorage.getItem("mapMode")) + 1);
     switchMap();
   }
   if (event.key == "z") {
