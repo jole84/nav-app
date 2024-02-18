@@ -1279,6 +1279,7 @@ function getRoadCondition() {
     success: function (response) {
       if (response == null) return;
       try {
+        roadConditionLayer.getSource().clear();
         $.each(response.RESPONSE.RESULT[0].RoadCondition, function (index, item) {
           var format = new WKT();
           var feature = new Feature({
