@@ -96,11 +96,11 @@ onUnloadDiv.checked = localStorage.onUnload == 'true'
 onUnloadDiv.addEventListener("change", function () {
   localStorage.onUnload = onUnloadDiv.checked;
 });
-if (localStorage.onUnload == "true") {
-  window.onunload = window.onbeforeunload = function () {
+window.onunload = window.onbeforeunload = function () {
+  if (localStorage.onUnload == "true") {
     return "";
-  };
-}
+  }
+};
 
 closeMenuButton.onclick = function () {
   menuDiv.style.display = "none";
