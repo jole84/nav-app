@@ -73,11 +73,18 @@ if (localStorage.firstRun == undefined) {
 
 var enableLntDiv = document.getElementById("enableLnt");
 var extraTrafikCheckDiv = document.getElementById("extraTrafikCheck");
+var onUnloadDiv = document.getElementById("onUnload");
 var prefferedZoomDiv = document.getElementById("prefferedZoom");
 var interactionDelayDiv = document.getElementById("interactionDelay");
 var preferredFontSizeDiv = document.getElementById("preferredFontSize");
 var openMenuButton = document.getElementById("openMenu");
 var closeMenuButton = document.getElementById("closeMenu");
+
+enableLntDiv.checked = localStorage.enableLnt == 'true'
+enableLntDiv.addEventListener("change", function () {
+  localStorage.enableLnt = enableLntDiv.checked;
+  location.reload();
+});
 
 extraTrafikCheckDiv.checked = localStorage.extraTrafik == 'true'
 extraTrafikCheckDiv.addEventListener("change", function () {
@@ -85,11 +92,15 @@ extraTrafikCheckDiv.addEventListener("change", function () {
   getDeviations();
 });
 
-enableLntDiv.checked = localStorage.enableLnt == 'true'
-enableLntDiv.addEventListener("change", function () {
-  localStorage.enableLnt = enableLntDiv.checked;
-  location.reload();
+onUnloadDiv.checked = localStorage.onUnload == 'true'
+onUnloadDiv.addEventListener("change", function () {
+  localStorage.onUnload = onUnloadDiv.checked;
 });
+if (localStorage.onUnload == "true") {
+  window.onunload = window.onbeforeunload = function () {
+    return "";
+  };
+}
 
 closeMenuButton.onclick = function () {
   menuDiv.style.display = "none";
@@ -963,10 +974,6 @@ for (var i = 0; i < urlParams.length; i++) {
     localStorage.setItem("mapMode", urlParams[i].split("=").pop());
   } else if (urlParams[i].includes("info=")) {
     localStorage.preferredFontSize = urlParams[i].split("=").pop();
-  } else if (urlParams[i].includes("onunload")) {
-    window.onunload = window.onbeforeunload = function () {
-      return "";
-    };
   }
 }
 switchMap();
