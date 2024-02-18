@@ -36,6 +36,9 @@ document.addEventListener("visibilitychange", async () => {
   }
 });
 
+localStorage.interactionDelay = (localStorage.interactionDelay || 10000);
+localStorage.mapMode = (localStorage.mapMode || 0);
+localStorage.defaultZoom = (localStorage.defaultZoom || 14);
 const startTime = new Date();
 var destinationCoordinates = [];
 let distanceTraveled = 0;
@@ -68,9 +71,6 @@ if (localStorage.firstRun == undefined) {
   menuDiv.style.display = "none";
 }
 
-localStorage.interactionDelay = (localStorage.interactionDelay || 10000);
-localStorage.mapMode = (localStorage.mapMode || 0);
-localStorage.defaultZoom = (localStorage.defaultZoom || 14);
 var enableLntDiv = document.getElementById("enableLnt");
 var extraTrafikCheckDiv = document.getElementById("extraTrafikCheck");
 var prefferedZoomDiv = document.getElementById("prefferedZoom");
