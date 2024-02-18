@@ -1296,22 +1296,4 @@ function getRoadCondition() {
 if (localStorage.extraTrafik == "true") {
   getRoadCondition();
   setInterval(getRoadCondition, 60000); // getRoadCondition interval
-  xmlRequest = `
-    <REQUEST>
-      <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
-      <QUERY objecttype='Situation' schemaversion='1.2'>
-        <FILTER>
-          <ELEMENTMATCH>
-            <GTE name='Deviation.EndTime' value='$now'/>
-          </ELEMENTMATCH>
-        </FILTER>
-        <INCLUDE>Deviation.Message</INCLUDE>
-        <INCLUDE>Deviation.IconId</INCLUDE>
-        <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
-        <INCLUDE>Deviation.RoadNumber</INCLUDE>
-        <INCLUDE>Deviation.EndTime</INCLUDE>
-        <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
-      </QUERY>
-    </REQUEST>
-  `;
 }
