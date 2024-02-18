@@ -85,14 +85,24 @@ enableLntDiv.addEventListener("change", function () {
   localStorage.enableLnt = enableLntDiv.checked;
   location.reload();
 });
+if (localStorage.enableLnt == 'true') {
+  var option4 = document.createElement("option");
+  var option5 = document.createElement("option");
+  option4.text = "Lantmäteriet Topo";
+  option4.value = 4;
+  option5.text = "Lantmäteriet Orto";
+  option5.value = 5;
+  layerSelector.add(option4);
+  layerSelector.add(option5);
+};
 
-extraTrafikCheckDiv.checked = localStorage.extraTrafik == 'true'
+extraTrafikCheckDiv.checked = localStorage.extraTrafik == 'true';
 extraTrafikCheckDiv.addEventListener("change", function () {
   localStorage.extraTrafik = extraTrafikCheckDiv.checked;
   getDeviations();
 });
 
-onUnloadDiv.checked = localStorage.onUnload == 'true'
+onUnloadDiv.checked = localStorage.onUnload == 'true';
 onUnloadDiv.addEventListener("change", function () {
   localStorage.onUnload = onUnloadDiv.checked;
 });
@@ -937,17 +947,6 @@ map.on("pointerdrag", function () {
 
 // checks url parameters and loads gpx file from url:
 var urlParams = window.location.href.split("?").pop().split("&");
-if (urlParams.includes("Lnt") || localStorage.enableLnt == 'true') {
-  localStorage.enableLnt = true;
-  var option4 = document.createElement("option");
-  var option5 = document.createElement("option");
-  option4.text = "Lantmäteriet Topo";
-  option4.value = 4;
-  option5.text = "Lantmäteriet Orto";
-  option5.value = 5;
-  layerSelector.add(option4);
-  layerSelector.add(option5);
-}
 for (var i = 0; i < urlParams.length; i++) {
   console.log(decodeURIComponent(urlParams[i]));
   if (urlParams[i].includes(".gpx")) {
@@ -968,12 +967,6 @@ for (var i = 0; i < urlParams.length; i++) {
         });
         gpxLayer.getSource().addFeatures(gpxFeatures);
       });
-  } else if (urlParams[i].includes("zoom=")) {
-    localStorage.defaultZoom = urlParams[i].split("=").pop();
-  } else if (urlParams[i].includes("mapMode=")) {
-    localStorage.setItem("mapMode", urlParams[i].split("=").pop());
-  } else if (urlParams[i].includes("info=")) {
-    localStorage.preferredFontSize = urlParams[i].split("=").pop();
   }
 }
 switchMap();
