@@ -36,13 +36,15 @@ document.addEventListener("visibilitychange", async () => {
   }
 });
 
+localStorage.interactionDelay = (localStorage.interactionDelay || 10000);
+localStorage.mapMode = (localStorage.mapMode || 0);
+localStorage.defaultZoom = (localStorage.defaultZoom || 14);
 const startTime = new Date();
 var destinationCoordinates = [];
 let distanceTraveled = 0;
 var center = fromLonLat([14.18, 57.786]);
 var closestAccident;
-var interactionDelay = 10000;
-var lastInteraction = new Date() - interactionDelay;
+var lastInteraction = new Date() - localStorage.interactionDelay;
 var maxSpeed = 0;
 var maxSpeedCoord;
 var trackLog = [];
@@ -60,13 +62,89 @@ document.getElementById("clickFileButton").onclick = function () {
   customFileButton.click();
 }
 
-if (localStorage.getItem("mapMode") == undefined) {
-  localStorage.setItem("mapMode", 0);
+// menu stuff
+var menuDiv = document.getElementById("menuDiv");
+if (localStorage.firstRun == undefined) {
+  menuDiv.style.display = "unset";
+  localStorage.firstRun = false;
+} else {
+  menuDiv.style.display = "none";
 }
 
-if (localStorage.getItem("defaultZoom") == undefined) {
-  localStorage.setItem("defaultZoom", 14);
-}
+var enableLntDiv = document.getElementById("enableLnt");
+var extraTrafikCheckDiv = document.getElementById("extraTrafikCheck");
+var onUnloadDiv = document.getElementById("onUnload");
+var prefferedZoomDiv = document.getElementById("prefferedZoom");
+var interactionDelayDiv = document.getElementById("interactionDelay");
+var preferredFontSizeDiv = document.getElementById("preferredFontSize");
+var openMenuButton = document.getElementById("openMenu");
+var closeMenuButton = document.getElementById("closeMenu");
+
+enableLntDiv.checked = localStorage.enableLnt == 'true'
+enableLntDiv.addEventListener("change", function () {
+  localStorage.enableLnt = enableLntDiv.checked;
+  location.reload();
+});
+if (localStorage.enableLnt == 'true') {
+  var option4 = document.createElement("option");
+  var option5 = document.createElement("option");
+  option4.text = "Lantmäteriet Topo";
+  option4.value = 4;
+  option5.text = "Lantmäteriet Orto";
+  option5.value = 5;
+  layerSelector.add(option4);
+  layerSelector.add(option5);
+};
+
+extraTrafikCheckDiv.checked = localStorage.extraTrafik == 'true';
+extraTrafikCheckDiv.addEventListener("change", function () {
+  localStorage.extraTrafik = extraTrafikCheckDiv.checked;
+  getDeviations();
+});
+
+onUnloadDiv.checked = localStorage.onUnload == 'true';
+onUnloadDiv.addEventListener("change", function () {
+  localStorage.onUnload = onUnloadDiv.checked;
+});
+window.onunload = window.onbeforeunload = function () {
+  if (localStorage.onUnload == "true") {
+    return "";
+  }
+};
+
+closeMenuButton.onclick = function () {
+  menuDiv.style.display = "none";
+};
+
+openMenuButton.onclick = function () {
+  if (menuDiv.style.display == "none") {
+    menuDiv.style.display = "unset";
+  } else {
+    menuDiv.style.display = "none";
+  }
+};
+
+document.getElementById("clearSettings").onclick = function () {
+  localStorage.clear();
+  location.reload();
+};
+
+prefferedZoomDiv.value = localStorage.defaultZoom;
+prefferedZoomDiv.addEventListener("change", function () {
+  localStorage.defaultZoom = prefferedZoomDiv.value || 14;
+  centerFunction();
+});
+
+interactionDelayDiv.value = (localStorage.interactionDelay || 10000) / 1000;
+interactionDelayDiv.addEventListener("change", function () {
+  localStorage.interactionDelay = interactionDelayDiv.value * 1000;
+});
+
+preferredFontSize.value = localStorage.preferredFontSize || "20";
+preferredFontSizeDiv.addEventListener("change", function () {
+  localStorage.preferredFontSize = preferredFontSizeDiv.value;
+  infoGroup.style.fontSize = localStorage.preferredFontSize || "20";
+});
 
 const view = new View({
   center: center,
@@ -403,7 +481,7 @@ geolocation.once("change", function () {
   const altitude = geolocation.getAltitude() || 0;
   const lonlat = toLonLat(position);
   const currentTime = new Date();
-  if (currentTime - lastInteraction > interactionDelay) {
+  if (currentTime - lastInteraction > localStorage.interactionDelay) {
     centerFunction();
   }
   getDeviations();
@@ -470,7 +548,7 @@ geolocation.on("change", function () {
     positionMarkerHeading.getStyle().getImage().setOpacity(1);
 
     // change view if no interaction occurred last 10 seconds
-    if (currentTime - lastInteraction > interactionDelay) {
+    if (currentTime - lastInteraction > localStorage.interactionDelay) {
       updateView(position, heading);
     }
   }
@@ -587,7 +665,7 @@ function centerFunction() {
   const speed = geolocation.getSpeed() || 0;
   const duration = 500;
   if (speed > 1) {
-    lastInteraction = new Date() - interactionDelay;
+    lastInteraction = new Date() - localStorage.interactionDelay;
     view.setZoom(localStorage.defaultZoom);
     updateView(position, heading);
   } else {
@@ -616,6 +694,7 @@ function updateView(position, heading) {
 }
 
 view.on("change:resolution", function () {
+  document.getElementById("currentZoom").innerHTML = "Zoom: " + (view.getZoom()).toFixed(1);
   if (view.getRotation() != 0 && view.getZoom() < 11) {
     view.setRotation(0);
   }
@@ -890,17 +969,6 @@ map.on("pointerdrag", function () {
 
 // checks url parameters and loads gpx file from url:
 var urlParams = window.location.href.split("?").pop().split("&");
-if (urlParams.includes("Lnt") || localStorage.enableLnt == 'true') {
-  localStorage.enableLnt = true;
-  var option4 = document.createElement("option");
-  var option5 = document.createElement("option");
-  option4.text = "Lantmäteriet Topo";
-  option4.value = 4;
-  option5.text = "Lantmäteriet Orto";
-  option5.value = 5;
-  layerSelector.add(option4);
-  layerSelector.add(option5);
-}
 for (var i = 0; i < urlParams.length; i++) {
   console.log(decodeURIComponent(urlParams[i]));
   if (urlParams[i].includes(".gpx")) {
@@ -921,100 +989,55 @@ for (var i = 0; i < urlParams.length; i++) {
         });
         gpxLayer.getSource().addFeatures(gpxFeatures);
       });
-  } else if (urlParams[i].includes("zoom=")) {
-    localStorage.defaultZoom = urlParams[i].split("=").pop();
-  } else if (urlParams[i].includes("mapMode=")) {
-    localStorage.setItem("mapMode", urlParams[i].split("=").pop());
-  } else if (urlParams[i].includes("info=")) {
-    localStorage.preferredFontSize = urlParams[i].split("=").pop();
-  } else if (urlParams[i].includes("onunload")) {
-    window.onunload = window.onbeforeunload = function () {
-      return "";
-    };
   }
 }
 switchMap();
 
-var xmlRequest = `
-  <REQUEST>
-    <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
-    <QUERY objecttype='Situation' schemaversion='1.2'>
-      <FILTER>
-        <ELEMENTMATCH>
-          <EQ name='Deviation.ManagedCause' value='true' />
-          <EQ name='Deviation.MessageType' value='Olycka' />
-          <GTE name='Deviation.EndTime' value='$now'/>
-        </ELEMENTMATCH>
-      </FILTER>
-      <INCLUDE>Deviation.Message</INCLUDE>
-      <INCLUDE>Deviation.IconId</INCLUDE>
-      <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
-      <INCLUDE>Deviation.RoadNumber</INCLUDE>
-      <INCLUDE>Deviation.EndTime</INCLUDE>
-      <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
-    </QUERY>
-  </REQUEST>
-`;
-
-if (localStorage.extraTrafik == 'true') {
-  xmlRequest = `
-    <REQUEST>
-      <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
-      <QUERY objecttype='Situation' schemaversion='1.2'>
-        <FILTER>
-          <ELEMENTMATCH>
-            <GTE name='Deviation.EndTime' value='$now'/>
-          </ELEMENTMATCH>
-        </FILTER>
-        <INCLUDE>Deviation.Message</INCLUDE>
-        <INCLUDE>Deviation.IconId</INCLUDE>
-        <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
-        <INCLUDE>Deviation.RoadNumber</INCLUDE>
-        <INCLUDE>Deviation.EndTime</INCLUDE>
-        <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
-      </QUERY>
-    </REQUEST>
-  `;
-}
-
 // add keyboard controls
 document.addEventListener("keydown", function (event) {
-  const zoomStep = 0.5;
-  if (event.key != "a" && event.key != "Escape" && event.key != "§") {
-    // store time of last interaction
-    lastInteraction = new Date();
-  }
-  if (event.key == "c" || event.key == "Enter") {
-    event.preventDefault();
-    centerFunction();
-  }
-  if (event.key == "v") {
-    localStorage.setItem("mapMode", Number(localStorage.getItem("mapMode")) + 1);
-    switchMap();
-  }
-  if (event.key == "z") {
-    view.adjustRotation(0.2);
-  }
-  if (event.key == "x") {
-    view.adjustRotation(-0.2);
-  }
-  if (event.key == "s") {
-    saveLogButtonFunction();
-  }
-  if (event.key == "d") {
-    focusDestination();
-  }
-  if (event.key == "Escape" || event.key == "§") {
-    // carpe iter adventure controller minus button
-    view.adjustZoom(-zoomStep);
-  }
-  if (event.key == "a") {
-    // carpe iter adventure controller plus button
-    view.adjustZoom(zoomStep);
-  }
-  if (event.code == "Space") {
-    event.preventDefault();
-    focusTrafficWarning();
+  if (menuDiv.style.display == "none") {
+    const zoomStep = 0.5;
+    if (event.key != "a" && event.key != "Escape" && event.key != "§") {
+      // store time of last interaction
+      lastInteraction = new Date();
+    }
+    if (event.key == "c" || event.key == "Enter") {
+      event.preventDefault();
+      centerFunction();
+    }
+    if (event.key == "v") {
+      localStorage.setItem("mapMode", Number(localStorage.getItem("mapMode")) + 1);
+      switchMap();
+    }
+    if (event.key == "z") {
+      view.adjustRotation(0.2);
+    }
+    if (event.key == "x") {
+      view.adjustRotation(-0.2);
+    }
+    if (event.key == "s") {
+      saveLogButtonFunction();
+    }
+    if (event.key == "d") {
+      focusDestination();
+    }
+    if (event.key == "Escape" || event.key == "§") {
+      // carpe iter adventure controller minus button
+      view.adjustZoom(-zoomStep);
+    }
+    if (event.key == "a") {
+      // carpe iter adventure controller plus button
+      view.adjustZoom(zoomStep);
+    }
+    if (event.code == "Space") {
+      event.preventDefault();
+      focusTrafficWarning();
+    }
+  } else {
+    if (event.key == "Escape" || event.key == "§") {
+      // carpe iter adventure controller minus button
+      closeMenuButton.click();
+    }
   }
 });
 
@@ -1046,6 +1069,47 @@ $.ajaxSetup({
 $.support.cors = true; // Enable Cross domain requests
 
 function getDeviations() {
+  var xmlRequest = `
+  <REQUEST>
+    <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
+    <QUERY objecttype='Situation' schemaversion='1.2'>
+      <FILTER>
+        <ELEMENTMATCH>
+          <EQ name='Deviation.ManagedCause' value='true' />
+          <EQ name='Deviation.MessageType' value='Olycka' />
+          <GTE name='Deviation.EndTime' value='$now'/>
+        </ELEMENTMATCH>
+      </FILTER>
+      <INCLUDE>Deviation.Message</INCLUDE>
+      <INCLUDE>Deviation.IconId</INCLUDE>
+      <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
+      <INCLUDE>Deviation.RoadNumber</INCLUDE>
+      <INCLUDE>Deviation.EndTime</INCLUDE>
+      <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
+    </QUERY>
+  </REQUEST>
+`;
+
+  if (localStorage.extraTrafik == 'true') {
+    xmlRequest = `
+    <REQUEST>
+      <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
+      <QUERY objecttype='Situation' schemaversion='1.2'>
+        <FILTER>
+          <ELEMENTMATCH>
+            <GTE name='Deviation.EndTime' value='$now'/>
+          </ELEMENTMATCH>
+        </FILTER>
+        <INCLUDE>Deviation.Message</INCLUDE>
+        <INCLUDE>Deviation.IconId</INCLUDE>
+        <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
+        <INCLUDE>Deviation.RoadNumber</INCLUDE>
+        <INCLUDE>Deviation.EndTime</INCLUDE>
+        <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
+      </QUERY>
+    </REQUEST>
+  `;
+  }
   trafficWarningSource.clear();
   $.ajax({
     type: "POST",
