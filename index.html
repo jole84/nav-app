@@ -115,8 +115,9 @@
       float: right;
     }
     #preferredFontSize,
+    #prefferedZoom,
     #interactionDelay {
-      width: 200;
+      width: 100;
       display: inline-block;
     }
   </style>
@@ -149,9 +150,14 @@
       <h2>Inställningar</h2>
       <input type="checkbox" id="enableLnt"> Kartor från Lantmäteriet<br>
       <input type="checkbox" id="extraTrafikCheck"> Extra trafikinformation (vägarbete mm.) <br>
-      interactionDelay: <input type="number" id="interactionDelay"><br>
-      Förvald zoom: <input type="number" id="prefferedZoom" value="14" min="6" max="20" step="0.1" required placeholder="14"><br>
-      Storlek på infotext: <input class="form-control" id="preferredFontSize" name="preferredFontSize" required placeholder="1em, x-large">
+      Fördröjning (sek): <input class="form-control" type="number" id="interactionDelay"><br>
+      Förvald zoom: <input class="form-control" type="number" id="prefferedZoom" value="14" min="6" max="20" step="0.1" required placeholder="14"><br>
+      Storlek på infotext: 
+      <select class="form-select" id="preferredFontSize">
+        <option value="20">normal</option>
+        <option value="25">större</option>
+        <option value="35">störst</option>
+      </select>
       <div id="currentZoom"></div>
       <button class="btn btn-danger" id="clearSettings">Återställ</button>
       <button class="btn btn-success" id="closeMenu">Stäng</button>

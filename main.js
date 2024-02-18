@@ -71,36 +71,31 @@ if (localStorage.firstRun == undefined) {
 localStorage.interactionDelay = (localStorage.interactionDelay || 10000);
 localStorage.mapMode = (localStorage.mapMode || 0);
 localStorage.defaultZoom = (localStorage.defaultZoom || 14);
-var enableLnt = document.getElementById("enableLnt");
-var extraTrafikCheck = document.getElementById("extraTrafikCheck");
-var prefferedZoom = document.getElementById("prefferedZoom");
-var interactionDelay = document.getElementById("interactionDelay");
-var preferredFontSize = document.getElementById("preferredFontSize");
-var openMenu = document.getElementById("openMenu");
-var closeMenu = document.getElementById("closeMenu");
+var enableLntDiv = document.getElementById("enableLnt");
+var extraTrafikCheckDiv = document.getElementById("extraTrafikCheck");
+var prefferedZoomDiv = document.getElementById("prefferedZoom");
+var interactionDelayDiv = document.getElementById("interactionDelay");
+var preferredFontSizeDiv = document.getElementById("preferredFontSize");
+var openMenuButton = document.getElementById("openMenu");
+var closeMenuButton = document.getElementById("closeMenu");
 
-extraTrafikCheck.checked = localStorage.extraTrafik == 'true'
-extraTrafikCheck.addEventListener("change", function () {
-  localStorage.extraTrafik = extraTrafikCheck.checked;
+extraTrafikCheckDiv.checked = localStorage.extraTrafik == 'true'
+extraTrafikCheckDiv.addEventListener("change", function () {
+  localStorage.extraTrafik = extraTrafikCheckDiv.checked;
   getDeviations();
 });
 
-enableLnt.checked = localStorage.enableLnt == 'true'
-enableLnt.addEventListener("change", function () {
-  localStorage.enableLnt = enableLnt.checked;
+enableLntDiv.checked = localStorage.enableLnt == 'true'
+enableLntDiv.addEventListener("change", function () {
+  localStorage.enableLnt = enableLntDiv.checked;
   location.reload();
 });
 
-closeMenu.onclick = function () {
+closeMenuButton.onclick = function () {
   menuDiv.style.display = "none";
 };
 
-document.getElementById("clearSettings").onclick = function () {
-  localStorage.clear();
-  location.reload();
-};
-
-openMenu.onclick = function () {
+openMenuButton.onclick = function () {
   if (menuDiv.style.display == "none") {
     menuDiv.style.display = "unset";
   } else {
@@ -108,21 +103,26 @@ openMenu.onclick = function () {
   }
 };
 
-prefferedZoom.value = localStorage.defaultZoom;
-prefferedZoom.addEventListener("change", function () {
-  localStorage.defaultZoom = prefferedZoom.value || 14;
+document.getElementById("clearSettings").onclick = function () {
+  localStorage.clear();
+  location.reload();
+};
+
+prefferedZoomDiv.value = localStorage.defaultZoom;
+prefferedZoomDiv.addEventListener("change", function () {
+  localStorage.defaultZoom = prefferedZoomDiv.value || 14;
   centerFunction();
 });
 
-interactionDelay.value = (localStorage.interactionDelay || 10000) / 1000;
-interactionDelay.addEventListener("change", function () {
-  localStorage.interactionDelay = interactionDelay.value * 1000;
+interactionDelayDiv.value = (localStorage.interactionDelay || 10000) / 1000;
+interactionDelayDiv.addEventListener("change", function () {
+  localStorage.interactionDelay = interactionDelayDiv.value * 1000;
 });
 
-// preferredFontSize.value = localStorage.preferredFontSize || "1.1em";
-preferredFontSize.addEventListener("change", function () {
-  localStorage.preferredFontSize = preferredFontSize.value;
-  infoGroup.style.fontSize = localStorage.preferredFontSize || "1.1em";
+preferredFontSize.value = localStorage.preferredFontSize || "20";
+preferredFontSizeDiv.addEventListener("change", function () {
+  localStorage.preferredFontSize = preferredFontSizeDiv.value;
+  infoGroup.style.fontSize = localStorage.preferredFontSize || "20";
 });
 
 const view = new View({
@@ -1010,6 +1010,11 @@ document.addEventListener("keydown", function (event) {
     if (event.code == "Space") {
       event.preventDefault();
       focusTrafficWarning();
+    }
+  } else {
+    if (event.key == "Escape" || event.key == "§") {
+      // carpe iter adventure controller minus button
+      closeMenuButton.click();
     }
   }
 });
