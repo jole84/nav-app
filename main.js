@@ -536,7 +536,7 @@ geolocation.on("change", function () {
     positionMarkerHeading.getStyle().getImage().setOpacity(0);
   }
 
-  if (speed > maxSpeed) {
+  if (speed > maxSpeed && accuracy < 20) {
     maxSpeed = Math.floor(speed);
     maxSpeedCoord = [lonlat, new Date()];
   }
