@@ -558,7 +558,7 @@ geolocation.on("change", function () {
     positionMarkerHeading.getStyle().getImage().setOpacity(0);
   }
 
-  if (speed > maxSpeed) {
+  if (speed > maxSpeed && accuracy < 20) {
     maxSpeed = Math.floor(speed);
     maxSpeedCoord = [lonlat, new Date()];
   }
@@ -1110,7 +1110,6 @@ function getDeviations() {
     </REQUEST>
   `;
   }
-  trafficWarningSource.clear();
   $.ajax({
     type: "POST",
     contentType: "text/xml",
@@ -1119,6 +1118,7 @@ function getDeviations() {
     success: function (response) {
       if (response == null) return;
       try {
+        trafficWarningSource.clear();
         $.each(response.RESPONSE.RESULT[0].Situation, function (index, item) {
           var format = new WKT();
           var position = format
