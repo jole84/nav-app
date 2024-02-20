@@ -99,7 +99,7 @@ if (localStorage.enableLnt == 'true') {
 extraTrafikCheckDiv.checked = localStorage.extraTrafik == 'true';
 extraTrafikCheckDiv.addEventListener("change", function () {
   localStorage.extraTrafik = extraTrafikCheckDiv.checked;
-  getDeviations();
+  // getDeviations();
 });
 
 onUnloadDiv.checked = localStorage.onUnload == 'true';
@@ -331,13 +331,13 @@ const roadColor = {
   4: [0, 0, 100, 0.4], // "blue"
 }
 
+var roadConditionSource = new VectorSource();
 var roadConditionLayer = new VectorLayer({     //Creates a layer for deviations
-  source: new VectorSource(),
+  source: roadConditionSource,
   style: roadConditionStyleFunction,
 });
 
 var trafficWarningSource = new VectorSource();
-
 var trafficWarningIconLayer = new VectorLayer({
   source: trafficWarningSource,
   style: trafficWarningIconStyleFunction,
@@ -484,7 +484,6 @@ geolocation.once("change", function () {
   if (currentTime - lastInteraction > localStorage.interactionDelay) {
     centerFunction();
   }
-  getDeviations();
 
   trackLog.push([
     lonlat,
@@ -1041,8 +1040,6 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
-var apiUrl = "https://api.trafikinfo.trafikverket.se/v2/";
-
 function breakSentence(sentence) {
   sentence = sentence.replace(/\n/g, "");
   var returnSentence = "";
@@ -1059,6 +1056,7 @@ function breakSentence(sentence) {
   return returnSentence;
 }
 
+var apiUrl = "https://api.trafikinfo.trafikverket.se/v2/";
 $.ajaxSetup({
   url: apiUrl + "data.json",
   error: function (msg) {
@@ -1068,48 +1066,7 @@ $.ajaxSetup({
 
 $.support.cors = true; // Enable Cross domain requests
 
-function getDeviations() {
-  var xmlRequest = `
-  <REQUEST>
-    <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
-    <QUERY objecttype='Situation' schemaversion='1.2'>
-      <FILTER>
-        <ELEMENTMATCH>
-          <EQ name='Deviation.ManagedCause' value='true' />
-          <EQ name='Deviation.MessageType' value='Olycka' />
-          <GTE name='Deviation.EndTime' value='$now'/>
-        </ELEMENTMATCH>
-      </FILTER>
-      <INCLUDE>Deviation.Message</INCLUDE>
-      <INCLUDE>Deviation.IconId</INCLUDE>
-      <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
-      <INCLUDE>Deviation.RoadNumber</INCLUDE>
-      <INCLUDE>Deviation.EndTime</INCLUDE>
-      <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
-    </QUERY>
-  </REQUEST>
-`;
-
-  if (localStorage.extraTrafik == 'true') {
-    xmlRequest = `
-    <REQUEST>
-      <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
-      <QUERY objecttype='Situation' schemaversion='1.2'>
-        <FILTER>
-          <ELEMENTMATCH>
-            <GTE name='Deviation.EndTime' value='$now'/>
-          </ELEMENTMATCH>
-        </FILTER>
-        <INCLUDE>Deviation.Message</INCLUDE>
-        <INCLUDE>Deviation.IconId</INCLUDE>
-        <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
-        <INCLUDE>Deviation.RoadNumber</INCLUDE>
-        <INCLUDE>Deviation.EndTime</INCLUDE>
-        <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
-      </QUERY>
-    </REQUEST>
-  `;
-  }
+function getDeviations(layerSource, xmlRequest) {
   $.ajax({
     type: "POST",
     contentType: "text/xml",
@@ -1118,38 +1075,45 @@ function getDeviations() {
     success: function (response) {
       if (response == null) return;
       try {
-        trafficWarningSource.clear();
-        $.each(response.RESPONSE.RESULT[0].Situation, function (index, item) {
-          var format = new WKT();
-          var position = format
-            .readGeometry(item.Deviation[0].Geometry.WGS84)
-            .transform("EPSG:4326", "EPSG:3857");
-          var feature = new Feature({
-            geometry: position,
-            name: breakSentence(
-              (item.Deviation[0].LocationDescriptor ||
-                item.Deviation[0].RoadNumber ||
-                "Väg") +
-              ": " +
-              (item.Deviation[0].Message || "-")) +
-              "\n" +
-              new Date(item.Deviation[0].EndTime)
-                .toLocaleString().slice(0, -3),
-            roadNumber: (item.Deviation[0].RoadNumber || "väg"),
-            iconId: item.Deviation[0].IconId,
-            locationDescriptor: item.Deviation[0].LocationDescriptor,
+        layerSource.clear();
+        if (Object.keys(response.RESPONSE.RESULT[0])[0] == "Situation") {
+          $.each(Object.values(response.RESPONSE.RESULT[0])[0], function (index, item) {
+            var format = new WKT();
+            var feature = new Feature({
+              geometry: format.readGeometry(item.Deviation[0].Geometry.WGS84).transform("EPSG:4326", "EPSG:3857"),
+              name: breakSentence(
+                (item.Deviation[0].LocationDescriptor ||
+                  item.Deviation[0].RoadNumber ||
+                  "Väg") +
+                ": " +
+                (item.Deviation[0].Message || "-")) +
+                "\n" +
+                new Date(item.Deviation[0].EndTime)
+                  .toLocaleString().slice(0, -3),
+              roadNumber: (item.Deviation[0].RoadNumber || "väg"),
+              iconId: item.Deviation[0].IconId,
+              locationDescriptor: item.Deviation[0].LocationDescriptor,
+            });
+            layerSource.addFeature(feature);
           });
-          trafficWarningSource.addFeature(feature);
-        });
-        getClosestAccident();
+          getClosestAccident();
+        }
+        if (Object.keys(response.RESPONSE.RESULT[0])[0] == "RoadCondition") {
+          $.each(response.RESPONSE.RESULT[0].RoadCondition, function (index, item) {
+            var format = new WKT();
+            var feature = new Feature({
+              geometry: format.readGeometry(item.Geometry.WGS84).transform("EPSG:4326", "EPSG:3857"),
+              conditionCode: item.ConditionCode,
+            });
+            layerSource.addFeature(feature);
+          });
+        }
       } catch (ex) {
         console.log(ex);
       }
     },
   });
 }
-
-setInterval(getDeviations, 60000); // getDeviations interval
 
 function focusTrafficWarning() {
   lastInteraction = new Date();
@@ -1251,50 +1215,72 @@ function getClosestAccident() {
   }
 }
 
-function getRoadCondition() {
-  $.ajaxSetup({
-    url: apiUrl + "data.json",
-    error: function (msg) {
-      if (msg.statusText == "abort") return;
-      alert("Request failed: " + msg.statusText + "\n" + msg.responseText);
-    }
-  });
+// if (localStorage.extraTrafik == "true") {
+//   getRoadCondition();
+//   setInterval(getRoadCondition, 60000); // getRoadCondition interval
+// }
+// setInterval(getDeviations, 60000); // getDeviations interval
+geolocation.once("change", function () {
+  if (localStorage.extraTrafik == "true") {
+    getDeviations(roadConditionSource, roadConditionXmlRequest);
+    getDeviations(trafficWarningSource, trafficWarningXmlRequest);
+  } else {
+    getDeviations(trafficWarningSource, accidentWarningXmlRequest);
+  }
+})
 
-  var xmlRequest = `<REQUEST>
-    <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
-    <QUERY objecttype='RoadCondition' schemaversion='1.2' >
+
+
+var roadConditionXmlRequest = `<REQUEST>
+<LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
+<QUERY objecttype='RoadCondition' schemaversion='1.2' >
+<FILTER>
+  <GTE name="ConditionCode" value="2" />
+</FILTER>
+<INCLUDE>Geometry.WGS84</INCLUDE>
+<INCLUDE>ConditionCode</INCLUDE>
+</QUERY>
+</REQUEST>`;
+
+var trafficWarningXmlRequest = `
+<REQUEST>
+  <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
+  <QUERY objecttype='Situation' schemaversion='1.2'>
     <FILTER>
-      <GTE name="ConditionCode" value="2" />
+      <ELEMENTMATCH>
+        <GTE name='Deviation.EndTime' value='$now'/>
+      </ELEMENTMATCH>
     </FILTER>
-    <INCLUDE>Geometry.WGS84</INCLUDE>
-    <INCLUDE>ConditionCode</INCLUDE>
-    </QUERY>
-    </REQUEST>`;
+    <INCLUDE>Deviation.Message</INCLUDE>
+    <INCLUDE>Deviation.IconId</INCLUDE>
+    <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
+    <INCLUDE>Deviation.RoadNumber</INCLUDE>
+    <INCLUDE>Deviation.EndTime</INCLUDE>
+    <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
+  </QUERY>
+</REQUEST>
+`;
 
-  $.ajax({
-    type: "POST",
-    contentType: "text/xml",
-    dataType: "json",
-    data: xmlRequest,
-    success: function (response) {
-      if (response == null) return;
-      try {
-        roadConditionLayer.getSource().clear();
-        $.each(response.RESPONSE.RESULT[0].RoadCondition, function (index, item) {
-          var format = new WKT();
-          var feature = new Feature({
-            geometry: format.readGeometry(item.Geometry.WGS84).transform("EPSG:4326", "EPSG:3857"),
-            conditionCode: item.ConditionCode,
-          });
-          roadConditionLayer.getSource().addFeature(feature);
-        });
-      }
-      catch (ex) { console.log(ex); }
-    },
-  });
-}
+var accidentWarningXmlRequest = `
+<REQUEST>
+  <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
+  <QUERY objecttype='Situation' schemaversion='1.2'>
+    <FILTER>
+      <ELEMENTMATCH>
+        <EQ name='Deviation.ManagedCause' value='true' />
+        <EQ name='Deviation.MessageType' value='Olycka' />
+        <GTE name='Deviation.EndTime' value='$now'/>
+      </ELEMENTMATCH>
+    </FILTER>
+    <INCLUDE>Deviation.Message</INCLUDE>
+    <INCLUDE>Deviation.IconId</INCLUDE>
+    <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
+    <INCLUDE>Deviation.RoadNumber</INCLUDE>
+    <INCLUDE>Deviation.EndTime</INCLUDE>
+    <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
+  </QUERY>
+</REQUEST>
+`;
 
-if (localStorage.extraTrafik == "true") {
-  getRoadCondition();
-  setInterval(getRoadCondition, 60000); // getRoadCondition interval
-}
+// trafficWarningSource
+// roadConditionSource
