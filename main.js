@@ -1088,7 +1088,6 @@ function getDeviations() {
     </REQUEST>
   `;
   }
-  trafficWarningSource.clear();
   $.ajax({
     type: "POST",
     contentType: "text/xml",
@@ -1097,6 +1096,7 @@ function getDeviations() {
     success: function (response) {
       if (response == null) return;
       try {
+        trafficWarningSource.clear();
         $.each(response.RESPONSE.RESULT[0].Situation, function (index, item) {
           var format = new WKT();
           var position = format
