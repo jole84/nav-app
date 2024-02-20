@@ -1281,6 +1281,3 @@ var accidentWarningXmlRequest = `
   </QUERY>
 </REQUEST>
 `;
-
-// trafficWarningSource
-// roadConditionSource
