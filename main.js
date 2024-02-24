@@ -683,9 +683,11 @@ layerSelector.addEventListener("change", function () {
   switchMap();
 });
 
-layerSelector.addEventListener("focus", function () {
-  layerSelector.blur();
-})
+if (!!window.chrome) {
+  layerSelector.addEventListener("focus", function () {
+    layerSelector.blur();
+  });
+}
 
 // switch map logic
 function switchMap() {
