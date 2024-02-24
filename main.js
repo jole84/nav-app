@@ -527,7 +527,7 @@ geolocation.on("change", function () {
 
     // change view if no interaction occurred last 10 seconds
     if (currentTime - lastInteraction > localStorage.interactionDelay) {
-      updateView(position, heading);
+      updateView();
     }
   }
 
@@ -639,13 +639,12 @@ function getCenterWithHeading(position, rotation) {
 // center map function
 function centerFunction() {
   const position = geolocation.getPosition() || center;
-  const heading = geolocation.getHeading() || 0;
   const speed = geolocation.getSpeed() || 0;
   const duration = 500;
   if (speed > 1) {
     lastInteraction = new Date() - localStorage.interactionDelay;
     view.setZoom(localStorage.defaultZoom);
-    updateView(position, heading);
+    updateView();
   } else {
     view.animate({
       center: position,
@@ -663,7 +662,9 @@ function centerFunction() {
   acquireWakeLock();
 }
 
-function updateView(position, heading) {
+function updateView() {
+  const position = geolocation.getPosition() || center;
+  const heading = geolocation.getHeading() || 0;
   if (view.getZoom() <= 11) {
     view.setZoom(localStorage.defaultZoom);
   }
