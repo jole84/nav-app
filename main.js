@@ -106,7 +106,7 @@ onUnloadDiv.checked = localStorage.onUnload == 'true';
 onUnloadDiv.addEventListener("change", function () {
   localStorage.onUnload = onUnloadDiv.checked;
 });
-window.onunload = window.onbeforeunload = function () {
+window.onbeforeunload = function () {
   if (localStorage.onUnload == "true") {
     return "";
   }
