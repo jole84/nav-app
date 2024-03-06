@@ -40,13 +40,21 @@ localStorage.interactionDelay = (localStorage.interactionDelay || 10000);
 localStorage.mapMode = (localStorage.mapMode || 0);
 localStorage.defaultZoom = (localStorage.defaultZoom || 14);
 const startTime = new Date();
-var destinationCoordinates = [];
 let distanceTraveled = 0;
+var accuracy = 100;
+var altitude = 0;
 var center = fromLonLat([14.18, 57.786]);
 var closestAccident;
+var closestAccidentPosition;
+var currentPosition = center;
+var destinationCoordinates = [];
+var heading = 0;
 var lastInteraction = new Date() - localStorage.interactionDelay;
+var lonlat = toLonLat(currentPosition);
 var maxSpeed = 0;
 var maxSpeedCoord;
+var speed = 0;
+var speedKmh = 0;
 var trackLog = [];
 var mapDiv = document.getElementById("map");
 var centerButton = document.getElementById("centerButton");
@@ -80,12 +88,13 @@ var preferredFontSizeDiv = document.getElementById("preferredFontSize");
 var openMenuButton = document.getElementById("openMenu");
 var closeMenuButton = document.getElementById("closeMenu");
 
-enableLntDiv.checked = localStorage.enableLnt == 'true'
+localStorage.enableLnt = JSON.parse(localStorage.enableLnt || false);
+enableLntDiv.checked = JSON.parse(localStorage.enableLnt);
 enableLntDiv.addEventListener("change", function () {
   localStorage.enableLnt = enableLntDiv.checked;
   location.reload();
 });
-if (localStorage.enableLnt == 'true') {
+if (JSON.parse(localStorage.enableLnt)) {
   var option4 = document.createElement("option");
   var option5 = document.createElement("option");
   option4.text = "Lantmäteriet Topo";
@@ -107,7 +116,7 @@ onUnloadDiv.addEventListener("change", function () {
   localStorage.onUnload = onUnloadDiv.checked;
 });
 window.onbeforeunload = function () {
-  if (localStorage.onUnload == "true") {
+  if (JSON.parse(localStorage.onUnload)) {
     return "";
   }
 };
@@ -455,9 +464,9 @@ const geolocation = new Geolocation({
 let prevCoordinate;
 // run once to get things going
 geolocation.once("change", function () {
-  const position = geolocation.getPosition();
-  const altitude = geolocation.getAltitude() || 0;
-  const lonlat = toLonLat(position);
+  currentPosition = geolocation.getPosition();
+  altitude = geolocation.getAltitude() || 0;
+  lonlat = toLonLat(currentPosition);
   const currentTime = new Date();
   if (currentTime - lastInteraction > localStorage.interactionDelay) {
     centerFunction();
@@ -469,21 +478,22 @@ geolocation.once("change", function () {
     altitude,
     currentTime,
   ]);
-  line.appendCoordinate(position);
+  line.appendCoordinate(currentPosition);
 
   prevCoordinate = lonlat;
 });
 
 // runs when position changes
 geolocation.on("change", function () {
-  const position = geolocation.getPosition();
-  const accuracy = geolocation.getAccuracy();
-  const heading = geolocation.getHeading() || 0;
-  const speed = geolocation.getSpeed() * 3.6 || 0;
-  const altitude = geolocation.getAltitude() || 0;
-  const lonlat = toLonLat(position);
+  currentPosition = geolocation.getPosition();
+  accuracy = geolocation.getAccuracy();
+  heading = geolocation.getHeading() || 0;
+  speed = geolocation.getSpeed() || 0;
+  speedKmh = speed * 3.6;
+  altitude = geolocation.getAltitude() || 0;
+  lonlat = toLonLat(currentPosition);
   const currentTime = new Date();
-  positionMarkerPoint.setCoordinates(position);
+  positionMarkerPoint.setCoordinates(currentPosition);
 
   // measure distance and push log if position change > 10 meters and accuracy is good
   if (getDistance(trackLog[trackLog.length - 1][0], lonlat) > 10 && accuracy < 20) {
@@ -492,16 +502,16 @@ geolocation.on("change", function () {
       altitude,
       currentTime,
     ]);
-    line.appendCoordinate(position);
+    line.appendCoordinate(currentPosition);
 
     // calculate remaing distance on gpx
     routeInfo.innerHTML = "";
     gpxLayer.getSource().forEachFeature(function (feature) {
       if (feature.getGeometry().getType() == "MultiLineString") {
         const featureCoordinates = feature.getGeometry().getLineString().getCoordinates()
-        const gpxRemainingDistance = getRemainingDistance(featureCoordinates, position);
+        const gpxRemainingDistance = getRemainingDistance(featureCoordinates, currentPosition);
         if (gpxRemainingDistance != undefined) {
-          routeInfo.innerHTML += "-> " + gpxRemainingDistance.toFixed(1) + "  km, " + Math.round(gpxRemainingDistance / (speed / 60)) + " min<br>";
+          routeInfo.innerHTML += "-> " + gpxRemainingDistance.toFixed(1) + "  km, " + Math.round(gpxRemainingDistance / (speedKmh / 60)) + " min<br>";
         }
       }
     });
@@ -509,9 +519,9 @@ geolocation.on("change", function () {
     // calculate remaing distance on route
     if (routeLayer.getSource().getFeatureById(0) != null) {
       const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
-      const routeRemainingDistance = getRemainingDistance(featureCoordinates, position);
+      const routeRemainingDistance = getRemainingDistance(featureCoordinates, currentPosition);
       if (routeRemainingDistance != undefined) {
-        routeInfo.innerHTML += "-> " + routeRemainingDistance.toFixed(1) + "  km, " + Math.round(routeRemainingDistance / (speed / 60)) + " min<br>";
+        routeInfo.innerHTML += "-> " + routeRemainingDistance.toFixed(1) + "  km, " + Math.round(routeRemainingDistance / (speedKmh / 60)) + " min<br>";
       }
     }
   }
@@ -519,7 +529,7 @@ geolocation.on("change", function () {
   distanceTraveled += getDistance(prevCoordinate, lonlat);
   prevCoordinate = lonlat;
 
-  if (speed > 3.6) {
+  if (speed > 1) {
     // change marker if speed
     positionMarkerHeading.getStyle().getImage().setRotation(heading);
     positionMarker.getStyle().getImage().setOpacity(0);
@@ -531,13 +541,13 @@ geolocation.on("change", function () {
     }
   }
 
-  if (speed < 3.6) {
+  if (speed < 1) {
     positionMarker.getStyle().getImage().setOpacity(1);
     positionMarkerHeading.getStyle().getImage().setOpacity(0);
   }
 
-  if (speed > maxSpeed && accuracy < 20) {
-    maxSpeed = Math.floor(speed);
+  if (speedKmh > maxSpeed && accuracy < 20) {
+    maxSpeed = Math.floor(speedKmh);
     maxSpeedCoord = [lonlat, new Date()];
   }
 
@@ -549,7 +559,7 @@ geolocation.on("change", function () {
     Math.round(accuracy) +
     " m",
     '<b style="font-size:120%">' +
-    Math.floor(speed) +
+    Math.floor(speedKmh) +
     '</b> (<font style="color:#e60000;">' +
     maxSpeed +
     "</font>) km/h",
@@ -638,8 +648,6 @@ function getCenterWithHeading(position, rotation) {
 
 // center map function
 function centerFunction() {
-  const position = geolocation.getPosition() || center;
-  const speed = geolocation.getSpeed() || 0;
   const duration = 500;
   if (speed > 1) {
     lastInteraction = new Date() - localStorage.interactionDelay;
@@ -647,7 +655,7 @@ function centerFunction() {
     updateView();
   } else {
     view.animate({
-      center: position,
+      center: currentPosition,
       duration: duration,
     });
     view.animate({
@@ -663,17 +671,15 @@ function centerFunction() {
 }
 
 function updateView() {
-  const position = geolocation.getPosition() || center;
-  const heading = geolocation.getHeading() || 0;
-  if (view.getZoom() <= 11) {
+  if (view.getZoom() <= 11 || view.getZoom() >= 17 && speed > 14) {
     view.setZoom(localStorage.defaultZoom);
   }
-  view.setCenter(getCenterWithHeading(position, -heading));
+  view.setCenter(getCenterWithHeading(currentPosition, -heading));
   view.setRotation(-heading);
 }
 
 view.on("change:resolution", function () {
-  document.getElementById("currentZoom").innerHTML = "Zoom: " + (view.getZoom()).toFixed(1);
+  document.getElementById("currentZoom").innerHTML = (view.getZoom()).toFixed(1);
   if (view.getRotation() != 0 && view.getZoom() < 11) {
     view.setRotation(0);
   }
@@ -702,9 +708,10 @@ function switchMap() {
     "-webkit-filter: initial;filter: initial;background-color: initial;",
   );
 
-  if (localStorage.enableLnt == "true" && localStorage.getItem("mapMode") > 5) {
+  if (JSON.parse(localStorage.enableLnt) && localStorage.getItem("mapMode") > 5) {
     localStorage.setItem("mapMode", 0);
-  } else if ((localStorage.enableLnt == undefined || localStorage.enableLnt == "false") && localStorage.getItem("mapMode") > 3) {
+  }
+  if (!JSON.parse(localStorage.enableLnt) && localStorage.getItem("mapMode") > 3) {
     localStorage.setItem("mapMode", 0);
   }
   layerSelector.value = localStorage.getItem("mapMode");
@@ -712,7 +719,7 @@ function switchMap() {
   if (localStorage.getItem("mapMode") == 0) {
     // mapMode 0: slitlagerkarta
     slitlagerkarta.setVisible(true);
-    if (localStorage.enableLnt == 'true') {
+    if (JSON.parse(localStorage.enableLnt)) {
       ortofoto.setVisible(true);
       slitlagerkarta.setMaxZoom(15.5);
       ortofoto.setMinZoom(15.5);
@@ -720,7 +727,7 @@ function switchMap() {
   } else if (localStorage.getItem("mapMode") == 1) {
     // mapMode 1: slitlagerkarta_nedtonad
     slitlagerkarta_nedtonad.setVisible(true);
-    if (localStorage.enableLnt == 'true') {
+    if (JSON.parse(localStorage.enableLnt)) {
       topoweb.setVisible(true);
       ortofoto.setVisible(true);
       slitlagerkarta_nedtonad.setMaxZoom(15.5);
@@ -732,7 +739,7 @@ function switchMap() {
     // mapMode 2: slitlagerkarta_nedtonad + night mode
     slitlagerkarta_nedtonad.setVisible(true);
     mapDiv.setAttribute("style", "filter: invert(1) hue-rotate(180deg);");
-    if (localStorage.enableLnt == 'true') {
+    if (JSON.parse(localStorage.enableLnt)) {
       topoweb.setVisible(true);
       slitlagerkarta_nedtonad.setMaxZoom(15.5);
       topoweb.setMinZoom(15.5);
@@ -741,12 +748,12 @@ function switchMap() {
   } else if (localStorage.getItem("mapMode") == 3) {
     // mapMode 3: Openstreetmap
     osm.setVisible(true);
-  } else if (localStorage.enableLnt == 'true' && localStorage.getItem("mapMode") == 4) {
+  } else if (JSON.parse(localStorage.enableLnt) && localStorage.getItem("mapMode") == 4) {
     // mapMode 4: topoweb
     topoweb.setVisible(true);
     topoweb.setMinZoom(0);
     topoweb.setMaxZoom(20);
-  } else if (localStorage.enableLnt == 'true' && localStorage.getItem("mapMode") == 5) {
+  } else if (JSON.parse(localStorage.enableLnt) && localStorage.getItem("mapMode") == 5) {
     // mapMode 4: orto
     ortofoto.setVisible(true);
     ortofoto.setMinZoom(0);
@@ -858,7 +865,7 @@ function routeMe() {
         }" target="_blank">Streetview</a>`,
         "Restid: " + toHHMMSS(totalTime),
       ]);
-      routeInfo.innerHTML = "-> " + getRemainingDistance(route.getCoordinates(), geolocation.getPosition()).toFixed(1) + " km<br>";
+      routeInfo.innerHTML = "-> " + getRemainingDistance(route.getCoordinates(), currentPosition).toFixed(1) + " km<br>";
 
       const routeFeature = new Feature({
         type: "route",
@@ -908,15 +915,14 @@ map.on("contextmenu", function (event) {
   }
 
   lastInteraction = new Date();
-  var currentPostition = toLonLat(geolocation.getPosition());
   var eventLonLat = toLonLat(event.coordinate);
 
   // set start position
   if (destinationCoordinates.length == 0) {
-    destinationCoordinates.push(currentPostition);
+    destinationCoordinates.push(lonlat);
   }
 
-  var clickedOnCurrentPosition = getDistance(currentPostition, eventLonLat) < 200 || getPixelDistance(event.pixel, map.getPixelFromCoordinate(fromLonLat(currentPostition))) < 50;
+  var clickedOnCurrentPosition = getDistance(lonlat, eventLonLat) < 200 || getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
   var clickedOnLastDestination = getPixelDistance(event.pixel, map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))) < 40;
 
   // remove last point if click < 40 pixels from last point
@@ -925,7 +931,7 @@ map.on("contextmenu", function (event) {
     // clear route if click < 40 pixels from last point or click on current position
   } else if (destinationCoordinates.length == 2 && clickedOnLastDestination || clickedOnCurrentPosition) {
     routeLayer.getSource().clear();
-    setExtraInfo([Math.round(getDistance(currentPostition, eventLonLat)) + " m"]);
+    setExtraInfo([Math.round(getDistance(lonlat, eventLonLat)) + " m"]);
     routeInfo.innerHTML = "";
     destinationCoordinates = [];
   } else {
@@ -1014,9 +1020,11 @@ document.addEventListener("keydown", function (event) {
       event.preventDefault();
       focusTrafficWarning();
     }
+    if (event.key == "r") {
+      recalculateRoute();
+    }
   } else {
     if (event.key == "Escape" || event.key == "§") {
-      // carpe iter adventure controller minus button
       closeMenuButton.click();
     }
   }
@@ -1134,13 +1142,14 @@ setInterval(getDeviations, 60000); // getDeviations interval
 
 function focusTrafficWarning() {
   lastInteraction = new Date();
-  var coordinates = geolocation.getPosition()
   if (closestAccident != undefined) {
-    coordinates = closestAccident.getGeometry().getCoordinates()
+    closestAccidentPosition = closestAccident.getGeometry().getCoordinates()
+  } else {
+    closestAccidentPosition = currentPosition;
   }
   var duration = 500;
   view.animate({
-    center: coordinates,
+    center: closestAccidentPosition,
     duration: duration,
   });
   view.animate({
@@ -1174,7 +1183,7 @@ function getClosestAccident() {
   if (trafficWarningSource.getFeatures().length >= 1) {
 
     closestAccident = trafficWarningSource.getClosestFeatureToCoordinate(
-      geolocation.getPosition(),
+      currentPosition,
       function (feature) {
         return feature.get("iconId") === "roadAccident";
       },
@@ -1189,7 +1198,7 @@ function getClosestAccident() {
         featureCoordinates.reverse(),
       );
 
-      const newLineStringclosestPoint = newMultiPoint.getClosestPoint(geolocation.getPosition());
+      const newLineStringclosestPoint = newMultiPoint.getClosestPoint(currentPosition);
 
       for (var i = 0; i < featureCoordinates.length; i++) {
         var closestLineStringPoint = trafficWarningSource.getClosestFeatureToCoordinate(
@@ -1216,7 +1225,7 @@ function getClosestAccident() {
     var closestAccidentCoords = closestAccident.getGeometry().getCoordinates();
     var closestAccidentDistance = getDistance(
       toLonLat(closestAccidentCoords),
-      toLonLat(geolocation.getPosition()),
+      lonlat,
     );
 
     if (closestAccidentDistance < 30000 && !routeIsActive || routeHasAccident) {
@@ -1229,5 +1238,12 @@ function getClosestAccident() {
   } else {
     closestAccident = null;
     trafficWarningDiv.innerHTML = "";
+  }
+}
+
+function recalculateRoute() {
+  if (destinationCoordinates.length >= 2) {
+    destinationCoordinates = [lonlat, destinationCoordinates[destinationCoordinates.length - 1]];
+    routeMe();
   }
 }

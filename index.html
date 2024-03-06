@@ -93,9 +93,12 @@
     #layerSelector {
       display: inline-block;
     }
+
     #menuDiv {
       position: absolute;
       min-width: 350px;
+      max-width: 100%;
+      max-height: 100%;
       left: 50%;
       top: 50%;
       color: rgb(32, 32, 32);
@@ -109,10 +112,13 @@
       -ms-transform: translate(-50%, -50%);
       transform: translate(-50%, -50%);
       display: none;
+      overflow: auto;
     }
+
     #closeMenu {
       float: right;
     }
+
     #preferredFontSize,
     #prefferedZoom,
     #interactionDelay {
@@ -147,23 +153,86 @@
     </div>
     <div id="menuDiv">
       <h2>Inställningar</h2>
-      <input type="checkbox" id="enableLnt"> Kartor från Lantmäteriet<br>
-      <input type="checkbox" id="extraTrafikCheck"> Extra trafikinformation (vägarbete mm.) <br>
-      <input type="checkbox" id="onUnload"> Varna vid stängning<br>
-      Fördröjning (sek): <input class="form-control" type="number" id="interactionDelay"><br>
-      Förvald zoom: <input class="form-control" type="number" id="prefferedZoom" value="14" min="6" max="20" step="0.1" required placeholder="14"><br>
-      Storlek på infotext: 
-      <select class="form-select" id="preferredFontSize">
-        <option value="20">normal</option>
-        <option value="25">större</option>
-        <option value="30">störst</option>
-      </select>
-      <div id="currentZoom"></div>
+      <table class="table table-borderless table-sm align-middle">
+        <tr>
+          <th>
+            <input type="checkbox" id="enableLnt"> Kartor från Lantmäteriet<br>
+          </th>
+        </tr>
+
+        <tr>
+          <th>
+            <input type="checkbox" id="extraTrafikCheck"> Extra trafikinformation (vägarbete mm.) <br>
+          </th>
+        </tr>
+
+        <tr>
+          <th>
+            <input type="checkbox" id="onUnload"> Varna vid stängning<br>
+          </th>
+        </tr>
+        <tr>
+          <th>
+            Zoom: <code><div id="currentZoom"></div></code>
+          </th>
+        </tr>
+      </table>
+
+      <table class="table table-borderless table-sm align-middle">
+        <tr>
+          <th>
+            Fördröjning (sek):
+          </th>
+          <th>
+            <input class="form-control" type="number" id="interactionDelay"><br>
+          </th>
+        </tr>
+
+        <tr>
+          <th>
+            Förvald zoom:
+          </th>
+          <th>
+            <input class="form-control" type="number" id="prefferedZoom" value="14" min="6" max="20" step="0.1" required
+              placeholder="14"><br>
+          </th>
+        </tr>
+
+        <tr>
+          <th>
+            Storlek på infotext:
+          </th>
+          <th>
+            <select class="form-select" id="preferredFontSize">
+              <option value="20">normal</option>
+              <option value="25">större</option>
+              <option value="30">störst</option>
+            </select>
+          </th>
+        </tr>
+
+        <tr>
+          <th><kbd>A/+</kbd> zooma in</th>
+          <th><kbd>Esc/-</kbd> zooma ut</th>
+        </tr>
+        <tr>
+          <th><kbd>C/Enter</kbd> centrera</th>
+          <th><kbd>V</kbd> växla karta</th>
+        </tr>
+        <tr>
+          <th><kbd>D</kbd> focusera destination</th>
+          <th><kbd>Space</kbd> översikt</th>
+        </tr>
+        <tr>
+          <th><kbd>R</kbd> räkna om rutt</th>
+          <th></th>
+        </tr>
+      </table>
       <button class="btn btn-danger" id="clearSettings">Återställ</button>
       <button class="btn btn-success" id="closeMenu">Stäng</button>
     </div>
   </div>
-  <input type="file" id="customFileButton" multiple accept=".gpx,application/gpx+xml" style="display: none;"/>
+  <input type="file" id="customFileButton" multiple accept=".gpx,application/gpx+xml" style="display: none;" />
 </body>
 
 </html>
