@@ -102,8 +102,7 @@
       left: 50%;
       top: 50%;
       color: rgb(32, 32, 32);
-      backdrop-filter: blur(5px);
-      background-color: rgba(251, 251, 251, 0.8);
+      background-color: rgba(251, 251, 251, 1);
       border: 1px solid rgb(32, 32, 32);
       border-radius: 5px;
       z-index: 10;
@@ -155,77 +154,77 @@
       <h2>Inställningar</h2>
       <table class="table table-borderless table-sm align-middle">
         <tr>
-          <th>
-            <input type="checkbox" id="enableLnt"> Kartor från Lantmäteriet<br>
-          </th>
+          <td colspan="2">
+            <input class="form-check-input" role="switch" type="checkbox" id="enableLnt"> Kartor från Lantmäteriet
+          </td>
         </tr>
 
         <tr>
-          <th>
-            <input type="checkbox" id="extraTrafikCheck"> Extra trafikinformation (vägarbete mm.) <br>
-          </th>
+          <td colspan="2">
+            <input class="form-check-input" type="checkbox" id="extraTrafikCheck"> Extra trafikinformation (vägarbete mm.)
+          </td>
         </tr>
 
         <tr>
-          <th>
-            <input type="checkbox" id="onUnload"> Varna vid stängning<br>
-          </th>
+          <td colspan="2">
+            <input class="form-check-input" type="checkbox" id="onUnload"> Varna vid stängning
+          </td>
         </tr>
         <tr>
-          <th>
-            Zoom: <code><div id="currentZoom"></div></code>
-          </th>
+          <td>
+            Zoom: 
+          </td>
+          <td>
+            <code><div id="currentZoom"></div></code>
+          </td>
         </tr>
-      </table>
-
-      <table class="table table-borderless table-sm align-middle">
         <tr>
-          <th>
+          <td>
             Fördröjning (sek):
-          </th>
-          <th>
+          </td>
+          <td>
             <input class="form-control" type="number" id="interactionDelay"><br>
-          </th>
+          </td>
         </tr>
 
         <tr>
-          <th>
+          <td>
             Förvald zoom:
-          </th>
-          <th>
+          </td>
+          <td>
             <input class="form-control" type="number" id="prefferedZoom" value="14" min="6" max="20" step="0.1" required
               placeholder="14"><br>
-          </th>
+          </td>
         </tr>
 
         <tr>
-          <th>
+          <td>
             Storlek på infotext:
-          </th>
-          <th>
+          </td>
+          <td>
             <select class="form-select" id="preferredFontSize">
               <option value="20">normal</option>
               <option value="25">större</option>
               <option value="30">störst</option>
             </select>
-          </th>
+          </td>
         </tr>
 
         <tr>
-          <th><kbd>A/+</kbd> zooma in</th>
-          <th><kbd>Esc/-</kbd> zooma ut</th>
+          <td><kbd>A/+</kbd> zooma in</td>
+          <td><kbd>Esc/-</kbd> zooma ut</td>
         </tr>
         <tr>
-          <th><kbd>C/Enter</kbd> centrera</th>
-          <th><kbd>V</kbd> växla karta</th>
+          <td><kbd>C/Enter</kbd> centrera</td>
+          <td><kbd>V</kbd> växla karta</td>
         </tr>
         <tr>
-          <th><kbd>D</kbd> focusera destination</th>
-          <th><kbd>Space</kbd> översikt</th>
+          <td><kbd>D</kbd> focusera destination</td>
+          <td><kbd>Space</kbd> översikt</td>
         </tr>
         <tr>
-          <th><kbd>R</kbd> räkna om rutt</th>
-          <th></th>
+          <td><kbd>R</kbd> räkna om rutt</td>
+          <td></td>
         </tr>
       </table>
       <button class="btn btn-danger" id="clearSettings">Återställ</button>
