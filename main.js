@@ -1243,8 +1243,15 @@ function getClosestAccident() {
 
 function recalculateRoute() {
   if (destinationCoordinates.length >= 2) {
-    destinationCoordinates = [lonlat, destinationCoordinates[destinationCoordinates.length - 1]];
-    routeMe();
+    if (getDistance(destinationCoordinates[0], destinationCoordinates[destinationCoordinates.length - 1]) < 300) {
+      routeInfo.innerHTML = "";
+      document.getElementById("extraInfo").innerHTML = "";
+      destinationCoordinates = [];
+      routeLayer.getSource().clear();
+    } else {
+      destinationCoordinates = [lonlat, destinationCoordinates[destinationCoordinates.length - 1]];
+      routeMe();
+    }
   }
 }
 
