@@ -1254,3 +1254,61 @@ function recalculateRoute() {
     }
   }
 }
+
+var experimentLayer = new VectorLayer({
+  source: new VectorSource({}),
+  style: function (feature) {
+    gpxStyle["Point"].getText().setText(feature.get("name"));
+    return gpxStyle[feature.getGeometry().getType()];
+  },
+});
+map.addLayer(experimentLayer);
+
+document.addEventListener("mouseup", function (event) {
+  if (event.button == 1) {
+    // stuff for testing:
+    simulatePositionChange();
+    var eventPixel = [event.clientX, event.clientY];
+    var eventCoordinate = map.getCoordinateFromPixel(eventPixel);
+    var lonlat = toLonLat(eventCoordinate);
+    
+    // line.appendCoordinate(eventCoordinate);
+
+    // trackLog.push([lonlat, trackLog.length, new Date()]);
+
+    // const marker = new Feature({
+    //   type: "icon",
+    //   name: String(lonlat.reverse()),
+    //   geometry: new Point(
+    //     eventCoordinate,
+    //   ),
+    // });
+    // experimentLayer.getSource().addFeature(marker);
+
+    }
+});
+
+var currentSimulatedPosition = 0;
+document.addEventListener("keydown", function (event) {
+  if (event.key == "n") {
+    // simulatePositionChange();
+    currentSimulatedPosition++;
+    changeGeolocationPosition(
+      gpxLayer.getSource().getFeatures()[0].getGeometry().getCoordinates()[0][currentSimulatedPosition][0],
+      gpxLayer.getSource().getFeatures()[0].getGeometry().getCoordinates()[0][currentSimulatedPosition][1]
+    );
+  }
+});
+
+function simulatePositionChange() {
+  var newPosition = geolocation.getPosition();
+  changeGeolocationPosition(newPosition[0] + Math.random() * 1000 - 500, newPosition[1] + Math.random() * 1000 - 300);
+}
+
+function changeGeolocationPosition(longitude, latitude) {
+  geolocation.set("accuracy", 10);
+  geolocation.set("position", [longitude, latitude]);
+  geolocation.set("speed", 50 / 3.6);
+  // geolocation.set("heading", Math.random() * (2 * Math.PI))
+  geolocation.changed();
+}
