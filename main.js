@@ -1291,22 +1291,35 @@ document.addEventListener("mouseup", function (event) {
 var currentSimulatedPosition = 1;
 var simulateInterval;
 var positionList;
-setExtraInfo(["n: start, b: stop"])
-document.addEventListener("keydown", function (event) {
-  if (event.key == "n") {
-    try {
-      positionList = gpxLayer.getSource().getFeatures()[0].getGeometry().getCoordinates()[0];
-      simulateInterval = setInterval(simulatePositionChange, 1000);
-    } catch {
-      var currentPosition = geolocation.getPosition();
-      var longitude = currentPosition[0] + Math.random() * 1000 - 500;
-      var latitude = currentPosition[1] + Math.random() * 1000 - 500;
-      changeGeolocationPosition(longitude, latitude)
-      console.log("no gpx file loaded")
-    }
-  } else if (event.key == "b") {
-    clearInterval(simulateInterval);
+const playButton = document.createElement("button");
+const stopButton = document.createElement("button");
+playButton.id = "playButton";
+stopButton.id = "stopButton";
+playButton.setAttribute("class", "btn btn-primary");
+stopButton.setAttribute("class", "btn btn-danger");
+playButton.innerHTML = "Play";
+stopButton.innerHTML = "Stop";
+document.getElementById("optionButtons").appendChild(playButton);
+document.getElementById("optionButtons").appendChild(stopButton);
+
+playButton.addEventListener("click", function () {
+  try {
+    positionList = gpxLayer.getSource().getFeatures()[0].getGeometry().simplify(10).getCoordinates()[0];
+    simulateInterval = setInterval(simulatePositionChange, 1000);
+  } catch {
+    var currentPosition = geolocation.getPosition();
+    var longitude = currentPosition[0] + Math.random() * 1000 - 500;
+    var latitude = currentPosition[1] + Math.random() * 1000 - 500;
+    changeGeolocationPosition(longitude, latitude)
+    console.log("no gpx file loaded")
   }
+});
+
+stopButton.addEventListener("click", function () {
+  clearInterval(simulateInterval);
+  geolocation.set("speed", 0);
+  geolocation.set("heading", 0);
+  geolocation.changed();
 });
 
 function simulatePositionChange() {
