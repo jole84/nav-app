@@ -1290,7 +1290,7 @@ document.addEventListener("mouseup", function (event) {
 
 var currentSimulatedPosition = 1;
 var simulateInterval;
-var positionList;
+var positionList = [];
 const playButton = document.createElement("button");
 const stopButton = document.createElement("button");
 playButton.id = "playButton";
@@ -1299,30 +1299,46 @@ playButton.setAttribute("class", "btn btn-primary");
 stopButton.setAttribute("class", "btn btn-danger");
 playButton.innerHTML = "Play";
 stopButton.innerHTML = "Stop";
+playButton.style.marginBottom = "5px";
+stopButton.style.marginBottom = "5px";
 document.getElementById("optionButtons").appendChild(playButton);
 document.getElementById("optionButtons").appendChild(stopButton);
 
 playButton.addEventListener("click", function () {
+  gpxLayer.getSource().forEachFeature(function (feature) {
+    if (feature.getGeometry().getType() === "MultiLineString") {
+      positionList = feature.getGeometry().simplify(10).getCoordinates()[0];
+    }
+  });
   try {
-    positionList = gpxLayer.getSource().getFeatures()[0].getGeometry().simplify(10).getCoordinates()[0];
+    geolocation.set("accuracy", 10);
+    geolocation.set("position", [positionList[0][0], positionList[0][1]]);
+    geolocation.changed();
     simulateInterval = setInterval(simulatePositionChange, 1000);
   } catch {
     var currentPosition = geolocation.getPosition();
-    var longitude = currentPosition[0] + Math.random() * 1000 - 500;
-    var latitude = currentPosition[1] + Math.random() * 1000 - 500;
+    var longitude = currentPosition[0] + Math.random() * 5000 - 2500;
+    var latitude = currentPosition[1] + Math.random() * 5000 - 2500;
     changeGeolocationPosition(longitude, latitude)
     console.log("no gpx file loaded")
   }
 });
 
 stopButton.addEventListener("click", function () {
+  console.log("stop");
   clearInterval(simulateInterval);
   geolocation.set("speed", 0);
   geolocation.set("heading", 0);
   geolocation.changed();
+  positionList = [];
+  currentSimulatedPosition = 1;
 });
 
 function simulatePositionChange() {
+  if (currentSimulatedPosition > positionList.length - 1) {
+    stopButton.click();
+    return;
+  }
   changeGeolocationPosition(positionList[currentSimulatedPosition][0], positionList[currentSimulatedPosition][1]);
   currentSimulatedPosition++;
 }
@@ -1330,7 +1346,7 @@ function simulatePositionChange() {
 function changeGeolocationPosition(longitude, latitude) {
   geolocation.set("accuracy", 10);
   geolocation.set("position", [longitude, latitude]);
-  geolocation.set("speed", 50 / 3.6);
+  geolocation.set("speed", 70 / 3.6);
   try {
     var lonlat = toLonLat([positionList[currentSimulatedPosition][0], positionList[currentSimulatedPosition][1]]);
     var lonlat2 = toLonLat([positionList[currentSimulatedPosition - 1][0], positionList[currentSimulatedPosition - 1][1]]);
