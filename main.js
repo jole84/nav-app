@@ -1271,7 +1271,7 @@ document.addEventListener("mouseup", function (event) {
     var eventPixel = [event.clientX, event.clientY];
     var eventCoordinate = map.getCoordinateFromPixel(eventPixel);
     var lonlat = toLonLat(eventCoordinate);
-    
+
     // line.appendCoordinate(eventCoordinate);
 
     // trackLog.push([lonlat, trackLog.length, new Date()]);
@@ -1285,30 +1285,56 @@ document.addEventListener("mouseup", function (event) {
     // });
     // experimentLayer.getSource().addFeature(marker);
 
-    }
+  }
 });
 
-var currentSimulatedPosition = 0;
+var currentSimulatedPosition = 1;
+var simulateInterval;
+var positionList;
+setExtraInfo(["n: start, b: stop"])
 document.addEventListener("keydown", function (event) {
   if (event.key == "n") {
-    // simulatePositionChange();
-    currentSimulatedPosition++;
-    changeGeolocationPosition(
-      gpxLayer.getSource().getFeatures()[0].getGeometry().getCoordinates()[0][currentSimulatedPosition][0],
-      gpxLayer.getSource().getFeatures()[0].getGeometry().getCoordinates()[0][currentSimulatedPosition][1]
-    );
+    try {
+      positionList = gpxLayer.getSource().getFeatures()[0].getGeometry().getCoordinates()[0];
+      simulateInterval = setInterval(simulatePositionChange, 1000);
+    } catch {
+      console.log("no gpx file loaded")
+    }
+  } else if (event.key == "b") {
+    clearInterval(simulateInterval);
   }
 });
 
 function simulatePositionChange() {
-  var newPosition = geolocation.getPosition();
-  changeGeolocationPosition(newPosition[0] + Math.random() * 1000 - 500, newPosition[1] + Math.random() * 1000 - 300);
+  changeGeolocationPosition(positionList[currentSimulatedPosition][0], positionList[currentSimulatedPosition][1]);
+  currentSimulatedPosition++;
 }
 
 function changeGeolocationPosition(longitude, latitude) {
   geolocation.set("accuracy", 10);
   geolocation.set("position", [longitude, latitude]);
   geolocation.set("speed", 50 / 3.6);
-  // geolocation.set("heading", Math.random() * (2 * Math.PI))
+  var lonlat = toLonLat([positionList[currentSimulatedPosition][0], positionList[currentSimulatedPosition][1]]);
+  var lonlat2 = toLonLat([positionList[currentSimulatedPosition - 1][0], positionList[currentSimulatedPosition - 1][1]]);
+  geolocation.set("heading", degToRad(getBearing(lonlat2, lonlat)))
   geolocation.changed();
+}
+ 
+// Converts from radians to degrees.
+function radToDeg(radians) {
+  return radians * 180 / Math.PI;
+}
+
+function getBearing([lon1, lat1], [lon2, lat2]){
+  lat1 = degToRad(lat1);
+  lon1 = degToRad(lon1);
+  lat2 = degToRad(lat2);
+  lon2 = degToRad(lon2);
+
+  var y = Math.sin(lon2 - lon1) * Math.cos(lat2);
+  var x = Math.cos(lat1) * Math.sin(lat2) -
+        Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1);
+  var brng = Math.atan2(y, x);
+  brng = radToDeg(brng);
+  return (brng + 360) % 360;
 }
