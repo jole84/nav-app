@@ -766,11 +766,6 @@ function switchMap() {
 function saveLogButtonFunction() {
   if (trackLog.length > 5) {
     saveLog();
-  } else {
-    setExtraInfo([
-      "zoomLevel = " + view.getZoom().toFixed(2),
-      "Spår för kort!",
-    ]);
   }
 }
 
