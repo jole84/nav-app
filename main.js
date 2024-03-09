@@ -1298,6 +1298,10 @@ document.addEventListener("keydown", function (event) {
       positionList = gpxLayer.getSource().getFeatures()[0].getGeometry().getCoordinates()[0];
       simulateInterval = setInterval(simulatePositionChange, 1000);
     } catch {
+      var currentPosition = geolocation.getPosition();
+      var longitude = currentPosition[0] + Math.random() * 1000 - 500;
+      var latitude = currentPosition[1] + Math.random() * 1000 - 500;
+      changeGeolocationPosition(longitude, latitude)
       console.log("no gpx file loaded")
     }
   } else if (event.key == "b") {
@@ -1314,9 +1318,11 @@ function changeGeolocationPosition(longitude, latitude) {
   geolocation.set("accuracy", 10);
   geolocation.set("position", [longitude, latitude]);
   geolocation.set("speed", 50 / 3.6);
-  var lonlat = toLonLat([positionList[currentSimulatedPosition][0], positionList[currentSimulatedPosition][1]]);
-  var lonlat2 = toLonLat([positionList[currentSimulatedPosition - 1][0], positionList[currentSimulatedPosition - 1][1]]);
-  geolocation.set("heading", degToRad(getBearing(lonlat2, lonlat)))
+  try {
+    var lonlat = toLonLat([positionList[currentSimulatedPosition][0], positionList[currentSimulatedPosition][1]]);
+    var lonlat2 = toLonLat([positionList[currentSimulatedPosition - 1][0], positionList[currentSimulatedPosition - 1][1]]);
+    geolocation.set("heading", degToRad(getBearing(lonlat2, lonlat)));
+  } catch {}
   geolocation.changed();
 }
  
