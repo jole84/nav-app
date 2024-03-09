@@ -71,7 +71,6 @@ document.getElementById("clickFileButton").onclick = function () {
 }
 
 // menu stuff
-setExtraInfo([window.parent.frames.length])
 var menuDiv = document.getElementById("menuDiv");
 if (localStorage.firstRun == undefined && window.location === window.parent.location) {
   menuDiv.style.display = "unset";
@@ -767,11 +766,6 @@ function switchMap() {
 function saveLogButtonFunction() {
   if (trackLog.length > 5) {
     saveLog();
-  } else {
-    setExtraInfo([
-      "zoomLevel = " + view.getZoom().toFixed(2),
-      "Spår för kort!",
-    ]);
   }
 }
 
