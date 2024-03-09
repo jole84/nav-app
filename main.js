@@ -1254,13 +1254,3 @@ function recalculateRoute() {
     }
   }
 }
-
-function simulatePositionChange() {
-  var newPosition = geolocation.getPosition();
-  geolocation.set("position", [newPosition[0] + Math.random() * 1000 - 500, newPosition[1] + Math.random() * 1000 - 300]);
-  geolocation.set("accuracy", 10);
-  geolocation.set("heading", Math.random() * (2 * Math.PI))
-  geolocation.set("speed", Math.random() * 20 + 20);
-  geolocation.changed();
-  // updateView();
-}
