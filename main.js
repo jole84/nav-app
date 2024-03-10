@@ -43,7 +43,7 @@ const startTime = new Date();
 let distanceTraveled = 0;
 var accuracy = 100;
 var altitude = 0;
-var center = fromLonLat([14.18, 57.786]);
+var center = [1700000,8500000];
 var closestAccident;
 var closestAccidentPosition;
 var currentPosition = center;
@@ -157,7 +157,7 @@ preferredFontSizeDiv.addEventListener("change", function () {
 
 const view = new View({
   center: center,
-  zoom: 8,
+  zoom: 6,
   maxZoom: 20,
   constrainRotation: false,
 });
