@@ -43,7 +43,7 @@ const startTime = new Date();
 let distanceTraveled = 0;
 var accuracy = 100;
 var altitude = 0;
-var center = [1700000,8500000];
+var center = [1700000, 8500000];
 var closestAccident;
 var closestAccidentPosition;
 var currentPosition = center;
@@ -364,6 +364,7 @@ gpxLayer.getSource().addEventListener("addfeature", function () {
     lastInteraction = new Date();
     view.fit(gpxLayer.getSource().getExtent(), {
       padding: [padding, padding, padding, padding],
+      maxZoom: 15,
     });
   }
 });
@@ -509,7 +510,7 @@ geolocation.on("change", function () {
     gpxLayer.getSource().forEachFeature(function (feature) {
       if (feature.getGeometry().getType() == "MultiLineString") {
         const featureCoordinates = feature.getGeometry().getLineString().getCoordinates()
-        const gpxRemainingDistance = getRemainingDistance(featureCoordinates, currentPosition);
+        const gpxRemainingDistance = getRemainingDistance(featureCoordinates);
         if (gpxRemainingDistance != undefined) {
           routeInfo.innerHTML += "-> " + gpxRemainingDistance.toFixed(1) + "  km, " + Math.round(gpxRemainingDistance / (speedKmh / 60)) + " min<br>";
         }
@@ -519,7 +520,7 @@ geolocation.on("change", function () {
     // calculate remaing distance on route
     if (routeLayer.getSource().getFeatureById(0) != null) {
       const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
-      const routeRemainingDistance = getRemainingDistance(featureCoordinates, currentPosition);
+      const routeRemainingDistance = getRemainingDistance(featureCoordinates);
       if (routeRemainingDistance != undefined) {
         routeInfo.innerHTML += "-> " + routeRemainingDistance.toFixed(1) + "  km, " + Math.round(routeRemainingDistance / (speedKmh / 60)) + " min<br>";
       }
@@ -567,17 +568,17 @@ geolocation.on("change", function () {
   document.getElementById("info").innerHTML = html;
 });
 
-function getRemainingDistance(featureCoordinates, position) {
+function getRemainingDistance(featureCoordinates) {
   var newLineString = new LineString([]);
   var newMultiPoint = new MultiPoint(
     featureCoordinates.reverse(),
   );
 
-  const newLineStringclosestPoint = newMultiPoint.getClosestPoint(position);
-  const distanceToclosestPoint = getDistance(toLonLat(newLineStringclosestPoint), toLonLat(position));
+  const newLineStringclosestPoint = newMultiPoint.getClosestPoint(currentPosition);
+  const distanceToclosestPoint = getDistance(toLonLat(newLineStringclosestPoint), toLonLat(currentPosition));
 
   if (distanceToclosestPoint > 500) {
-    return;
+    return 0;
   } else {
     for (var i = 0; i < featureCoordinates.length; i++) {
       newLineString.appendCoordinate([featureCoordinates[i]]);
@@ -818,13 +819,6 @@ function setExtraInfo(infoText) {
 
 // brouter routing
 function routeMe() {
-  const endMarker = new Feature({
-    type: "icon",
-    geometry: new Point(
-      fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]),
-    ),
-  });
-  routeLayer.getSource().addFeature(endMarker);
 
   fetch(
     "https://brouter.de/brouter" +
@@ -836,7 +830,7 @@ function routeMe() {
     if (!response.ok) {
       setExtraInfo(["Felaktig rutt"]);
       routeInfo.innerHTML = "";
-      destinationCoordinates = [];
+      destinationCoordinates.pop(); // remove faulty coordinate
       return;
     }
     response.json().then(function (result) {
@@ -860,7 +854,7 @@ function routeMe() {
         }" target="_blank">Streetview</a>`,
         "Restid: " + toHHMMSS(totalTime),
       ]);
-      routeInfo.innerHTML = "-> " + getRemainingDistance(route.getCoordinates(), currentPosition).toFixed(1) + " km<br>";
+      routeInfo.innerHTML = "-> " + getRemainingDistance(route.getCoordinates()).toFixed(1) + " km<br>";
 
       const routeFeature = new Feature({
         type: "route",
