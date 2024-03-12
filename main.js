@@ -578,7 +578,7 @@ function getRemainingDistance(featureCoordinates) {
   const distanceToclosestPoint = getDistance(toLonLat(newLineStringclosestPoint), toLonLat(currentPosition));
 
   if (distanceToclosestPoint > 500) {
-    return 0;
+    return;
   } else {
     for (var i = 0; i < featureCoordinates.length; i++) {
       newLineString.appendCoordinate([featureCoordinates[i]]);
@@ -908,7 +908,7 @@ map.on("contextmenu", function (event) {
 
   // set start position
   if (destinationCoordinates.length == 0) {
-    destinationCoordinates.push(lonlat);
+    destinationCoordinates[0] = lonlat;
   }
 
   var clickedOnCurrentPosition = getDistance(lonlat, eventLonLat) < 200 || getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
