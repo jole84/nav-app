@@ -819,7 +819,6 @@ function setExtraInfo(infoText) {
 
 // brouter routing
 function routeMe() {
-
   fetch(
     "https://brouter.de/brouter" +
     // "https://jole84.se:17777/brouter" +
@@ -841,8 +840,8 @@ function routeMe() {
         })
         .getGeometry();
 
-      const trackLength = result.features[0].properties["track-length"] / 1000; // track-length in km
-      const totalTime = result.features[0].properties["total-time"] * 1000; // track-time in milliseconds
+      const totalLength = result.features[0].properties["track-length"] / 1000; // track-length in km
+      const totalTime = result.features[0].properties["total-time"];
 
       // add route information to info box
       setExtraInfo([
@@ -852,9 +851,9 @@ function routeMe() {
         `<a href="http://maps.google.com/maps?layer=c&cbll=${destinationCoordinates[destinationCoordinates.length - 1][1]
         },${destinationCoordinates[destinationCoordinates.length - 1][0]
         }" target="_blank">Streetview</a>`,
-        "Restid: " + toHHMMSS(totalTime),
+        // "Restid: " + toHHMMSS(totalTime * 1000),
       ]);
-      routeInfo.innerHTML = "-> " + getRemainingDistance(route.getCoordinates()).toFixed(1) + " km<br>";
+      routeInfo.innerHTML = "-> " + totalLength.toFixed(1) + " km, " + Math.round(totalTime / 60) + " min<br>";
 
       const routeFeature = new Feature({
         type: "route",
