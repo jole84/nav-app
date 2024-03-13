@@ -851,7 +851,6 @@ function routeMe() {
         `<a href="http://maps.google.com/maps?layer=c&cbll=${destinationCoordinates[destinationCoordinates.length - 1][1]
         },${destinationCoordinates[destinationCoordinates.length - 1][0]
         }" target="_blank">Streetview</a>`,
-        // "Restid: " + toHHMMSS(totalTime * 1000),
       ]);
       routeInfo.innerHTML = "-> " + totalLength.toFixed(1) + " km, " + Math.round(totalTime / 60) + " min<br>";
 
@@ -863,7 +862,7 @@ function routeMe() {
 
       const endMarker = new Feature({
         type: "icon",
-        geometry: new Point(route.getLastCoordinate().splice(0, 2)),
+        geometry: new Point(route.getLastCoordinate()),
       });
 
       // remove previus route
@@ -1021,7 +1020,7 @@ document.addEventListener("keydown", function (event) {
 var apiUrl = "https://api.trafikinfo.trafikverket.se/v2/";
 
 function breakSentence(sentence) {
-  sentence = sentence.replace(/\n/g, "");
+  sentence = sentence.replaceAll(".:", ":").replaceAll("\n", "").trim();
   var returnSentence = "";
   var x = 0;
   for (var i = 0; i < sentence.length; i++) {
@@ -1106,7 +1105,7 @@ function getDeviations() {
             name: breakSentence(
               (item.Deviation[0].LocationDescriptor ||
                 item.Deviation[0].RoadNumber ||
-                "Väg") +
+                "Väg").trim() +
               ": " +
               (item.Deviation[0].Message || "-")) +
               "\n" +
