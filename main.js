@@ -512,7 +512,7 @@ geolocation.on("change", function () {
         const featureCoordinates = feature.getGeometry().getLineString().getCoordinates()
         const gpxRemainingDistance = getRemainingDistance(featureCoordinates);
         if (gpxRemainingDistance != undefined) {
-          routeInfo.innerHTML += "-> " + gpxRemainingDistance.toFixed(1) + "  km, " + Math.round(gpxRemainingDistance / (speedKmh / 60)) + " min<br>";
+          routeInfo.innerHTML += '<font class="infoFormat">-></font> ' + gpxRemainingDistance.toFixed(1) + '<font class="infoFormat">KM</font>, ' + Math.round(gpxRemainingDistance / (speedKmh / 60)) + '<font class="infoFormat">MIN</font><br>';
         }
       }
     });
@@ -522,7 +522,7 @@ geolocation.on("change", function () {
       const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
       const routeRemainingDistance = getRemainingDistance(featureCoordinates);
       if (routeRemainingDistance != undefined) {
-        routeInfo.innerHTML += "-> " + routeRemainingDistance.toFixed(1) + "  km, " + Math.round(routeRemainingDistance / (speedKmh / 60)) + " min<br>";
+        routeInfo.innerHTML += '<font class="infoFormat">-></font> ' + routeRemainingDistance.toFixed(1) + '<font class="infoFormat">KM</font>, ' + Math.round(routeRemainingDistance / (speedKmh / 60)) + '<font class="infoFormat">MIN</font><br>';
       }
     }
   }
@@ -548,24 +548,16 @@ geolocation.on("change", function () {
   }
 
   if (speedKmh > maxSpeed && accuracy < 20) {
-    maxSpeed = Math.floor(speedKmh);
+    maxSpeed = speedKmh;
     maxSpeedCoord = [lonlat, new Date()];
   }
 
   // send text to info box
-  const html = [
-    lonlat[1].toFixed(5) + ", " + lonlat[0].toFixed(5),
-    (distanceTraveled / 1000).toFixed(2) +
-    " km / " +
-    Math.round(accuracy) +
-    " m",
-    '<b style="font-size:120%">' +
-    Math.floor(speedKmh) +
-    '</b> (<font style="color:#e60000;">' +
-    maxSpeed +
-    "</font>) km/h",
-  ].join("<br />");
-  document.getElementById("info").innerHTML = html;
+  document.getElementById("coordinatesDiv").innerHTML = lonlat[1].toFixed(5) + ", " + lonlat[0].toFixed(5);
+  document.getElementById("distanceTraveledDiv").innerHTML = (distanceTraveled / 1000).toFixed(2);
+  document.getElementById("accuracyDiv").innerHTML = Math.round(accuracy);
+  document.getElementById("speedDiv").innerHTML = Math.floor(speedKmh);
+  document.getElementById("maxSpeedDiv").innerHTML = Math.floor(maxSpeed);
 });
 
 function getRemainingDistance(featureCoordinates) {
@@ -760,7 +752,7 @@ function switchMap() {
     ortofoto.setMinZoom(0);
   }
 
-  infoGroup.style.fontSize = localStorage.preferredFontSize || "1.1em";
+  infoGroup.style.fontSize = localStorage.preferredFontSize || "20";
 }
 
 // logic for saveLogButton
@@ -819,7 +811,6 @@ function setExtraInfo(infoText) {
 
 // brouter routing
 function routeMe() {
-
   fetch(
     "https://brouter.de/brouter" +
     // "https://jole84.se:17777/brouter" +
@@ -841,8 +832,8 @@ function routeMe() {
         })
         .getGeometry();
 
-      const trackLength = result.features[0].properties["track-length"] / 1000; // track-length in km
-      const totalTime = result.features[0].properties["total-time"] * 1000; // track-time in milliseconds
+      const totalLength = result.features[0].properties["track-length"] / 1000; // track-length in km
+      const totalTime = result.features[0].properties["total-time"];
 
       // add route information to info box
       setExtraInfo([
@@ -852,9 +843,8 @@ function routeMe() {
         `<a href="http://maps.google.com/maps?layer=c&cbll=${destinationCoordinates[destinationCoordinates.length - 1][1]
         },${destinationCoordinates[destinationCoordinates.length - 1][0]
         }" target="_blank">Streetview</a>`,
-        "Restid: " + toHHMMSS(totalTime),
       ]);
-      routeInfo.innerHTML = "-> " + getRemainingDistance(route.getCoordinates()).toFixed(1) + " km<br>";
+      routeInfo.innerHTML = '<font class="infoFormat">-></font> ' + totalLength.toFixed(1) + '<font class="infoFormat">KM</font>, ' + Math.round(totalTime / 60) + '<font class="infoFormat">MIN</font><br>';
 
       const routeFeature = new Feature({
         type: "route",
@@ -864,7 +854,7 @@ function routeMe() {
 
       const endMarker = new Feature({
         type: "icon",
-        geometry: new Point(route.getLastCoordinate().splice(0, 2)),
+        geometry: new Point(route.getLastCoordinate()),
       });
 
       // remove previus route
@@ -920,7 +910,7 @@ map.on("contextmenu", function (event) {
     // clear route if click < 40 pixels from last point or click on current position
   } else if (destinationCoordinates.length == 2 && clickedOnLastDestination || clickedOnCurrentPosition) {
     routeLayer.getSource().clear();
-    setExtraInfo([Math.round(getDistance(lonlat, eventLonLat)) + " m"]);
+    setExtraInfo([Math.round(getDistance(lonlat, eventLonLat)) + '<font class="infoFormat">M</font>']);
     routeInfo.innerHTML = "";
     destinationCoordinates = [];
   } else {
@@ -1022,7 +1012,7 @@ document.addEventListener("keydown", function (event) {
 var apiUrl = "https://api.trafikinfo.trafikverket.se/v2/";
 
 function breakSentence(sentence) {
-  sentence = sentence.replace(/\n/g, "");
+  sentence = sentence.replaceAll(".:", ":").replaceAll("\n", "").trim();
   var returnSentence = "";
   var x = 0;
   for (var i = 0; i < sentence.length; i++) {
@@ -1107,7 +1097,7 @@ function getDeviations() {
             name: breakSentence(
               (item.Deviation[0].LocationDescriptor ||
                 item.Deviation[0].RoadNumber ||
-                "Väg") +
+                "Väg").trim() +
               ": " +
               (item.Deviation[0].Message || "-")) +
               "\n" +
