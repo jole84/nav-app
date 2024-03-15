@@ -41,7 +41,7 @@
     #trafficWarning {
       text-align: center;
       color: black;
-      font-size: 125%;
+      font-size: 110%;
       font-weight: bold;
       background-color: #fcd006;
       border: 3px solid #ee293d;
@@ -116,6 +116,10 @@
       padding-bottom: .2rem;
     }
 
+    .B612 {
+      font-family: "B612";
+    }
+
     .infoGroup {
       font-family: "B612";
       font-weight: 400;
@@ -154,13 +158,12 @@
 <body oncontextmenu="return false;">
   <div id="map">
     <div class="infoGroup" id="infoGroup">
-      <span id="coordinatesDiv"></span>
-      <br>
-      <span id="distanceTraveledDiv">0</span><span class="infoFormat">KM /</span>
+      <div id="coordinatesDiv"></div>
+      <span id="distanceTraveledDiv">0.00</span><span class="infoFormat">KM /</span>
       <span id="accuracyDiv">-</span><span class="infoFormat">M</span>
       <br>
       <span id="speedDiv">0</span>
-      [<span id="maxSpeedDiv">0</span>]<span class="infoFormat">KM/H</span>
+      (<span id="maxSpeedDiv">0</span>)<span class="infoFormat">KM/H</span>
       <br>
       <div id="extraInfo"></div>
       <div id="routeInfo"></div>
@@ -206,7 +209,7 @@
             Zoom:
           </td>
           <td>
-            <code><div id="currentZoom"></div></code>
+            <code><div class="B612" id="currentZoom"></div></code>
           </td>
         </tr>
         <tr>
@@ -214,7 +217,7 @@
             Fördröjning (sek):
           </td>
           <td>
-            <input class="form-control" type="number" id="interactionDelay"><br>
+            <input class="form-control B612" type="number" id="interactionDelay"><br>
           </td>
         </tr>
 
@@ -223,7 +226,7 @@
             Förvald zoom:
           </td>
           <td>
-            <input class="form-control" type="number" id="prefferedZoom" value="14" min="6" max="20" step="0.1" required
+            <input class="form-control B612" type="number" id="prefferedZoom" value="14" min="6" max="20" step="0.1" required
               placeholder="14"><br>
           </td>
         </tr>
