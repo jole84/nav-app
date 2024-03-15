@@ -505,6 +505,15 @@ geolocation.on("change", function () {
     ]);
     line.appendCoordinate(currentPosition);
 
+    // recalculate route if > 300 m off route
+    if (destinationCoordinates.length == 2) {
+      var closestRoutePoint = routeLayer.getSource().getFeatureById(0).getGeometry().getClosestPoint(currentPosition);
+      if (getDistance(lonlat, toLonLat(closestRoutePoint)) > 300) {
+        destinationCoordinates[0] = lonlat;
+        routeMe();
+      }
+    }
+
     // calculate remaing distance on gpx
     routeInfo.innerHTML = "";
     gpxLayer.getSource().forEachFeature(function (feature) {
