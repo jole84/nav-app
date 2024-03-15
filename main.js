@@ -512,7 +512,7 @@ geolocation.on("change", function () {
         const featureCoordinates = feature.getGeometry().getLineString().getCoordinates()
         const gpxRemainingDistance = getRemainingDistance(featureCoordinates);
         if (gpxRemainingDistance != undefined) {
-          routeInfo.innerHTML += "-> " + gpxRemainingDistance.toFixed(1) + "  km, " + Math.round(gpxRemainingDistance / (speedKmh / 60)) + " min<br>";
+          routeInfo.innerHTML += '<font class="infoFormat">-></font> ' + gpxRemainingDistance.toFixed(1) + '<font class="infoFormat">KM</font>, ' + Math.round(gpxRemainingDistance / (speedKmh / 60)) + '<font class="infoFormat">MIN</font><br>';
         }
       }
     });
@@ -522,7 +522,7 @@ geolocation.on("change", function () {
       const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
       const routeRemainingDistance = getRemainingDistance(featureCoordinates);
       if (routeRemainingDistance != undefined) {
-        routeInfo.innerHTML += "-> " + routeRemainingDistance.toFixed(1) + "  km, " + Math.round(routeRemainingDistance / (speedKmh / 60)) + " min<br>";
+        routeInfo.innerHTML += '<font class="infoFormat">-></font> ' + routeRemainingDistance.toFixed(1) + '<font class="infoFormat">KM</font>, ' + Math.round(routeRemainingDistance / (speedKmh / 60)) + '<font class="infoFormat">MIN</font><br>';
       }
     }
   }
@@ -548,24 +548,16 @@ geolocation.on("change", function () {
   }
 
   if (speedKmh > maxSpeed && accuracy < 20) {
-    maxSpeed = Math.floor(speedKmh);
+    maxSpeed = speedKmh;
     maxSpeedCoord = [lonlat, new Date()];
   }
 
   // send text to info box
-  const html = [
-    lonlat[1].toFixed(5) + ", " + lonlat[0].toFixed(5),
-    (distanceTraveled / 1000).toFixed(2) +
-    " km / " +
-    Math.round(accuracy) +
-    " m",
-    '<b style="font-size:120%">' +
-    Math.floor(speedKmh) +
-    '</b> (<font style="color:#e60000;">' +
-    maxSpeed +
-    "</font>) km/h",
-  ].join("<br />");
-  document.getElementById("info").innerHTML = html;
+  document.getElementById("coordinatesDiv").innerHTML = lonlat[1].toFixed(5) + ", " + lonlat[0].toFixed(5);
+  document.getElementById("distanceTraveledDiv").innerHTML = (distanceTraveled / 1000).toFixed(2);
+  document.getElementById("accuracyDiv").innerHTML = Math.round(accuracy);
+  document.getElementById("speedDiv").innerHTML = Math.floor(speedKmh);
+  document.getElementById("maxSpeedDiv").innerHTML = Math.floor(maxSpeed);
 });
 
 function getRemainingDistance(featureCoordinates) {
@@ -760,7 +752,7 @@ function switchMap() {
     ortofoto.setMinZoom(0);
   }
 
-  infoGroup.style.fontSize = localStorage.preferredFontSize || "1.1em";
+  infoGroup.style.fontSize = localStorage.preferredFontSize || "20";
 }
 
 // logic for saveLogButton
@@ -852,7 +844,7 @@ function routeMe() {
         },${destinationCoordinates[destinationCoordinates.length - 1][0]
         }" target="_blank">Streetview</a>`,
       ]);
-      routeInfo.innerHTML = "-> " + totalLength.toFixed(1) + " km, " + Math.round(totalTime / 60) + " min<br>";
+      routeInfo.innerHTML = '<font class="infoFormat">-></font> ' + totalLength.toFixed(1) + '<font class="infoFormat">KM</font>, ' + Math.round(totalTime / 60) + '<font class="infoFormat">MIN</font><br>';
 
       const routeFeature = new Feature({
         type: "route",
@@ -918,7 +910,7 @@ map.on("contextmenu", function (event) {
     // clear route if click < 40 pixels from last point or click on current position
   } else if (destinationCoordinates.length == 2 && clickedOnLastDestination || clickedOnCurrentPosition) {
     routeLayer.getSource().clear();
-    setExtraInfo([Math.round(getDistance(lonlat, eventLonLat)) + " m"]);
+    setExtraInfo([Math.round(getDistance(lonlat, eventLonLat)) + '<font class="infoFormat">M</font>']);
     routeInfo.innerHTML = "";
     destinationCoordinates = [];
   } else {
