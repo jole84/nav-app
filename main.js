@@ -497,7 +497,7 @@ geolocation.on("change", function () {
   positionMarkerPoint.setCoordinates(currentPosition);
 
   // measure distance and push log if position change > 10 meters and accuracy is good
-  if (getDistance(trackLog[trackLog.length - 1][0], lonlat) > 10 && accuracy < 20) {
+  if (getDistance(prevCoordinate, lonlat) > 10 && accuracy < 20) {
     trackLog.push([
       lonlat,
       altitude,
@@ -536,7 +536,9 @@ geolocation.on("change", function () {
     }
   }
 
-  distanceTraveled += getDistance(prevCoordinate, lonlat);
+  if (accuracy < 20) {
+    distanceTraveled += getDistance(prevCoordinate, lonlat);
+  }
   prevCoordinate = lonlat;
 
   if (speed > 1) {
