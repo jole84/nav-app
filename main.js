@@ -17,7 +17,13 @@ import VectorSource from "ol/source/Vector.js";
 import WKT from "ol/format/WKT.js";
 import XYZ from "ol/source/XYZ.js";
 
-setExtraInfo(['<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>']);
+navigator.getBattery().then(function (battery) {
+  setExtraInfo([
+    '<font class="infoFormat">Batteri: ' + battery.level * 100 + "% (" + (battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>') + ')</font>',
+    '<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>',
+  ]);
+});
+// setExtraInfo(['<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>']);
 
 let wakeLock;
 const acquireWakeLock = async () => {
@@ -497,7 +503,7 @@ geolocation.on("change", function () {
   positionMarkerPoint.setCoordinates(currentPosition);
 
   // measure distance and push log if position change > 10 meters and accuracy is good
-  if (getDistance(trackLog[trackLog.length - 1][0], lonlat) > 10 && accuracy < 20) {
+  if (getDistance(prevCoordinate, lonlat) > 10 && accuracy < 20) {
     trackLog.push([
       lonlat,
       altitude,
@@ -536,7 +542,9 @@ geolocation.on("change", function () {
     }
   }
 
-  distanceTraveled += getDistance(prevCoordinate, lonlat);
+  if (accuracy < 20) {
+    distanceTraveled += getDistance(prevCoordinate, lonlat);
+  }
   prevCoordinate = lonlat;
 
   if (speed > 1) {
@@ -913,13 +921,16 @@ map.on("contextmenu", function (event) {
   var clickedOnCurrentPosition = getDistance(lonlat, eventLonLat) < 200 || getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
   var clickedOnLastDestination = getPixelDistance(event.pixel, map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))) < 40;
 
+  // measure distance from current pos
+  if(clickedOnCurrentPosition) {
+    setExtraInfo([Math.round(getDistance(lonlat, eventLonLat)) + '<font class="infoFormat">M</font>']);
+  }
   // remove last point if click < 40 pixels from last point
   if (destinationCoordinates.length > 2 && clickedOnLastDestination) {
     destinationCoordinates.pop();
     // clear route if click < 40 pixels from last point or click on current position
   } else if (destinationCoordinates.length == 2 && clickedOnLastDestination || clickedOnCurrentPosition) {
     routeLayer.getSource().clear();
-    setExtraInfo([Math.round(getDistance(lonlat, eventLonLat)) + '<font class="infoFormat">M</font>']);
     routeInfo.innerHTML = "";
     destinationCoordinates = [];
   } else {
