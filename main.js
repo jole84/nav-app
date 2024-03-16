@@ -17,13 +17,16 @@ import VectorSource from "ol/source/Vector.js";
 import WKT from "ol/format/WKT.js";
 import XYZ from "ol/source/XYZ.js";
 
-navigator.getBattery().then(function (battery) {
-  setExtraInfo([
-    '<font class="infoFormat">Batteri: ' + battery.level * 100 + "% (" + (battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>') + ')</font>',
-    '<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>',
-  ]);
-});
-// setExtraInfo(['<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>']);
+if (!navigator.getBattery) {
+  setExtraInfo(['<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>']);
+} else {
+  navigator.getBattery().then(function (battery) {
+    setExtraInfo([
+      '<font class="infoFormat">Batteri: ' + Math.round(battery.level * 100) + "% (" + (battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>') + ')</font>',
+      '<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>',
+    ]);
+  });
+}
 
 let wakeLock;
 const acquireWakeLock = async () => {
