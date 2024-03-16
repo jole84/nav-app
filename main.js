@@ -1294,9 +1294,9 @@ const playButton = document.createElement("button");
 const stopButton = document.createElement("button");
 playButton.id = "playButton";
 stopButton.id = "stopButton";
-playButton.setAttribute("class", "btn btn-primary");
+playButton.setAttribute("class", "btn btn-success");
 stopButton.setAttribute("class", "btn btn-danger");
-playButton.innerHTML = "Play";
+playButton.innerHTML = "Start";
 stopButton.innerHTML = "Stop";
 playButton.style.marginBottom = "5px";
 stopButton.style.marginBottom = "5px";
@@ -1350,16 +1350,16 @@ function changeGeolocationPosition(longitude, latitude) {
     var lonlat = toLonLat([positionList[currentSimulatedPosition][0], positionList[currentSimulatedPosition][1]]);
     var lonlat2 = toLonLat([positionList[currentSimulatedPosition - 1][0], positionList[currentSimulatedPosition - 1][1]]);
     geolocation.set("heading", degToRad(getBearing(lonlat2, lonlat)));
-  } catch {}
+  } catch { }
   geolocation.changed();
 }
- 
+
 // Converts from radians to degrees.
 function radToDeg(radians) {
   return radians * 180 / Math.PI;
 }
 
-function getBearing([lon1, lat1], [lon2, lat2]){
+function getBearing([lon1, lat1], [lon2, lat2]) {
   lat1 = degToRad(lat1);
   lon1 = degToRad(lon1);
   lat2 = degToRad(lat2);
@@ -1367,7 +1367,7 @@ function getBearing([lon1, lat1], [lon2, lat2]){
 
   var y = Math.sin(lon2 - lon1) * Math.cos(lat2);
   var x = Math.cos(lat1) * Math.sin(lat2) -
-        Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1);
+    Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1);
   var brng = Math.atan2(y, x);
   brng = radToDeg(brng);
   return (brng + 360) % 360;
