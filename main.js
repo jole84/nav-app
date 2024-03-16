@@ -921,13 +921,16 @@ map.on("contextmenu", function (event) {
   var clickedOnCurrentPosition = getDistance(lonlat, eventLonLat) < 200 || getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
   var clickedOnLastDestination = getPixelDistance(event.pixel, map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))) < 40;
 
+  // measure distance from current pos
+  if(clickedOnCurrentPosition) {
+    setExtraInfo([Math.round(getDistance(lonlat, eventLonLat)) + '<font class="infoFormat">M</font>']);
+  }
   // remove last point if click < 40 pixels from last point
   if (destinationCoordinates.length > 2 && clickedOnLastDestination) {
     destinationCoordinates.pop();
     // clear route if click < 40 pixels from last point or click on current position
   } else if (destinationCoordinates.length == 2 && clickedOnLastDestination || clickedOnCurrentPosition) {
     routeLayer.getSource().clear();
-    setExtraInfo([Math.round(getDistance(lonlat, eventLonLat)) + '<font class="infoFormat">M</font>']);
     routeInfo.innerHTML = "";
     destinationCoordinates = [];
   } else {
