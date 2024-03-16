@@ -17,15 +17,15 @@ import VectorSource from "ol/source/Vector.js";
 import WKT from "ol/format/WKT.js";
 import XYZ from "ol/source/XYZ.js";
 
-if (!navigator.getBattery) {
-  setExtraInfo(['<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>']);
-} else {
+if (navigator.getBattery) {
   navigator.getBattery().then(function (battery) {
     setExtraInfo([
       '<font class="infoFormat">Batteri: ' + Math.round(battery.level * 100) + "% (" + (battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>') + ')</font>',
       '<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>',
     ]);
   });
+} else {
+  setExtraInfo(['<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>']);
 }
 
 let wakeLock;
@@ -925,7 +925,7 @@ map.on("contextmenu", function (event) {
   var clickedOnLastDestination = getPixelDistance(event.pixel, map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))) < 40;
 
   // measure distance from current pos
-  if(clickedOnCurrentPosition) {
+  if (clickedOnCurrentPosition) {
     setExtraInfo([Math.round(getDistance(lonlat, eventLonLat)) + '<font class="infoFormat">M</font>']);
   }
   // remove last point if click < 40 pixels from last point
