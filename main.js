@@ -47,7 +47,6 @@ document.addEventListener("visibilitychange", async () => {
 
 localStorage.interactionDelay = (localStorage.interactionDelay || 10000);
 localStorage.mapMode = (localStorage.mapMode || 0);
-localStorage.defaultZoom = (localStorage.defaultZoom || 14);
 const startTime = new Date();
 let distanceTraveled = 0;
 var accuracy = 100;
@@ -55,6 +54,7 @@ var altitude = 0;
 var center = [1700000, 8500000];
 var closestAccident;
 var closestAccidentPosition;
+let prevCoordinate;
 var currentPosition = center;
 var destinationCoordinates = [];
 var heading = 0;
@@ -97,8 +97,7 @@ var preferredFontSizeDiv = document.getElementById("preferredFontSize");
 var openMenuButton = document.getElementById("openMenu");
 var closeMenuButton = document.getElementById("closeMenu");
 
-localStorage.enableLnt = JSON.parse(localStorage.enableLnt || false);
-enableLntDiv.checked = JSON.parse(localStorage.enableLnt);
+enableLntDiv.checked = localStorage.enableLnt = localStorage.enableLnt == "true";
 enableLntDiv.addEventListener("change", function () {
   localStorage.enableLnt = enableLntDiv.checked;
   location.reload();
@@ -114,13 +113,13 @@ if (JSON.parse(localStorage.enableLnt)) {
   layerSelector.add(option5);
 };
 
-extraTrafikCheckDiv.checked = localStorage.extraTrafik == 'true';
+extraTrafikCheckDiv.checked = localStorage.extraTrafik == "true";
 extraTrafikCheckDiv.addEventListener("change", function () {
   localStorage.extraTrafik = extraTrafikCheckDiv.checked;
   getDeviations();
 });
 
-onUnloadDiv.checked = localStorage.onUnload == 'true';
+onUnloadDiv.checked = localStorage.onUnload == "true";
 onUnloadDiv.addEventListener("change", function () {
   localStorage.onUnload = onUnloadDiv.checked;
 });
@@ -147,21 +146,21 @@ document.getElementById("clearSettings").onclick = function () {
   location.reload();
 };
 
-prefferedZoomDiv.value = localStorage.defaultZoom;
+localStorage.defaultZoom = prefferedZoomDiv.value = localStorage.defaultZoom || 14;
 prefferedZoomDiv.addEventListener("change", function () {
-  localStorage.defaultZoom = prefferedZoomDiv.value || 14;
+  localStorage.defaultZoom = prefferedZoomDiv.value;
   centerFunction();
 });
 
-interactionDelayDiv.value = (localStorage.interactionDelay || 10000) / 1000;
+interactionDelayDiv.value = localStorage.interactionDelay / 1000;
 interactionDelayDiv.addEventListener("change", function () {
   localStorage.interactionDelay = interactionDelayDiv.value * 1000;
 });
 
-preferredFontSize.value = localStorage.preferredFontSize || "20";
+localStorage.preferredFontSize = preferredFontSizeDiv.value = localStorage.preferredFontSize || "20";
 preferredFontSizeDiv.addEventListener("change", function () {
   localStorage.preferredFontSize = preferredFontSizeDiv.value;
-  infoGroup.style.fontSize = localStorage.preferredFontSize || "20";
+  infoGroup.style.fontSize = localStorage.preferredFontSize;
 });
 
 const view = new View({
@@ -471,7 +470,6 @@ const geolocation = new Geolocation({
   tracking: true,
 });
 
-let prevCoordinate;
 // run once to get things going
 geolocation.once("change", function () {
   currentPosition = geolocation.getPosition();
@@ -721,10 +719,10 @@ function switchMap() {
     "-webkit-filter: initial;filter: initial;background-color: initial;",
   );
 
-  if (JSON.parse(localStorage.enableLnt) && localStorage.getItem("mapMode") > 5) {
+  if (localStorage.enableLnt == "true" && localStorage.getItem("mapMode") > 5) {
     localStorage.setItem("mapMode", 0);
   }
-  if (!JSON.parse(localStorage.enableLnt) && localStorage.getItem("mapMode") > 3) {
+  if (localStorage.enableLnt == "false" && localStorage.getItem("mapMode") > 3) {
     localStorage.setItem("mapMode", 0);
   }
   layerSelector.value = localStorage.getItem("mapMode");
@@ -772,13 +770,15 @@ function switchMap() {
     ortofoto.setMinZoom(0);
   }
 
-  infoGroup.style.fontSize = localStorage.preferredFontSize || "20";
+  infoGroup.style.fontSize = localStorage.preferredFontSize;
 }
 
 // logic for saveLogButton
 function saveLogButtonFunction() {
   if (trackLog.length > 5) {
     saveLog();
+  } else {
+    console.log(trackLog);
   }
 }
 
@@ -826,7 +826,7 @@ function setExtraInfo(infoText) {
   document.getElementById("extraInfo").innerHTML = extraInfo;
   timeOut = setTimeout(function () {
     document.getElementById("extraInfo").innerHTML = "";
-  }, 60000);
+  }, 30000);
 }
 
 // brouter routing
@@ -1032,8 +1032,6 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
-var apiUrl = "https://api.trafikinfo.trafikverket.se/v2/";
-
 function breakSentence(sentence) {
   sentence = sentence.replaceAll(".:", ":").replaceAll("\n", "").trim();
   var returnSentence = "";
@@ -1050,6 +1048,7 @@ function breakSentence(sentence) {
   return returnSentence;
 }
 
+var apiUrl = "https://api.trafikinfo.trafikverket.se/v2/";
 $.ajaxSetup({
   url: apiUrl + "data.json",
   error: function (msg) {
