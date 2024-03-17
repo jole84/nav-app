@@ -20,7 +20,8 @@ import XYZ from "ol/source/XYZ.js";
 if (navigator.getBattery) {
   navigator.getBattery().then(function (battery) {
     setExtraInfo([
-      '<font class="infoFormat">Batteri: ' + Math.round(battery.level * 100) + "% (" + (battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>') + ')</font>',
+      'Batteri: ' + Math.round(battery.level * 100) + "%",
+      "(" + (battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>') + ')',
       '<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>',
     ]);
   });
