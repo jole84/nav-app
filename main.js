@@ -17,7 +17,10 @@ import VectorSource from "ol/source/Vector.js";
 import WKT from "ol/format/WKT.js";
 import XYZ from "ol/source/XYZ.js";
 
-if (navigator.getBattery) {
+if (!navigator.getBattery) {
+  // startup text for none Chrome browsers
+  setExtraInfo(['<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>']);
+} else {
   navigator.getBattery().then(function (battery) {
     // notify when charger connected
     battery.onchargingchange = () => {
@@ -27,15 +30,16 @@ if (navigator.getBattery) {
       ]);
     };
     // set text at startup
-    setExtraInfo([
-      'Batteri: ' + Math.round(battery.level * 100) + '<font class="infoFormat">%</font>',
-      (battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>'),
-      '<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>',
-    ]);
+    if (battery.chargingTime !== 0) {
+      setExtraInfo([
+        'Batteri: ' + Math.round(battery.level * 100) + '<font class="infoFormat">%</font>',
+        (battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>'),
+        '<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>',
+      ]);
+    } else {
+      setExtraInfo(['<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>']);
+    }
   });
-} else {
-  // startup text for none Chrome browsers
-  setExtraInfo(['<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>']);
 }
 
 let wakeLock;
