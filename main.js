@@ -17,29 +17,29 @@ import VectorSource from "ol/source/Vector.js";
 import WKT from "ol/format/WKT.js";
 import XYZ from "ol/source/XYZ.js";
 
-if (!navigator.getBattery) {
-  // startup text for none Chrome browsers
-  setExtraInfo(['<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>']);
-} else {
+var startMessage = ['<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>'];
+if (navigator.getBattery) {
   navigator.getBattery().then(function (battery) {
-    // notify when charger connected
-    battery.onchargingchange = () => {
-      setExtraInfo([
-        'Batteri: ' + Math.round(battery.level * 100) + '<font class="infoFormat">%</font>',
-        (battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>'),
-      ]);
-    };
-    // set text at startup
     if (battery.chargingTime !== 0) {
-      setExtraInfo([
-        'Batteri: ' + Math.round(battery.level * 100) + '<font class="infoFormat">%</font>',
-        (battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>'),
-        '<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>',
-      ]);
-    } else {
-      setExtraInfo(['<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>']);
+      startMessage.unshift(battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>');
+      document.getElementById("batteryLevel").innerHTML = Math.round(battery.level * 100);
+      document.getElementById("batteryCharging").innerHTML = battery.charging ? "+" : "-";
+
+      battery.onchargingchange = () => {
+        document.getElementById("batteryCharging").innerHTML = battery.charging ? "+" : "-";
+        setExtraInfo([
+          (battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>')
+        ]);
+      }
+
+      battery.onlevelchange = () => {
+        document.getElementById("batteryLevel").innerHTML = Math.round(battery.level * 100);
+      }
     }
+    setExtraInfo(startMessage);
   });
+} else {
+  setExtraInfo(startMessage);
 }
 
 let wakeLock;
