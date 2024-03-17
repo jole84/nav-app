@@ -19,13 +19,22 @@ import XYZ from "ol/source/XYZ.js";
 
 if (navigator.getBattery) {
   navigator.getBattery().then(function (battery) {
+    // notify when charger connected
+    battery.onchargingchange = () => {
+      setExtraInfo([
+        'Batteri: ' + Math.round(battery.level * 100) + '<font class="infoFormat">%</font>',
+        (battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>'),
+      ]);
+    };
+    // set text at startup
     setExtraInfo([
-      'Batteri: ' + Math.round(battery.level * 100) + "%",
-      "(" + (battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>') + ')',
+      'Batteri: ' + Math.round(battery.level * 100) + '<font class="infoFormat">%</font>',
+      (battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>'),
       '<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>',
     ]);
   });
 } else {
+  // startup text for none Chrome browsers
   setExtraInfo(['<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>']);
 }
 
