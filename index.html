@@ -129,14 +129,14 @@
       border: 1px solid rgb(32, 32, 32);
       color: rgb(32, 32, 32);
       font-size: 20;
-      line-height: 1.3;
+      line-height: 1.4;
       padding-left: 5px;
       padding-right: 5px;
       position: absolute;
       right: 5px;
       top: 5px;
       z-index: 10;
-      max-width: 90%;
+      max-width: 80%;
       word-wrap: break-word;
     }
 
@@ -147,9 +147,16 @@
     #maxSpeedDiv {
       color: #e60000;
     }
+
     #speedDiv {
       font-weight: 700;
       font-size: 120%;
+    }
+
+    .equalSpace {
+      align-items: end;
+      justify-content: space-between;
+      display: flex;
     }
   </style>
   <script type="module" src="./main.js"></script>
@@ -159,13 +166,16 @@
   <div id="map">
     <div class="infoGroup" id="infoGroup">
       <div id="coordinatesDiv"></div>
-      <span id="distanceTraveledDiv">0.00</span><span class="infoFormat">KM /</span>
-      <span id="accuracyDiv">-</span><span class="infoFormat">M / </span>
-      <span id="batteryCharging"></span><span id="batteryLevel">-</span><span class="infoFormat">%</span>
-      <br>
-      <span id="speedDiv">0</span>
-      (<span id="maxSpeedDiv">0</span>)<span class="infoFormat">KM/H</span>
-      <br>
+      <div class="equalSpace">
+        <div><span id="distanceTraveledDiv">0.00</span><span class="infoFormat">KM</span></div>
+        <div><span id="accuracyDiv">-</span><span class="infoFormat">M</span></div>
+        <div><span id="batteryCharging"></span><span id="batteryLevel">-</span><span class="infoFormat">%</span></div>
+      </div>
+      <div class="equalSpace">
+        <div>
+          <span id="speedDiv">0</span> (<span id="maxSpeedDiv">0</span>)<span class="infoFormat">KM/H</span>
+        </div>
+      </div>
       <div id="extraInfo"></div>
       <div id="routeInfo"></div>
       <div id="trafficWarning"></div>
@@ -186,7 +196,10 @@
     </div>
     <div id="menuDiv">
       <h2>Inställningar</h2>
-      <p><img src="https://jole84.se/84.svg" height="30"> Jole84 navigationsapp med <a href="https://github.com/jole84/nav-app">öppen källkod</a>, karta skapad av öppna data från Lantmäteriet och Trafikverket. Baserad på <a href="https://openlayers.org">Openlayers</a>. Navigation från <a href="https://brouter.de/">BRouter</a>.</p>
+      <p><img src="https://jole84.se/84.svg" height="30"> Jole84 navigationsapp med <a
+          href="https://github.com/jole84/nav-app">öppen källkod</a>, karta skapad av öppna data från Lantmäteriet och
+        Trafikverket. Baserad på <a href="https://openlayers.org">Openlayers</a>. Navigation från <a
+          href="https://brouter.de/">BRouter</a>.</p>
       <table class="table table-borderless table-sm align-middle">
         <tr>
           <td colspan="2">
@@ -196,7 +209,8 @@
 
         <tr>
           <td colspan="2">
-            <input class="form-check-input" type="checkbox" id="extraTrafikCheck"> Extra trafikinformation (vägarbete mm.)
+            <input class="form-check-input" type="checkbox" id="extraTrafikCheck"> Extra trafikinformation (vägarbete
+            mm.)
           </td>
         </tr>
 
@@ -227,8 +241,8 @@
             Förvald zoom:
           </td>
           <td>
-            <input class="form-control B612" type="number" id="prefferedZoom" value="14" min="6" max="20" step="0.1" required
-              placeholder="14"><br>
+            <input class="form-control B612" type="number" id="prefferedZoom" value="14" min="6" max="20" step="0.1"
+              required placeholder="14"><br>
           </td>
         </tr>
 
