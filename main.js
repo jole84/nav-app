@@ -536,7 +536,7 @@ geolocation.on("change", function () {
         const featureCoordinates = feature.getGeometry().getLineString().getCoordinates()
         const gpxRemainingDistance = getRemainingDistance(featureCoordinates);
         if (gpxRemainingDistance != undefined) {
-          routeInfo.innerHTML += '<div class="equalSpace"><div><font class="infoFormat">-></font> ' + gpxRemainingDistance.toFixed(1) + '<font class="infoFormat">KM</font></div><div>' + Math.round(gpxRemainingDistance / (speedKmh / 60)) + '<font class="infoFormat">MIN</font></div></div>';
+          routeInfo.innerHTML += `<div class="equalSpace"> <div><font class="infoFormat">-></font> ${gpxRemainingDistance.toFixed(1)}<font class="infoFormat">KM</font></div> <div>${Math.round(gpxRemainingDistance / (speedKmh / 60))}<font class="infoFormat">MIN</font></div> </div>`;
         }
       }
     });
@@ -546,7 +546,7 @@ geolocation.on("change", function () {
       const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
       const routeRemainingDistance = getRemainingDistance(featureCoordinates);
       if (routeRemainingDistance != undefined) {
-        routeInfo.innerHTML += '<div class="equalSpace"><div><font class="infoFormat">-></font> ' + routeRemainingDistance.toFixed(1) + '<font class="infoFormat">KM</font></div><div>' + Math.round(routeRemainingDistance / (speedKmh / 60)) + '<font class="infoFormat">MIN</font></div></div>';
+        routeInfo.innerHTML += `<div class="equalSpace"> <div><font class="infoFormat">-></font> ${routeRemainingDistance.toFixed(1)}<font class="infoFormat">KM</font></div> <div>${Math.round(routeRemainingDistance / (speedKmh / 60))}<font class="infoFormat">MIN</font></div> </div>`;
       }
     }
   }
@@ -869,7 +869,7 @@ function routeMe() {
         },${destinationCoordinates[destinationCoordinates.length - 1][0]
         }" target="_blank">Streetview</a>`,
       ]);
-      routeInfo.innerHTML = '<div class="equalSpace"><div><font class="infoFormat">-></font> ' + totalLength.toFixed(1) + '<font class="infoFormat">KM</font></div><div>' + Math.round(totalTime / 60) + '<font class="infoFormat">MIN</font></div></div>';
+      routeInfo.innerHTML = `<div class="equalSpace"> <div><font class="infoFormat">-></font> ${totalLength.toFixed(1)}<font class="infoFormat">KM</font></div> <div>${Math.round(totalTime / 60)}<font class="infoFormat">MIN</font></div> </div>`;
 
       const routeFeature = new Feature({
         type: "route",
