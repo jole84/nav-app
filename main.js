@@ -17,7 +17,6 @@ import VectorSource from "ol/source/Vector.js";
 import WKT from "ol/format/WKT.js";
 import XYZ from "ol/source/XYZ.js";
 
-var startMessage = ['<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>'];
 if (navigator.getBattery) {
   navigator.getBattery().then(function (battery) {
     document.getElementById("batteryLevel").innerHTML = Math.round(battery.level * 100);
@@ -32,15 +31,9 @@ if (navigator.getBattery) {
         (battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>')
       ]);
     }
-
-    if (battery.chargingTime !== 0) {
-      startMessage.unshift(battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>');
-    }
-    setExtraInfo(startMessage);
   });
-} else {
-  setExtraInfo(startMessage);
 }
+setExtraInfo(['<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>']);
 
 let wakeLock;
 const acquireWakeLock = async () => {
@@ -85,6 +78,7 @@ var customFileButton = document.getElementById("customFileButton");
 var infoGroup = document.getElementById("infoGroup");
 var saveLogButton = document.getElementById("saveLogButton");
 var trafficWarningDiv = document.getElementById("trafficWarning");
+var routeInfo = document.getElementById("routeInfo");
 centerButton.onclick = centerFunction;
 customFileButton.addEventListener("change", handleFileSelect, false);
 trafficWarningDiv.addEventListener("click", focusTrafficWarning);
@@ -542,7 +536,7 @@ geolocation.on("change", function () {
         const featureCoordinates = feature.getGeometry().getLineString().getCoordinates()
         const gpxRemainingDistance = getRemainingDistance(featureCoordinates);
         if (gpxRemainingDistance != undefined) {
-          routeInfo.innerHTML += '<div><font class="infoFormat">-></font> ' + gpxRemainingDistance.toFixed(1) + '<font class="infoFormat">KM</font></div>' + "<div>" + Math.round(gpxRemainingDistance / (speedKmh / 60)) + '<font class="infoFormat">MIN</font></div>';
+          routeInfo.innerHTML += '<div class="equalSpace"><div><font class="infoFormat">-></font> ' + gpxRemainingDistance.toFixed(1) + '<font class="infoFormat">KM</font></div><div>' + Math.round(gpxRemainingDistance / (speedKmh / 60)) + '<font class="infoFormat">MIN</font></div></div>';
         }
       }
     });
@@ -552,7 +546,7 @@ geolocation.on("change", function () {
       const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
       const routeRemainingDistance = getRemainingDistance(featureCoordinates);
       if (routeRemainingDistance != undefined) {
-        routeInfo.innerHTML += '<div><font class="infoFormat">-></font> ' + routeRemainingDistance.toFixed(1) + '<font class="infoFormat">KM</font></div>' + "<div>" + Math.round(routeRemainingDistance / (speedKmh / 60)) + '<font class="infoFormat">MIN</font></div>';
+        routeInfo.innerHTML += '<div class="equalSpace"><div><font class="infoFormat">-></font> ' + routeRemainingDistance.toFixed(1) + '<font class="infoFormat">KM</font></div><div>' + Math.round(routeRemainingDistance / (speedKmh / 60)) + '<font class="infoFormat">MIN</font></div><div>';
       }
     }
   }
@@ -875,7 +869,7 @@ function routeMe() {
         },${destinationCoordinates[destinationCoordinates.length - 1][0]
         }" target="_blank">Streetview</a>`,
       ]);
-      routeInfo.innerHTML = '<div><font class="infoFormat">-></font> ' + totalLength.toFixed(1) + '<font class="infoFormat">KM</font></div>' + "<div>" + Math.round(totalTime / 60) + '<font class="infoFormat">MIN</font></div>';
+      routeInfo.innerHTML = '<div class="equalSpace"><div><font class="infoFormat">-></font> ' + totalLength.toFixed(1) + '<font class="infoFormat">KM</font></div><div>' + Math.round(totalTime / 60) + '<font class="infoFormat">MIN</font></div></div>';
 
       const routeFeature = new Feature({
         type: "route",
