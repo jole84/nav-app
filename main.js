@@ -546,7 +546,7 @@ geolocation.on("change", function () {
       const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
       const routeRemainingDistance = getRemainingDistance(featureCoordinates);
       if (routeRemainingDistance != undefined) {
-        routeInfo.innerHTML += '<div class="equalSpace"><div><font class="infoFormat">-></font> ' + routeRemainingDistance.toFixed(1) + '<font class="infoFormat">KM</font></div><div>' + Math.round(routeRemainingDistance / (speedKmh / 60)) + '<font class="infoFormat">MIN</font></div><div>';
+        routeInfo.innerHTML += '<div class="equalSpace"><div><font class="infoFormat">-></font> ' + routeRemainingDistance.toFixed(1) + '<font class="infoFormat">KM</font></div><div>' + Math.round(routeRemainingDistance / (speedKmh / 60)) + '<font class="infoFormat">MIN</font></div></div>';
       }
     }
   }
