@@ -20,21 +20,21 @@ import XYZ from "ol/source/XYZ.js";
 var startMessage = ['<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>'];
 if (navigator.getBattery) {
   navigator.getBattery().then(function (battery) {
+    document.getElementById("batteryLevel").innerHTML = Math.round(battery.level * 100);
+    document.getElementById("batteryCharging").innerHTML = battery.charging ? "+" : "-";
+
+    battery.onlevelchange = () => {
+      document.getElementById("batteryLevel").innerHTML = Math.round(battery.level * 100);
+    }
+    battery.onchargingchange = () => {
+      document.getElementById("batteryCharging").innerHTML = battery.charging ? "+" : "-";
+      setExtraInfo([
+        (battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>')
+      ]);
+    }
+
     if (battery.chargingTime !== 0) {
       startMessage.unshift(battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>');
-      document.getElementById("batteryLevel").innerHTML = Math.round(battery.level * 100);
-      document.getElementById("batteryCharging").innerHTML = battery.charging ? "+" : "-";
-
-      battery.onchargingchange = () => {
-        document.getElementById("batteryCharging").innerHTML = battery.charging ? "+" : "-";
-        setExtraInfo([
-          (battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>')
-        ]);
-      }
-
-      battery.onlevelchange = () => {
-        document.getElementById("batteryLevel").innerHTML = Math.round(battery.level * 100);
-      }
     }
     setExtraInfo(startMessage);
   });
@@ -542,7 +542,7 @@ geolocation.on("change", function () {
         const featureCoordinates = feature.getGeometry().getLineString().getCoordinates()
         const gpxRemainingDistance = getRemainingDistance(featureCoordinates);
         if (gpxRemainingDistance != undefined) {
-          routeInfo.innerHTML += '<font class="infoFormat">-></font> ' + gpxRemainingDistance.toFixed(1) + '<font class="infoFormat">KM</font>, ' + Math.round(gpxRemainingDistance / (speedKmh / 60)) + '<font class="infoFormat">MIN</font><br>';
+          routeInfo.innerHTML += '<div><font class="infoFormat">-></font> ' + gpxRemainingDistance.toFixed(1) + '<font class="infoFormat">KM</font></div>' + "<div>" + Math.round(gpxRemainingDistance / (speedKmh / 60)) + '<font class="infoFormat">MIN</font></div>';
         }
       }
     });
@@ -552,14 +552,12 @@ geolocation.on("change", function () {
       const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
       const routeRemainingDistance = getRemainingDistance(featureCoordinates);
       if (routeRemainingDistance != undefined) {
-        routeInfo.innerHTML += '<font class="infoFormat">-></font> ' + routeRemainingDistance.toFixed(1) + '<font class="infoFormat">KM</font>, ' + Math.round(routeRemainingDistance / (speedKmh / 60)) + '<font class="infoFormat">MIN</font><br>';
+        routeInfo.innerHTML += '<div><font class="infoFormat">-></font> ' + routeRemainingDistance.toFixed(1) + '<font class="infoFormat">KM</font></div>' + "<div>" + Math.round(routeRemainingDistance / (speedKmh / 60)) + '<font class="infoFormat">MIN</font></div>';
       }
     }
   }
 
-  if (accuracy < 20) {
-    distanceTraveled += getDistance(prevCoordinate, lonlat);
-  }
+  distanceTraveled += getDistance(prevCoordinate, lonlat);
   prevCoordinate = lonlat;
 
   if (speed > 1) {
@@ -873,12 +871,11 @@ function routeMe() {
       setExtraInfo([
         `<a href="http://maps.google.com/maps?q=${destinationCoordinates[destinationCoordinates.length - 1][1]
         },${destinationCoordinates[destinationCoordinates.length - 1][0]
-        }" target="_blank">Gmap</a>`,
-        `<a href="http://maps.google.com/maps?layer=c&cbll=${destinationCoordinates[destinationCoordinates.length - 1][1]
+        }" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${destinationCoordinates[destinationCoordinates.length - 1][1]
         },${destinationCoordinates[destinationCoordinates.length - 1][0]
         }" target="_blank">Streetview</a>`,
       ]);
-      routeInfo.innerHTML = '<font class="infoFormat">-></font> ' + totalLength.toFixed(1) + '<font class="infoFormat">KM</font>, ' + Math.round(totalTime / 60) + '<font class="infoFormat">MIN</font><br>';
+      routeInfo.innerHTML = '<div><font class="infoFormat">-></font> ' + totalLength.toFixed(1) + '<font class="infoFormat">KM</font></div>' + "<div>" + Math.round(totalTime / 60) + '<font class="infoFormat">MIN</font></div>';
 
       const routeFeature = new Feature({
         type: "route",
