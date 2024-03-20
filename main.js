@@ -468,10 +468,10 @@ function toHHMMSS(milliSecondsInt) {
 }
 
 // milliseconds to HH:MM
-function toHHMM(remainingDistance, secondsInt) {
-  var dateObj = new Date(secondsInt * 1000);
-  var hours = dateObj.getUTCHours().toString();//.padStart(2, "0");
-  var minutes = dateObj.getUTCMinutes().toString();//.padStart(2, "0");
+function toRemainingString(remainingDistance, secondsInt) {
+  const totalMinutes = Math.floor(secondsInt / 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
   return `<div class="equalSpace"> <div><font class="infoFormat">-></font> ${Number(remainingDistance).toFixed(1)}<font class="infoFormat">KM</font></div> <div>${hours}<font class="infoFormat">H</font> ${minutes}<font class="infoFormat">MIN</font></div> </div>`;
 }
 
@@ -544,8 +544,7 @@ geolocation.on("change", function () {
         const featureCoordinates = feature.getGeometry().getLineString().getCoordinates()
         const gpxRemainingDistance = getRemainingDistance(featureCoordinates);
         if (gpxRemainingDistance != undefined) {
-          routeInfo.innerHTML += toHHMM(gpxRemainingDistance, gpxRemainingDistance / (speedKmh / 60 / 60));
-          // routeInfo.innerHTML += `<div class="equalSpace"> <div><font class="infoFormat">-></font> ${gpxRemainingDistance.toFixed(1)}<font class="infoFormat">KM</font></div> <div>${Math.round(gpxRemainingDistance / (speedKmh / 60))}<font class="infoFormat">MIN</font></div> </div>`;
+          routeInfo.innerHTML += toRemainingString(gpxRemainingDistance, gpxRemainingDistance / (speedKmh / 60 / 60));
         }
       }
     });
@@ -555,8 +554,7 @@ geolocation.on("change", function () {
       const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
       const routeRemainingDistance = getRemainingDistance(featureCoordinates);
       if (routeRemainingDistance != undefined) {
-        routeInfo.innerHTML += toHHMM(routeRemainingDistance, routeRemainingDistance / (speedKmh / 60 / 60));
-        // routeInfo.innerHTML += `<div class="equalSpace"> <div><font class="infoFormat">-></font> ${routeRemainingDistance.toFixed(1)}<font class="infoFormat">KM</font></div> <div>${Math.round(routeRemainingDistance / (speedKmh / 60))}<font class="infoFormat">MIN</font></div> </div>`;
+        routeInfo.innerHTML += toRemainingString(routeRemainingDistance, routeRemainingDistance / (speedKmh / 60 / 60));
       }
     }
   }
@@ -879,8 +877,7 @@ function routeMe() {
         },${destinationCoordinates[destinationCoordinates.length - 1][0]
         }" target="_blank">Streetview</a></div`,
       ]);
-      routeInfo.innerHTML = toHHMM(totalLength, totalTime);
-      // routeInfo.innerHTML = `<div class="equalSpace"> <div><font class="infoFormat">-></font> ${totalLength.toFixed(1)}<font class="infoFormat">KM</font></div> <div>${Math.round(totalTime / 60)}<font class="infoFormat">MIN</font></div> </div>`;
+      routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
 
       const routeFeature = new Feature({
         type: "route",
