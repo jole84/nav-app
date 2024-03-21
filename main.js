@@ -61,7 +61,7 @@ var altitude = 0;
 var center = [1700000, 8500000];
 var closestAccident;
 var closestAccidentPosition;
-// let prevCoordinate;
+let prevLonlat;
 var currentPosition = center;
 var destinationCoordinates = [];
 var heading = 0;
@@ -508,7 +508,7 @@ geolocation.once("change", function () {
   ]);
   line.appendCoordinate(currentPosition);
 
-  // prevCoordinate = lonlat;
+  prevLonlat = lonlat;
 });
 
 // runs when position changes
@@ -530,7 +530,6 @@ geolocation.on("change", function () {
       altitude,
       currentTime,
     ]);
-    distanceTraveled += getDistance(lonlat, trackLog[trackLog.length - 1][0]);
     line.appendCoordinate(currentPosition);
 
     // recalculate route if > 300 m off route
@@ -586,7 +585,8 @@ geolocation.on("change", function () {
     maxSpeedCoord = [lonlat, new Date()];
   }
   
-  // prevCoordinate = lonlat;
+  distanceTraveled += getDistance(lonlat, prevLonlat);
+  prevLonlat = lonlat;
   // send text to info box
   document.getElementById("coordinatesDiv").innerHTML = lonlat[1].toFixed(5) + ", " + lonlat[0].toFixed(5);
   document.getElementById("distanceTraveledDiv").innerHTML = (distanceTraveled / 1000).toFixed(2);
