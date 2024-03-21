@@ -472,7 +472,11 @@ function toRemainingString(remainingDistance, secondsInt) {
   const totalMinutes = Math.floor(secondsInt / 60);
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
-  return `<div class="equalSpace"> <div><font class="infoFormat">-></font> ${Number(remainingDistance).toFixed(1)}<font class="infoFormat">KM</font></div> <div>${hours}<font class="infoFormat">H</font> ${minutes}<font class="infoFormat">MIN</font></div> </div>`;
+  let returnString = `<div class="equalSpace"><div><font class="infoFormat">-></font> ${Number(remainingDistance).toFixed(1)}<font class="infoFormat">KM</font></div><div>`
+  if (hours > 0) {
+    returnString += `${hours}<font class="infoFormat">H</font> `
+  }
+  return returnString += `${minutes}<font class="infoFormat">MIN</font></div></div>`;
 }
 
 // start geolocation
