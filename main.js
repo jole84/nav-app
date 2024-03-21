@@ -17,13 +17,23 @@ import VectorSource from "ol/source/Vector.js";
 import WKT from "ol/format/WKT.js";
 import XYZ from "ol/source/XYZ.js";
 
-navigator.getBattery().then(function (battery) {
-  setExtraInfo([
-    '<font class="infoFormat">Batteri: ' + battery.level * 100 + "% (" + (battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>') + ')</font>',
-    '<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>',
-  ]);
-});
-// setExtraInfo(['<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>']);
+if (navigator.getBattery) {
+  navigator.getBattery().then(function (battery) {
+    document.getElementById("batteryLevel").innerHTML = Math.round(battery.level * 100);
+    document.getElementById("batteryCharging").innerHTML = battery.charging ? "+" : "-";
+
+    battery.onlevelchange = () => {
+      document.getElementById("batteryLevel").innerHTML = Math.round(battery.level * 100);
+    }
+    battery.onchargingchange = () => {
+      document.getElementById("batteryCharging").innerHTML = battery.charging ? "+" : "-";
+      setExtraInfo([
+        (battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>')
+      ]);
+    }
+  });
+}
+setExtraInfo(['<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>']);
 
 let wakeLock;
 const acquireWakeLock = async () => {
@@ -44,7 +54,6 @@ document.addEventListener("visibilitychange", async () => {
 
 localStorage.interactionDelay = (localStorage.interactionDelay || 10000);
 localStorage.mapMode = (localStorage.mapMode || 0);
-localStorage.defaultZoom = (localStorage.defaultZoom || 14);
 const startTime = new Date();
 let distanceTraveled = 0;
 var accuracy = 100;
@@ -52,6 +61,7 @@ var altitude = 0;
 var center = [1700000, 8500000];
 var closestAccident;
 var closestAccidentPosition;
+// let prevCoordinate;
 var currentPosition = center;
 var destinationCoordinates = [];
 var heading = 0;
@@ -62,12 +72,22 @@ var maxSpeedCoord;
 var speed = 0;
 var speedKmh = 0;
 var trackLog = [];
-var mapDiv = document.getElementById("map");
-var centerButton = document.getElementById("centerButton");
-var customFileButton = document.getElementById("customFileButton");
-var infoGroup = document.getElementById("infoGroup");
-var saveLogButton = document.getElementById("saveLogButton");
-var trafficWarningDiv = document.getElementById("trafficWarning");
+const centerButton = document.getElementById("centerButton");
+const closeMenuButton = document.getElementById("closeMenu");
+const customFileButton = document.getElementById("customFileButton");
+const enableLntDiv = document.getElementById("enableLnt");
+const extraTrafikCheckDiv = document.getElementById("extraTrafikCheck");
+const infoGroup = document.getElementById("infoGroup");
+const interactionDelayDiv = document.getElementById("interactionDelay");
+const mapDiv = document.getElementById("map");
+const onUnloadDiv = document.getElementById("onUnload");
+const openMenuButton = document.getElementById("openMenu");
+const preferredFontSizeDiv = document.getElementById("preferredFontSize");
+const prefferedZoomDiv = document.getElementById("prefferedZoom");
+const routeInfo = document.getElementById("routeInfo");
+const saveLogButton = document.getElementById("saveLogButton");
+const trafficWarningDiv = document.getElementById("trafficWarning");
+
 centerButton.onclick = centerFunction;
 customFileButton.addEventListener("change", handleFileSelect, false);
 trafficWarningDiv.addEventListener("click", focusTrafficWarning);
@@ -85,17 +105,7 @@ if (localStorage.firstRun == undefined && window.location === window.parent.loca
   menuDiv.style.display = "none";
 }
 
-var enableLntDiv = document.getElementById("enableLnt");
-var extraTrafikCheckDiv = document.getElementById("extraTrafikCheck");
-var onUnloadDiv = document.getElementById("onUnload");
-var prefferedZoomDiv = document.getElementById("prefferedZoom");
-var interactionDelayDiv = document.getElementById("interactionDelay");
-var preferredFontSizeDiv = document.getElementById("preferredFontSize");
-var openMenuButton = document.getElementById("openMenu");
-var closeMenuButton = document.getElementById("closeMenu");
-
-localStorage.enableLnt = JSON.parse(localStorage.enableLnt || false);
-enableLntDiv.checked = JSON.parse(localStorage.enableLnt);
+enableLntDiv.checked = localStorage.enableLnt = localStorage.enableLnt == "true";
 enableLntDiv.addEventListener("change", function () {
   localStorage.enableLnt = enableLntDiv.checked;
   location.reload();
@@ -111,13 +121,13 @@ if (JSON.parse(localStorage.enableLnt)) {
   layerSelector.add(option5);
 };
 
-extraTrafikCheckDiv.checked = localStorage.extraTrafik == 'true';
+extraTrafikCheckDiv.checked = localStorage.extraTrafik == "true";
 extraTrafikCheckDiv.addEventListener("change", function () {
   localStorage.extraTrafik = extraTrafikCheckDiv.checked;
   getDeviations();
 });
 
-onUnloadDiv.checked = localStorage.onUnload == 'true';
+onUnloadDiv.checked = localStorage.onUnload == "true";
 onUnloadDiv.addEventListener("change", function () {
   localStorage.onUnload = onUnloadDiv.checked;
 });
@@ -144,21 +154,21 @@ document.getElementById("clearSettings").onclick = function () {
   location.reload();
 };
 
-prefferedZoomDiv.value = localStorage.defaultZoom;
+localStorage.defaultZoom = prefferedZoomDiv.value = localStorage.defaultZoom || 14;
 prefferedZoomDiv.addEventListener("change", function () {
-  localStorage.defaultZoom = prefferedZoomDiv.value || 14;
+  localStorage.defaultZoom = prefferedZoomDiv.value;
   centerFunction();
 });
 
-interactionDelayDiv.value = (localStorage.interactionDelay || 10000) / 1000;
+interactionDelayDiv.value = localStorage.interactionDelay / 1000;
 interactionDelayDiv.addEventListener("change", function () {
   localStorage.interactionDelay = interactionDelayDiv.value * 1000;
 });
 
-preferredFontSize.value = localStorage.preferredFontSize || "20";
+localStorage.preferredFontSize = preferredFontSizeDiv.value = localStorage.preferredFontSize || "20";
 preferredFontSizeDiv.addEventListener("change", function () {
   localStorage.preferredFontSize = preferredFontSizeDiv.value;
-  infoGroup.style.fontSize = localStorage.preferredFontSize || "20";
+  infoGroup.style.fontSize = localStorage.preferredFontSize;
 });
 
 const view = new View({
@@ -457,6 +467,18 @@ function toHHMMSS(milliSecondsInt) {
   return hours + ":" + minutes + ":" + seconds;
 }
 
+// milliseconds to HH:MM
+function toRemainingString(remainingDistance, secondsInt) {
+  const totalMinutes = Math.floor(secondsInt / 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  let returnString = `<div class="equalSpace"><div><font class="infoFormat">-></font> ${Number(remainingDistance).toFixed(1)}<font class="infoFormat">KM</font></div><div>`
+  if (hours > 0) {
+    returnString += `${hours}<font class="infoFormat">H</font> `
+  }
+  return returnString += `${minutes}<font class="infoFormat">MIN</font></div></div>`;
+}
+
 // start geolocation
 const geolocation = new Geolocation({
   projection: view.getProjection(),
@@ -468,7 +490,6 @@ const geolocation = new Geolocation({
   tracking: true,
 });
 
-let prevCoordinate;
 // run once to get things going
 geolocation.once("change", function () {
   currentPosition = geolocation.getPosition();
@@ -487,7 +508,7 @@ geolocation.once("change", function () {
   ]);
   line.appendCoordinate(currentPosition);
 
-  prevCoordinate = lonlat;
+  // prevCoordinate = lonlat;
 });
 
 // runs when position changes
@@ -503,12 +524,13 @@ geolocation.on("change", function () {
   positionMarkerPoint.setCoordinates(currentPosition);
 
   // measure distance and push log if position change > 10 meters and accuracy is good
-  if (getDistance(prevCoordinate, lonlat) > 10 && accuracy < 20) {
+  if (getDistance(lonlat, trackLog[trackLog.length - 1][0]) > 10 && accuracy < 20) {
     trackLog.push([
       lonlat,
       altitude,
       currentTime,
     ]);
+    distanceTraveled += getDistance(lonlat, trackLog[trackLog.length - 1][0]);
     line.appendCoordinate(currentPosition);
 
     // recalculate route if > 300 m off route
@@ -527,7 +549,7 @@ geolocation.on("change", function () {
         const featureCoordinates = feature.getGeometry().getLineString().getCoordinates()
         const gpxRemainingDistance = getRemainingDistance(featureCoordinates);
         if (gpxRemainingDistance != undefined) {
-          routeInfo.innerHTML += '<font class="infoFormat">-></font> ' + gpxRemainingDistance.toFixed(1) + '<font class="infoFormat">KM</font>, ' + Math.round(gpxRemainingDistance / (speedKmh / 60)) + '<font class="infoFormat">MIN</font><br>';
+          routeInfo.innerHTML += toRemainingString(gpxRemainingDistance, gpxRemainingDistance / (speedKmh / 60 / 60));
         }
       }
     });
@@ -537,38 +559,34 @@ geolocation.on("change", function () {
       const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
       const routeRemainingDistance = getRemainingDistance(featureCoordinates);
       if (routeRemainingDistance != undefined) {
-        routeInfo.innerHTML += '<font class="infoFormat">-></font> ' + routeRemainingDistance.toFixed(1) + '<font class="infoFormat">KM</font>, ' + Math.round(routeRemainingDistance / (speedKmh / 60)) + '<font class="infoFormat">MIN</font><br>';
+        routeInfo.innerHTML += toRemainingString(routeRemainingDistance, routeRemainingDistance / (speedKmh / 60 / 60));
       }
     }
   }
-
-  if (accuracy < 20) {
-    distanceTraveled += getDistance(prevCoordinate, lonlat);
-  }
-  prevCoordinate = lonlat;
 
   if (speed > 1) {
     // change marker if speed
     positionMarkerHeading.getStyle().getImage().setRotation(heading);
     positionMarker.getStyle().getImage().setOpacity(0);
     positionMarkerHeading.getStyle().getImage().setOpacity(1);
-
+    
     // change view if no interaction occurred last 10 seconds
     if (currentTime - lastInteraction > localStorage.interactionDelay) {
       updateView();
     }
   }
-
+  
   if (speed < 1) {
     positionMarker.getStyle().getImage().setOpacity(1);
     positionMarkerHeading.getStyle().getImage().setOpacity(0);
   }
-
+  
   if (speedKmh > maxSpeed && accuracy < 20) {
     maxSpeed = speedKmh;
     maxSpeedCoord = [lonlat, new Date()];
   }
-
+  
+  // prevCoordinate = lonlat;
   // send text to info box
   document.getElementById("coordinatesDiv").innerHTML = lonlat[1].toFixed(5) + ", " + lonlat[0].toFixed(5);
   document.getElementById("distanceTraveledDiv").innerHTML = (distanceTraveled / 1000).toFixed(2);
@@ -718,10 +736,10 @@ function switchMap() {
     "-webkit-filter: initial;filter: initial;background-color: initial;",
   );
 
-  if (JSON.parse(localStorage.enableLnt) && localStorage.getItem("mapMode") > 5) {
+  if (localStorage.enableLnt == "true" && localStorage.getItem("mapMode") > 5) {
     localStorage.setItem("mapMode", 0);
   }
-  if (!JSON.parse(localStorage.enableLnt) && localStorage.getItem("mapMode") > 3) {
+  if (localStorage.enableLnt == "false" && localStorage.getItem("mapMode") > 3) {
     localStorage.setItem("mapMode", 0);
   }
   layerSelector.value = localStorage.getItem("mapMode");
@@ -769,13 +787,15 @@ function switchMap() {
     ortofoto.setMinZoom(0);
   }
 
-  infoGroup.style.fontSize = localStorage.preferredFontSize || "20";
+  infoGroup.style.fontSize = localStorage.preferredFontSize;
 }
 
 // logic for saveLogButton
 function saveLogButtonFunction() {
   if (trackLog.length > 5) {
     saveLog();
+  } else {
+    console.log(trackLog);
   }
 }
 
@@ -823,7 +843,7 @@ function setExtraInfo(infoText) {
   document.getElementById("extraInfo").innerHTML = extraInfo;
   timeOut = setTimeout(function () {
     document.getElementById("extraInfo").innerHTML = "";
-  }, 60000);
+  }, 30000);
 }
 
 // brouter routing
@@ -854,14 +874,13 @@ function routeMe() {
 
       // add route information to info box
       setExtraInfo([
-        `<a href="http://maps.google.com/maps?q=${destinationCoordinates[destinationCoordinates.length - 1][1]
+        `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${destinationCoordinates[destinationCoordinates.length - 1][1]
         },${destinationCoordinates[destinationCoordinates.length - 1][0]
-        }" target="_blank">Gmap</a>`,
-        `<a href="http://maps.google.com/maps?layer=c&cbll=${destinationCoordinates[destinationCoordinates.length - 1][1]
+        }" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${destinationCoordinates[destinationCoordinates.length - 1][1]
         },${destinationCoordinates[destinationCoordinates.length - 1][0]
-        }" target="_blank">Streetview</a>`,
+        }" target="_blank">Streetview</a></div`,
       ]);
-      routeInfo.innerHTML = '<font class="infoFormat">-></font> ' + totalLength.toFixed(1) + '<font class="infoFormat">KM</font>, ' + Math.round(totalTime / 60) + '<font class="infoFormat">MIN</font><br>';
+      routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
 
       const routeFeature = new Feature({
         type: "route",
@@ -922,7 +941,7 @@ map.on("contextmenu", function (event) {
   var clickedOnLastDestination = getPixelDistance(event.pixel, map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))) < 40;
 
   // measure distance from current pos
-  if(clickedOnCurrentPosition) {
+  if (clickedOnCurrentPosition) {
     setExtraInfo([Math.round(getDistance(lonlat, eventLonLat)) + '<font class="infoFormat">M</font>']);
   }
   // remove last point if click < 40 pixels from last point
@@ -1029,8 +1048,6 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
-var apiUrl = "https://api.trafikinfo.trafikverket.se/v2/";
-
 function breakSentence(sentence) {
   sentence = sentence.replaceAll(".:", ":").replaceAll("\n", "").trim();
   var returnSentence = "";
@@ -1047,6 +1064,7 @@ function breakSentence(sentence) {
   return returnSentence;
 }
 
+var apiUrl = "https://api.trafikinfo.trafikverket.se/v2/";
 $.ajaxSetup({
   url: apiUrl + "data.json",
   error: function (msg) {
@@ -1242,7 +1260,7 @@ function getClosestAccident() {
 
 function recalculateRoute() {
   if (destinationCoordinates.length >= 2) {
-    if (getDistance(destinationCoordinates[0], destinationCoordinates[destinationCoordinates.length - 1]) < 300) {
+    if (getDistance(destinationCoordinates[0], destinationCoordinates[destinationCoordinates.length - 1]) < 1000) {
       routeInfo.innerHTML = "";
       document.getElementById("extraInfo").innerHTML = "";
       destinationCoordinates = [];
