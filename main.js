@@ -61,7 +61,7 @@ var altitude = 0;
 var center = [1700000, 8500000];
 var closestAccident;
 var closestAccidentPosition;
-let prevCoordinate;
+// let prevCoordinate;
 var currentPosition = center;
 var destinationCoordinates = [];
 var heading = 0;
@@ -508,7 +508,7 @@ geolocation.once("change", function () {
   ]);
   line.appendCoordinate(currentPosition);
 
-  prevCoordinate = lonlat;
+  // prevCoordinate = lonlat;
 });
 
 // runs when position changes
@@ -524,12 +524,13 @@ geolocation.on("change", function () {
   positionMarkerPoint.setCoordinates(currentPosition);
 
   // measure distance and push log if position change > 10 meters and accuracy is good
-  if (getDistance(prevCoordinate, lonlat) > 10 && accuracy < 50) {
+  if (getDistance(lonlat, trackLog[trackLog.length - 1][0]) > 10 && accuracy < 20) {
     trackLog.push([
       lonlat,
       altitude,
       currentTime,
     ]);
+    distanceTraveled += getDistance(lonlat, trackLog[trackLog.length - 1][0]);
     line.appendCoordinate(currentPosition);
 
     // recalculate route if > 300 m off route
@@ -563,31 +564,29 @@ geolocation.on("change", function () {
     }
   }
 
-  distanceTraveled += getDistance(prevCoordinate, lonlat);
-  prevCoordinate = lonlat;
-
   if (speed > 1) {
     // change marker if speed
     positionMarkerHeading.getStyle().getImage().setRotation(heading);
     positionMarker.getStyle().getImage().setOpacity(0);
     positionMarkerHeading.getStyle().getImage().setOpacity(1);
-
+    
     // change view if no interaction occurred last 10 seconds
     if (currentTime - lastInteraction > localStorage.interactionDelay) {
       updateView();
     }
   }
-
+  
   if (speed < 1) {
     positionMarker.getStyle().getImage().setOpacity(1);
     positionMarkerHeading.getStyle().getImage().setOpacity(0);
   }
-
+  
   if (speedKmh > maxSpeed && accuracy < 20) {
     maxSpeed = speedKmh;
     maxSpeedCoord = [lonlat, new Date()];
   }
-
+  
+  // prevCoordinate = lonlat;
   // send text to info box
   document.getElementById("coordinatesDiv").innerHTML = lonlat[1].toFixed(5) + ", " + lonlat[0].toFixed(5);
   document.getElementById("distanceTraveledDiv").innerHTML = (distanceTraveled / 1000).toFixed(2);
