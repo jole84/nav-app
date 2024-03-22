@@ -341,6 +341,9 @@ const routeLayer = new VectorLayer({
     return trackStyle[feature.get("type")];
   },
 });
+routeLayer.addEventListener("change", function () {
+  getClosestAccident();
+});
 
 const trafficWarningSource = new VectorSource();
 
@@ -1148,7 +1151,6 @@ function getDeviations() {
           });
           trafficWarningSource.addFeature(feature);
         });
-        getClosestAccident();
       } catch (ex) {
         console.log(ex);
       }
