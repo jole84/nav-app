@@ -17,6 +17,43 @@ import VectorSource from "ol/source/Vector.js";
 import WKT from "ol/format/WKT.js";
 import XYZ from "ol/source/XYZ.js";
 
+localStorage.interactionDelay = (localStorage.interactionDelay || 10000);
+localStorage.mapMode = (localStorage.mapMode || 0);
+const startTime = new Date();
+let accuracy = 100;
+let altitude = 0;
+let center = JSON.parse(localStorage.navAppCenter || "[1700000, 8500000]");
+let closestAccident;
+let closestAccidentPosition;
+let currentPosition = center;
+let destinationCoordinates = [];
+let distanceTraveled = 0;
+let heading = 0;
+let lastInteraction = new Date() - localStorage.interactionDelay;
+let lonlat = toLonLat(currentPosition);
+let maxSpeed = 0;
+let maxSpeedCoord;
+let prevLonlat;
+let speed = 0;
+let speedKmh = 0;
+let timeOut;
+let trackLog = [];
+const centerButton = document.getElementById("centerButton");
+const closeMenuButton = document.getElementById("closeMenu");
+const customFileButton = document.getElementById("customFileButton");
+const enableLntDiv = document.getElementById("enableLnt");
+const extraTrafikCheckDiv = document.getElementById("extraTrafikCheck");
+const infoGroup = document.getElementById("infoGroup");
+const interactionDelayDiv = document.getElementById("interactionDelay");
+const mapDiv = document.getElementById("map");
+const onUnloadDiv = document.getElementById("onUnload");
+const openMenuButton = document.getElementById("openMenu");
+const preferredFontSizeDiv = document.getElementById("preferredFontSize");
+const prefferedZoomDiv = document.getElementById("prefferedZoom");
+const routeInfo = document.getElementById("routeInfo");
+const saveLogButton = document.getElementById("saveLogButton");
+const trafficWarningDiv = document.getElementById("trafficWarning");
+
 if (navigator.getBattery) {
   navigator.getBattery().then(function (battery) {
     document.getElementById("batteryLevel").innerHTML = Math.round(battery.level * 100);
@@ -52,42 +89,6 @@ document.addEventListener("visibilitychange", async () => {
   }
 });
 
-localStorage.interactionDelay = (localStorage.interactionDelay || 10000);
-localStorage.mapMode = (localStorage.mapMode || 0);
-const startTime = new Date();
-let distanceTraveled = 0;
-var accuracy = 100;
-var altitude = 0;
-var center = [1700000, 8500000];
-var closestAccident;
-var closestAccidentPosition;
-let prevLonlat;
-var currentPosition = center;
-var destinationCoordinates = [];
-var heading = 0;
-var lastInteraction = new Date() - localStorage.interactionDelay;
-var lonlat = toLonLat(currentPosition);
-var maxSpeed = 0;
-var maxSpeedCoord;
-var speed = 0;
-var speedKmh = 0;
-var trackLog = [];
-const centerButton = document.getElementById("centerButton");
-const closeMenuButton = document.getElementById("closeMenu");
-const customFileButton = document.getElementById("customFileButton");
-const enableLntDiv = document.getElementById("enableLnt");
-const extraTrafikCheckDiv = document.getElementById("extraTrafikCheck");
-const infoGroup = document.getElementById("infoGroup");
-const interactionDelayDiv = document.getElementById("interactionDelay");
-const mapDiv = document.getElementById("map");
-const onUnloadDiv = document.getElementById("onUnload");
-const openMenuButton = document.getElementById("openMenu");
-const preferredFontSizeDiv = document.getElementById("preferredFontSize");
-const prefferedZoomDiv = document.getElementById("prefferedZoom");
-const routeInfo = document.getElementById("routeInfo");
-const saveLogButton = document.getElementById("saveLogButton");
-const trafficWarningDiv = document.getElementById("trafficWarning");
-
 centerButton.onclick = centerFunction;
 customFileButton.addEventListener("change", handleFileSelect, false);
 trafficWarningDiv.addEventListener("click", focusTrafficWarning);
@@ -97,7 +98,7 @@ document.getElementById("clickFileButton").onclick = function () {
 }
 
 // menu stuff
-var menuDiv = document.getElementById("menuDiv");
+const menuDiv = document.getElementById("menuDiv");
 if (localStorage.firstRun == undefined && window.location === window.parent.location) {
   menuDiv.style.display = "unset";
   localStorage.firstRun = false;
@@ -111,8 +112,8 @@ enableLntDiv.addEventListener("change", function () {
   location.reload();
 });
 if (JSON.parse(localStorage.enableLnt)) {
-  var option4 = document.createElement("option");
-  var option5 = document.createElement("option");
+  const option4 = document.createElement("option");
+  const option5 = document.createElement("option");
   option4.text = "Lantmäteriet Topo";
   option4.value = 4;
   option5.text = "Lantmäteriet Orto";
@@ -132,6 +133,7 @@ onUnloadDiv.addEventListener("change", function () {
   localStorage.onUnload = onUnloadDiv.checked;
 });
 window.onbeforeunload = function () {
+  localStorage.navAppCenter = JSON.stringify(currentPosition);
   if (JSON.parse(localStorage.onUnload)) {
     return "";
   }
@@ -228,7 +230,7 @@ const trackStyle = {
 };
 trackStyle["MultiLineString"] = trackStyle["LineString"];
 
-var trafficWarningTextStyleFunction = function (feature) {
+const trafficWarningTextStyleFunction = function (feature) {
   //Function to determine style of icons
   return [
     new Style({
@@ -250,7 +252,7 @@ var trafficWarningTextStyleFunction = function (feature) {
   ];
 };
 
-var trafficWarningIconStyleFunction = function (feature) {
+const trafficWarningIconStyleFunction = function (feature) {
   //Function to determine style of icons
   return [
     new Style({
@@ -262,22 +264,22 @@ var trafficWarningIconStyleFunction = function (feature) {
   ];
 };
 
-var line = new LineString([]);
-var trackLine = new Feature({
+const line = new LineString([]);
+const trackLine = new Feature({
   geometry: line,
 });
 
-var osm = new TileLayer({
+const osm = new TileLayer({
   source: new OSM(),
   visible: false,
 });
 
-// var osm = new MapboxVectorLayer({
+// const osm = new MapboxVectorLayer({
 //   styleUrl: "mapbox://styles/tryckluft/clqmovmf100pb01o9g1li1hxb",
 //   accessToken : "pk.eyJ1IjoidHJ5Y2tsdWZ0IiwiYSI6ImNrcTU1YTIzeTFlem8yd3A4MXRsMTZreWQifQ.lI612CDqRgWujJDv6zlBqw",
 // });
 
-var slitlagerkarta = new TileLayer({
+const slitlagerkarta = new TileLayer({
   source: new XYZ({
     url: "https://jole84.se/slitlagerkarta/{z}/{x}/{y}.jpg",
     minZoom: 6,
@@ -287,7 +289,7 @@ var slitlagerkarta = new TileLayer({
   useInterimTilesOnError: false,
 });
 
-var slitlagerkarta_nedtonad = new TileLayer({
+const slitlagerkarta_nedtonad = new TileLayer({
   source: new XYZ({
     url: "https://jole84.se/slitlagerkarta_nedtonad/{z}/{x}/{y}.jpg",
     minZoom: 6,
@@ -297,7 +299,7 @@ var slitlagerkarta_nedtonad = new TileLayer({
   useInterimTilesOnError: false,
 });
 
-var ortofoto = new TileLayer({
+const ortofoto = new TileLayer({
   source: new TileWMS({
     url: "https://minkarta.lantmateriet.se/map/ortofoto/",
     params: {
@@ -308,7 +310,7 @@ var ortofoto = new TileLayer({
   visible: false,
 });
 
-var topoweb = new TileLayer({
+const topoweb = new TileLayer({
   source: new XYZ({
     url: "https://minkarta.lantmateriet.se/map/topowebbcache/?layer=topowebb&style=default&tilematrixset=3857&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix={z}&TileCol={x}&TileRow={y}",
     maxZoom: 17,
@@ -316,7 +318,7 @@ var topoweb = new TileLayer({
   visible: false,
 });
 
-var gpxLayer = new VectorLayer({
+const gpxLayer = new VectorLayer({
   source: new VectorSource(),
   style: function (feature) {
     gpxStyle["Point"].getText().setText(feature.get("name"));
@@ -324,7 +326,7 @@ var gpxLayer = new VectorLayer({
   },
 });
 
-var trackLayer = new VectorLayer({
+const trackLayer = new VectorLayer({
   source: new VectorSource({
     features: [trackLine],
   }),
@@ -333,21 +335,21 @@ var trackLayer = new VectorLayer({
   },
 });
 
-var routeLayer = new VectorLayer({
+const routeLayer = new VectorLayer({
   source: new VectorSource(),
   style: function (feature) {
     return trackStyle[feature.get("type")];
   },
 });
 
-var trafficWarningSource = new VectorSource();
+const trafficWarningSource = new VectorSource();
 
-var trafficWarningIconLayer = new VectorLayer({
+const trafficWarningIconLayer = new VectorLayer({
   source: trafficWarningSource,
   style: trafficWarningIconStyleFunction,
 });
 
-var trafficWarningTextLayer = new VectorLayer({
+const trafficWarningTextLayer = new VectorLayer({
   source: trafficWarningSource,
   style: trafficWarningTextStyleFunction,
   declutter: true,
@@ -376,7 +378,7 @@ const map = new Map({
 // gpx loader
 gpxLayer.getSource().addEventListener("addfeature", function () {
   if (gpxLayer.getSource().getState() === "ready") {
-    var padding = 100;
+    const padding = 100;
     lastInteraction = new Date();
     view.fit(gpxLayer.getSource().getExtent(), {
       padding: [padding, padding, padding, padding],
@@ -385,18 +387,18 @@ gpxLayer.getSource().addEventListener("addfeature", function () {
   }
 });
 
-var gpxFormat = new GPX();
-var gpxFeatures;
+const gpxFormat = new GPX();
+let gpxFeatures;
 function handleFileSelect(evt) {
   customFileButton.blur();
-  var files = evt.target.files; // FileList object
+  const files = evt.target.files; // FileList object
   // remove previously loaded gpx files
   gpxLayer.getSource().clear();
-  var fileNames = [];
-  for (var i = 0; i < files.length; i++) {
+  const fileNames = [];
+  for (let i = 0; i < files.length; i++) {
     console.log(files[i]);
     fileNames.push(files[i].name);
-    var reader = new FileReader();
+    const reader = new FileReader();
     reader.readAsText(files[i], "UTF-8");
     reader.onload = function (evt) {
       gpxFeatures = gpxFormat.readFeatures(evt.target.result, {
@@ -405,7 +407,7 @@ function handleFileSelect(evt) {
       });
       if (files.length > 1) {
         // set random color if two or more files is loaded
-        var color = [
+        const color = [
           Math.floor(Math.random() * 255),
           Math.floor(Math.random() * 255),
           Math.floor(Math.random() * 255),
@@ -460,10 +462,10 @@ function getPixelDistance(pixel, pixel2) {
 
 // milliseconds to HH:MM:SS
 function toHHMMSS(milliSecondsInt) {
-  var dateObj = new Date(milliSecondsInt);
-  var hours = dateObj.getUTCHours().toString().padStart(2, "0");
-  var minutes = dateObj.getUTCMinutes().toString().padStart(2, "0");
-  var seconds = dateObj.getSeconds().toString().padStart(2, "0");
+  const dateObj = new Date(milliSecondsInt);
+  const hours = dateObj.getUTCHours().toString().padStart(2, "0");
+  const minutes = dateObj.getUTCMinutes().toString().padStart(2, "0");
+  const seconds = dateObj.getSeconds().toString().padStart(2, "0");
   return hours + ":" + minutes + ":" + seconds;
 }
 
@@ -534,7 +536,7 @@ geolocation.on("change", function () {
 
     // recalculate route if > 300 m off route
     if (destinationCoordinates.length == 2) {
-      var closestRoutePoint = routeLayer.getSource().getFeatureById(0).getGeometry().getClosestPoint(currentPosition);
+      const closestRoutePoint = routeLayer.getSource().getFeatureById(0).getGeometry().getClosestPoint(currentPosition);
       if (getDistance(lonlat, toLonLat(closestRoutePoint)) > 300) {
         destinationCoordinates[0] = lonlat;
         routeMe();
@@ -596,8 +598,8 @@ geolocation.on("change", function () {
 });
 
 function getRemainingDistance(featureCoordinates) {
-  var newLineString = new LineString([]);
-  var newMultiPoint = new MultiPoint(
+  const newLineString = new LineString([]);
+  const newMultiPoint = new MultiPoint(
     featureCoordinates.reverse(),
   );
 
@@ -607,7 +609,7 @@ function getRemainingDistance(featureCoordinates) {
   if (distanceToclosestPoint > 500) {
     return;
   } else {
-    for (var i = 0; i < featureCoordinates.length; i++) {
+    for (let i = 0; i < featureCoordinates.length; i++) {
       newLineString.appendCoordinate([featureCoordinates[i]]);
       if (featureCoordinates[i].toString() === newLineStringclosestPoint.toString()) {
         break;
@@ -626,11 +628,11 @@ geolocation.on("error", function () {
 });
 
 // Geolocation marker
-var positionMarkerPoint = new Point({});
-var positionMarker = new Feature({
+const positionMarkerPoint = new Point({});
+const positionMarker = new Feature({
   geometry: positionMarkerPoint,
 });
-var positionMarkerHeading = new Feature({
+const positionMarkerHeading = new Feature({
   geometry: positionMarkerPoint,
 });
 
@@ -832,14 +834,13 @@ function saveLog() {
   const filename = startTime.toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + ".gpx";
   setExtraInfo(["Sparar fil:", filename]);
 
-  var file = new Blob([gpxFile], { type: "application/gpx+xml" });
+  let file = new Blob([gpxFile], { type: "application/gpx+xml" });
   saveAs(file, filename);
 }
 
-var timeOut; // create timeout variable so it can be cleared
 function setExtraInfo(infoText) {
   window.clearTimeout(timeOut);
-  var extraInfo = infoText.join("<br />");
+  const extraInfo = infoText.join("<br />");
   document.getElementById("extraInfo").innerHTML = extraInfo;
   timeOut = setTimeout(function () {
     document.getElementById("extraInfo").innerHTML = "";
@@ -904,7 +905,7 @@ function routeMe() {
 
 map.on("singleclick", function (evt) {
   if (evt.originalEvent.ctrlKey) {
-    var coordinate = toLonLat(evt.coordinate).reverse();
+    const coordinate = toLonLat(evt.coordinate).reverse();
     window.open(
       "http://maps.google.com/maps?q=&layer=c&cbll=" + coordinate,
       "_blank",
@@ -914,31 +915,31 @@ map.on("singleclick", function (evt) {
 
 // right click/long press to route
 map.on("contextmenu", function (event) {
-  try {
-    var closestWaypoint = gpxLayer
-      .getSource()
-      .getClosestFeatureToCoordinate(
-        event.coordinate,
-        function (feature) {
-          return feature.getGeometry().getType() === "Point";
-        },
+  let waypointIsClose = false;
+  let closestWaypoint;
+  if (gpxLayer.getSource().getFeatures().length > 0) {
+    closestWaypoint = gpxLayer
+    .getSource()
+    .getClosestFeatureToCoordinate(
+      event.coordinate,
+      function (feature) {
+        return feature.getGeometry().getType() === "Point";
+      },
       );
-
-    var waypointIsClose = getPixelDistance(map.getPixelFromCoordinate(closestWaypoint.getGeometry().getCoordinates()), event.pixel) < 40;
-  } catch {
-    var waypointIsClose = false;
-  }
+      
+      waypointIsClose = getPixelDistance(map.getPixelFromCoordinate(closestWaypoint.getGeometry().getCoordinates()), event.pixel) < 40;
+    }
 
   lastInteraction = new Date();
-  var eventLonLat = toLonLat(event.coordinate);
+  const eventLonLat = toLonLat(event.coordinate);
 
   // set start position
   if (destinationCoordinates.length == 0) {
     destinationCoordinates[0] = lonlat;
   }
 
-  var clickedOnCurrentPosition = getDistance(lonlat, eventLonLat) < 200 || getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
-  var clickedOnLastDestination = getPixelDistance(event.pixel, map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))) < 40;
+  const clickedOnCurrentPosition = getDistance(lonlat, eventLonLat) < 200 || getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
+  const clickedOnLastDestination = getPixelDistance(event.pixel, map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))) < 40;
 
   // measure distance from current pos
   if (clickedOnCurrentPosition) {
@@ -973,14 +974,14 @@ map.on("pointerdrag", function () {
 });
 
 // checks url parameters and loads gpx file from url:
-var urlParams = window.location.href.split("?").pop().split("&");
-for (var i = 0; i < urlParams.length; i++) {
+const urlParams = window.location.href.split("?").pop().split("&");
+for (let i = 0; i < urlParams.length; i++) {
   console.log(decodeURIComponent(urlParams[i]));
   if (urlParams[i].includes(".gpx")) {
     if (!urlParams[i].includes("http")) {
       urlParams[i] = "https://jole84.se/rutter/" + urlParams[i];
     }
-    var titleString = decodeURIComponent(urlParams[i].split("/").pop());
+    const titleString = decodeURIComponent(urlParams[i].split("/").pop());
     setExtraInfo([titleString]);
     fetch(urlParams[i], { mode: "no-cors" })
       .then((response) => {
@@ -988,7 +989,7 @@ for (var i = 0; i < urlParams.length; i++) {
         return response.text();
       })
       .then((response) => {
-        var gpxFeatures = new GPX().readFeatures(response, {
+        const gpxFeatures = new GPX().readFeatures(response, {
           dataProjection: "EPSG:4326",
           featureProjection: "EPSG:3857",
         });
@@ -1050,9 +1051,9 @@ document.addEventListener("keydown", function (event) {
 
 function breakSentence(sentence) {
   sentence = sentence.replaceAll(".:", ":").replaceAll("\n", "").trim();
-  var returnSentence = "";
-  var x = 0;
-  for (var i = 0; i < sentence.length; i++) {
+  let returnSentence = "";
+  let x = 0;
+  for (let i = 0; i < sentence.length; i++) {
     if (x > 30 && sentence[i] == " " && sentence.length - i > 15) {
       x = 0;
       returnSentence += "\n";
@@ -1064,7 +1065,7 @@ function breakSentence(sentence) {
   return returnSentence;
 }
 
-var apiUrl = "https://api.trafikinfo.trafikverket.se/v2/";
+const apiUrl = "https://api.trafikinfo.trafikverket.se/v2/";
 $.ajaxSetup({
   url: apiUrl + "data.json",
   error: function (msg) {
@@ -1075,7 +1076,7 @@ $.ajaxSetup({
 $.support.cors = true; // Enable Cross domain requests
 
 function getDeviations() {
-  var xmlRequest = `
+  let xmlRequest = `
   <REQUEST>
     <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
     <QUERY objecttype='Situation' schemaversion='1.2'>
@@ -1126,11 +1127,11 @@ function getDeviations() {
       try {
         trafficWarningSource.clear();
         $.each(response.RESPONSE.RESULT[0].Situation, function (index, item) {
-          var format = new WKT();
-          var position = format
+          const format = new WKT();
+          const position = format
             .readGeometry(item.Deviation[0].Geometry.WGS84)
             .transform("EPSG:4326", "EPSG:3857");
-          var feature = new Feature({
+            const feature = new Feature({
             geometry: position,
             name: breakSentence(
               (item.Deviation[0].LocationDescriptor ||
@@ -1164,7 +1165,7 @@ function focusTrafficWarning() {
   } else {
     closestAccidentPosition = currentPosition;
   }
-  var duration = 500;
+  const duration = 500;
   view.animate({
     center: closestAccidentPosition,
     duration: duration,
@@ -1182,9 +1183,9 @@ function focusTrafficWarning() {
 function focusDestination() {
   if (destinationCoordinates.length > 1) {
     lastInteraction = new Date();
-    var coordinates = fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]);
+    const coordinates = fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]);
 
-    var duration = 500;
+    const duration = 500;
     view.animate({
       center: coordinates,
       duration: duration,
@@ -1198,7 +1199,6 @@ function focusDestination() {
 
 function getClosestAccident() {
   if (trafficWarningSource.getFeatures().length >= 1) {
-
     closestAccident = trafficWarningSource.getClosestFeatureToCoordinate(
       currentPosition,
       function (feature) {
@@ -1207,24 +1207,24 @@ function getClosestAccident() {
     );
 
     // check route for accidents
-    var routeHasAccident = false;
-    var routeIsActive = routeLayer.getSource().getFeatureById(0) != undefined;
+    let routeHasAccident = false;
+    const routeIsActive = routeLayer.getSource().getFeatureById(0) != undefined;
     if (routeIsActive) {
-      var featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
-      var newMultiPoint = new MultiPoint(
+      const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
+      const newMultiPoint = new MultiPoint(
         featureCoordinates.reverse(),
       );
 
       const newLineStringclosestPoint = newMultiPoint.getClosestPoint(currentPosition);
 
-      for (var i = 0; i < featureCoordinates.length; i++) {
-        var closestLineStringPoint = trafficWarningSource.getClosestFeatureToCoordinate(
+      for (let i = 0; i < featureCoordinates.length; i++) {
+        const closestLineStringPoint = trafficWarningSource.getClosestFeatureToCoordinate(
           featureCoordinates[i],
           function (feature) {
             return feature.get("iconId") === "roadAccident";
           },
         );
-        var closestLineStringPointDistance = getDistance(
+        const closestLineStringPointDistance = getDistance(
           toLonLat(closestLineStringPoint.getGeometry().getCoordinates()),
           toLonLat(featureCoordinates[i])
         );
@@ -1238,9 +1238,9 @@ function getClosestAccident() {
       }
     }
 
-    var closestAccidentRoadNumber = closestAccident.get("roadNumber");
-    var closestAccidentCoords = closestAccident.getGeometry().getCoordinates();
-    var closestAccidentDistance = getDistance(
+    const closestAccidentRoadNumber = closestAccident.get("roadNumber");
+    const closestAccidentCoords = closestAccident.getGeometry().getCoordinates();
+    const closestAccidentDistance = getDistance(
       toLonLat(closestAccidentCoords),
       lonlat,
     );
@@ -1260,7 +1260,7 @@ function getClosestAccident() {
 
 function recalculateRoute() {
   if (destinationCoordinates.length >= 2) {
-    if (getDistance(destinationCoordinates[0], destinationCoordinates[destinationCoordinates.length - 1]) < 1000) {
+    if (getDistance(lonlat, destinationCoordinates[destinationCoordinates.length - 1]) < 1000) {
       routeInfo.innerHTML = "";
       document.getElementById("extraInfo").innerHTML = "";
       destinationCoordinates = [];
