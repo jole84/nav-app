@@ -1284,14 +1284,17 @@ map.addLayer(experimentLayer);
 document.addEventListener("mouseup", function (event) {
   if (event.button == 1) {
     // stuff for testing:
-    simulatePositionChange();
-    var eventPixel = [event.clientX, event.clientY];
-    var eventCoordinate = map.getCoordinateFromPixel(eventPixel);
-    var lonlat = toLonLat(eventCoordinate);
+    const eventPixel = [event.clientX, event.clientY];
+    const eventCoordinate = map.getCoordinateFromPixel(eventPixel);
+    const lonlat = toLonLat(eventCoordinate);
 
-    // line.appendCoordinate(eventCoordinate);
 
-    // trackLog.push([lonlat, trackLog.length, new Date()]);
+    trackLog.push([lonlat, trackLog.length, new Date()]);
+    line.appendCoordinate(eventCoordinate);
+    
+    changeGeolocationPosition(eventCoordinate[0], eventCoordinate[1]);
+    geolocation.setTracking(false);
+    lastInteraction = new Date();
 
     // const marker = new Feature({
     //   type: "icon",
@@ -1308,20 +1311,20 @@ document.addEventListener("mouseup", function (event) {
 var currentSimulatedPosition = 1;
 var simulateInterval;
 var positionList = [];
-const playButton = document.createElement("button");
+const startButton = document.createElement("button");
 const stopButton = document.createElement("button");
-playButton.id = "playButton";
+startButton.id = "playButton";
 stopButton.id = "stopButton";
-playButton.setAttribute("class", "btn btn-success");
+startButton.setAttribute("class", "btn btn-success");
 stopButton.setAttribute("class", "btn btn-danger");
-playButton.innerHTML = "Start";
+startButton.innerHTML = "Start";
 stopButton.innerHTML = "Stop";
-playButton.style.marginBottom = "5px";
+startButton.style.marginBottom = "5px";
 stopButton.style.marginBottom = "5px";
-document.getElementById("optionButtons").appendChild(playButton);
+document.getElementById("optionButtons").appendChild(startButton);
 document.getElementById("optionButtons").appendChild(stopButton);
 
-playButton.addEventListener("click", function () {
+startButton.addEventListener("click", function () {
   gpxLayer.getSource().forEachFeature(function (feature) {
     if (feature.getGeometry().getType() === "MultiLineString") {
       positionList = feature.getGeometry().simplify(10).getCoordinates()[0];
@@ -1363,7 +1366,12 @@ function simulatePositionChange() {
 function changeGeolocationPosition(longitude, latitude) {
   geolocation.set("accuracy", 10);
   geolocation.set("position", [longitude, latitude]);
-  geolocation.set("speed", 70 / 3.6);
+  if (trackLog.length > 1) {
+    const lastDistance = getDistance(trackLog[trackLog.length - 1][0], trackLog[trackLog.length - 2][0]);
+    const lastTime = (new Date(trackLog[trackLog.length - 1][2]) - new Date(trackLog[trackLog.length - 2][2])) / 1000;
+    const lastKmh = (lastDistance / lastTime) * 3.6;
+    geolocation.set("speed", lastKmh);
+  }
   try {
     var lonlat = toLonLat([positionList[currentSimulatedPosition][0], positionList[currentSimulatedPosition][1]]);
     var lonlat2 = toLonLat([positionList[currentSimulatedPosition - 1][0], positionList[currentSimulatedPosition - 1][1]]);
