@@ -573,23 +573,23 @@ geolocation.on("change", function () {
     positionMarkerHeading.getStyle().getImage().setRotation(heading);
     positionMarker.getStyle().getImage().setOpacity(0);
     positionMarkerHeading.getStyle().getImage().setOpacity(1);
-    
+
     // change view if no interaction occurred last 10 seconds
     if (currentTime - lastInteraction > localStorage.interactionDelay) {
       updateView();
     }
   }
-  
+
   if (speed < 1) {
     positionMarker.getStyle().getImage().setOpacity(1);
     positionMarkerHeading.getStyle().getImage().setOpacity(0);
   }
-  
+
   if (speedKmh > maxSpeed && accuracy < 20) {
     maxSpeed = speedKmh;
     maxSpeedCoord = [lonlat, new Date()];
   }
-  
+
   distanceTraveled += getDistance(lonlat, prevLonlat);
   prevLonlat = lonlat;
   // send text to info box
@@ -922,16 +922,16 @@ map.on("contextmenu", function (event) {
   let closestWaypoint;
   if (gpxLayer.getSource().getFeatures().length > 0) {
     closestWaypoint = gpxLayer
-    .getSource()
-    .getClosestFeatureToCoordinate(
-      event.coordinate,
-      function (feature) {
-        return feature.getGeometry().getType() === "Point";
-      },
+      .getSource()
+      .getClosestFeatureToCoordinate(
+        event.coordinate,
+        function (feature) {
+          return feature.getGeometry().getType() === "Point";
+        },
       );
-      
-      waypointIsClose = getPixelDistance(map.getPixelFromCoordinate(closestWaypoint.getGeometry().getCoordinates()), event.pixel) < 40;
-    }
+
+    waypointIsClose = getPixelDistance(map.getPixelFromCoordinate(closestWaypoint.getGeometry().getCoordinates()), event.pixel) < 40;
+  }
 
   lastInteraction = new Date();
   const eventLonLat = toLonLat(event.coordinate);
@@ -977,18 +977,10 @@ map.on("pointerdrag", function () {
 });
 
 if ("launchQueue" in window) {
-  window.launchQueue.setConsumer((launchParams) => {
-    if (launchParams.targetURL) {
-      const params = new URL(launchParams.targetURL).searchParams;
-      console.log(params);
-
-      // Assuming a music player app that gets a track passed to it to be played
-      // const track = params.get("track");
-      // if (track) {
-      //   audio.src = track;
-      //   title.textContent = new URL(track).pathname.substring(1);
-      //   audio.play();
-      // }
+  launchQueue.setConsumer(async (launchParams) => {
+    for (const file of launchParams.files) {
+      // load file 
+      console.log(file);
     }
   });
 }
@@ -1155,7 +1147,7 @@ function getDeviations() {
           const position = format
             .readGeometry(item.Deviation[0].Geometry.WGS84)
             .transform("EPSG:4326", "EPSG:3857");
-            const feature = new Feature({
+          const feature = new Feature({
             geometry: position,
             name: breakSentence(
               (item.Deviation[0].LocationDescriptor ||
