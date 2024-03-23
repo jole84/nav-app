@@ -46,8 +46,7 @@
         {
             "action": "https://jole84.se/nav-app/index.html",
             "accept": {
-                "application/gpx": [".gpx"],
-                "application/xml": [".gpx"]
+                "application/gpx": [".gpx"]
             }
         }
     ]
