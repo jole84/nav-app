@@ -1,0 +1,55 @@
+{
+    "name": "Jole84 Nav-app",
+    "start_url": "https://jole84.se/nav-app/index.html",
+    "display": "standalone",
+    "description": "Jole84 Navigationsapplikation för mobil",
+    "orientation": "any",
+    "background_color": "black",
+    "theme_color": "blue",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "https://jole84.se/84.svg",
+            "type": "image/svg",
+            "sizes": "any",
+            "purpose": "any"
+        },
+        {
+            "src": "https://jole84.se/84.png",
+            "type": "image/png",
+            "sizes": "any",
+            "purpose": "any"
+        },
+        {
+            "src": "https://jole84.se/84.svg",
+            "type": "image/svg",
+            "sizes": "567x567",
+            "purpose": "any"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "https://jole84.se/jole84_nav-app_narrow.png",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "sizes": "1442x3202",
+            "label": "Jole84 nav-app screenshot narrow"
+        },
+        {
+            "src": "https://jole84.se/jole84_nav-app_wide.png",
+            "type": "image/png",
+            "form_factor": "wide",
+            "sizes": "3203x1442",
+            "label": "Jole84 nav-app screenshot wide"
+        }
+    ],
+    "file_handlers": [
+        {
+            "action": "https://jole84.se/nav-app/index.html",
+            "accept": {
+                "application/gpx": [".gpx"],
+                "application/xml": [".gpx"]
+            }
+        }
+    ]
+}

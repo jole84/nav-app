@@ -976,6 +976,27 @@ map.on("pointerdrag", function () {
   lastInteraction = new Date();
 });
 
+if ("launchQueue" in window) {
+  window.launchQueue.setConsumer((launchParams) => {
+    if (launchParams.targetURL) {
+      const params = new URL(launchParams.targetURL).searchParams;
+      console.log(params);
+
+      // Assuming a music player app that gets a track passed to it to be played
+      // const track = params.get("track");
+      // if (track) {
+      //   audio.src = track;
+      //   title.textContent = new URL(track).pathname.substring(1);
+      //   audio.play();
+      // }
+    }
+  });
+}
+
+// if ('serviceWorker' in navigator) {
+//   navigator.serviceWorker.register("serviceWorker.js");
+// }
+
 // checks url parameters and loads gpx file from url:
 const urlParams = window.location.href.split("?").pop().split("&");
 for (let i = 0; i < urlParams.length; i++) {
