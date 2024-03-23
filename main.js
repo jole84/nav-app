@@ -1415,11 +1415,15 @@ document.getElementById("optionButtons").appendChild(startButton);
 document.getElementById("optionButtons").appendChild(stopButton);
 
 startButton.addEventListener("click", function () {
-  gpxLayer.getSource().forEachFeature(function (feature) {
-    if (feature.getGeometry().getType() === "MultiLineString") {
-      positionList = feature.getGeometry().simplify(10).getCoordinates()[0];
-    }
-  });
+  if (gpxLayer.getSource().getFeatures().length > 0) {
+    gpxLayer.getSource().forEachFeature(function (feature) {
+      if (feature.getGeometry().getType() === "MultiLineString") {
+        positionList = feature.getGeometry().getCoordinates()[0];
+      }
+    });
+  } else if (routeLayer.getSource().getFeatures().length > 0) {
+    positionList = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
+  }
   try {
     geolocation.set("accuracy", 10);
     geolocation.set("position", [positionList[0][0], positionList[0][1]]);
