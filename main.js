@@ -385,6 +385,7 @@ gpxLayer.getSource().addEventListener("addfeature", function () {
     lastInteraction = new Date();
     view.fit(gpxLayer.getSource().getExtent(), {
       padding: [padding, padding, padding, padding],
+      duration: 500,
       maxZoom: 15,
     });
   }
@@ -991,8 +992,75 @@ if ("launchQueue" in window) {
   });
 }
 
-// if ('serviceWorker' in navigator) {
-//   navigator.serviceWorker.register("serviceWorker.js");
+// document.getElementById("clickFileButton").onclick = async function () {
+//   document.getElementById("clickFileButton").blur();
+//   // remove previously loaded gpx files
+//   gpxLayer.getSource().clear();
+//   const fileNames = [];
+
+//   const pickerOpts = {
+//     types: [
+//       {
+//         description: "GPX",
+//         accept: {
+//           "application/gpx+xml": [".gpx"],
+//         },
+//       },
+//     ],
+//     excludeAcceptAllOption: true,
+//     multiple: true,
+//   };
+
+//   const fileHandle = await window.showOpenFilePicker(pickerOpts);
+//   for (const file of fileHandle) {
+//     fileNames.push(file.name);
+//     const f = await file.getFile();
+//     const content = await f.text();
+//     const gpxFeatures = new GPX().readFeatures(content, {
+//       dataProjection: "EPSG:4326",
+//       featureProjection: "EPSG:3857",
+//     });
+//     if (fileHandle.length > 1) {
+//       // set random color if two or more files is loaded
+//       const color = [
+//         Math.floor(Math.random() * 255),
+//         Math.floor(Math.random() * 255),
+//         Math.floor(Math.random() * 255),
+//         0.8,
+//       ];
+//       gpxFeatures.forEach((f) => {
+//         f.setStyle(
+//           new Style({
+//             stroke: new Stroke({
+//               color: color,
+//               width: 10,
+//             }),
+//             text: new Text({
+//               text: f.get("name"),
+//               font: "bold 14px Roboto,monospace",
+//               textAlign: "left",
+//               placement: "line",
+//               repeat: 500,
+//               fill: new Fill({
+//                 color: color,
+//               }),
+//               stroke: new Stroke({
+//                 color: "white",
+//                 width: 4,
+//               }),
+//             }),
+//             image: new Icon({
+//               anchor: [0.5, 1],
+//               color: color,
+//               src: "https://jole84.se/white-marker.svg",
+//             }),
+//           }),
+//         );
+//       });
+//     }
+//     gpxLayer.getSource().addFeatures(gpxFeatures);
+//   }
+//   setExtraInfo(fileNames);
 // }
 
 // checks url parameters and loads gpx file from url:
