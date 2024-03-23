@@ -979,6 +979,7 @@ map.on("pointerdrag", function () {
 
 if ("launchQueue" in window) {
   launchQueue.setConsumer(async (launchParams) => {
+    const fileNames = [];
     for (const file of launchParams.files) {
       // load file 
       const f = await file.getFile();
@@ -987,8 +988,10 @@ if ("launchQueue" in window) {
         dataProjection: "EPSG:4326",
         featureProjection: "EPSG:3857",
       });
+      fileNames.push(f.name);
       gpxLayer.getSource().addFeatures(gpxFeatures);
     }
+    setExtraInfo(fileNames);
   });
 }
 
