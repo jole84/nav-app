@@ -385,6 +385,7 @@ gpxLayer.getSource().addEventListener("addfeature", function () {
     lastInteraction = new Date();
     view.fit(gpxLayer.getSource().getExtent(), {
       padding: [padding, padding, padding, padding],
+      duration: 500,
       maxZoom: 15,
     });
   }
@@ -573,23 +574,23 @@ geolocation.on("change", function () {
     positionMarkerHeading.getStyle().getImage().setRotation(heading);
     positionMarker.getStyle().getImage().setOpacity(0);
     positionMarkerHeading.getStyle().getImage().setOpacity(1);
-    
+
     // change view if no interaction occurred last 10 seconds
     if (currentTime - lastInteraction > localStorage.interactionDelay) {
       updateView();
     }
   }
-  
+
   if (speed < 1) {
     positionMarker.getStyle().getImage().setOpacity(1);
     positionMarkerHeading.getStyle().getImage().setOpacity(0);
   }
-  
+
   if (speedKmh > maxSpeed && accuracy < 20) {
     maxSpeed = speedKmh;
     maxSpeedCoord = [lonlat, new Date()];
   }
-  
+
   distanceTraveled += getDistance(lonlat, prevLonlat);
   prevLonlat = lonlat;
   // send text to info box
@@ -922,16 +923,16 @@ map.on("contextmenu", function (event) {
   let closestWaypoint;
   if (gpxLayer.getSource().getFeatures().length > 0) {
     closestWaypoint = gpxLayer
-    .getSource()
-    .getClosestFeatureToCoordinate(
-      event.coordinate,
-      function (feature) {
-        return feature.getGeometry().getType() === "Point";
-      },
+      .getSource()
+      .getClosestFeatureToCoordinate(
+        event.coordinate,
+        function (feature) {
+          return feature.getGeometry().getType() === "Point";
+        },
       );
-      
-      waypointIsClose = getPixelDistance(map.getPixelFromCoordinate(closestWaypoint.getGeometry().getCoordinates()), event.pixel) < 40;
-    }
+
+    waypointIsClose = getPixelDistance(map.getPixelFromCoordinate(closestWaypoint.getGeometry().getCoordinates()), event.pixel) < 40;
+  }
 
   lastInteraction = new Date();
   const eventLonLat = toLonLat(event.coordinate);
@@ -975,6 +976,92 @@ map.on("contextmenu", function (event) {
 map.on("pointerdrag", function () {
   lastInteraction = new Date();
 });
+
+if ("launchQueue" in window) {
+  launchQueue.setConsumer(async (launchParams) => {
+    for (const file of launchParams.files) {
+      // load file 
+      const f = await file.getFile();
+      const content = await f.text();
+      const gpxFeatures = new GPX().readFeatures(content, {
+        dataProjection: "EPSG:4326",
+        featureProjection: "EPSG:3857",
+      });
+      gpxLayer.getSource().addFeatures(gpxFeatures);
+    }
+  });
+}
+
+// document.getElementById("clickFileButton").onclick = async function () {
+//   document.getElementById("clickFileButton").blur();
+//   // remove previously loaded gpx files
+//   gpxLayer.getSource().clear();
+//   const fileNames = [];
+
+//   const pickerOpts = {
+//     types: [
+//       {
+//         description: "GPX",
+//         accept: {
+//           "application/gpx+xml": [".gpx"],
+//         },
+//       },
+//     ],
+//     excludeAcceptAllOption: true,
+//     multiple: true,
+//   };
+
+//   const fileHandle = await window.showOpenFilePicker(pickerOpts);
+//   for (const file of fileHandle) {
+//     fileNames.push(file.name);
+//     const f = await file.getFile();
+//     const content = await f.text();
+//     const gpxFeatures = new GPX().readFeatures(content, {
+//       dataProjection: "EPSG:4326",
+//       featureProjection: "EPSG:3857",
+//     });
+//     if (fileHandle.length > 1) {
+//       // set random color if two or more files is loaded
+//       const color = [
+//         Math.floor(Math.random() * 255),
+//         Math.floor(Math.random() * 255),
+//         Math.floor(Math.random() * 255),
+//         0.8,
+//       ];
+//       gpxFeatures.forEach((f) => {
+//         f.setStyle(
+//           new Style({
+//             stroke: new Stroke({
+//               color: color,
+//               width: 10,
+//             }),
+//             text: new Text({
+//               text: f.get("name"),
+//               font: "bold 14px Roboto,monospace",
+//               textAlign: "left",
+//               placement: "line",
+//               repeat: 500,
+//               fill: new Fill({
+//                 color: color,
+//               }),
+//               stroke: new Stroke({
+//                 color: "white",
+//                 width: 4,
+//               }),
+//             }),
+//             image: new Icon({
+//               anchor: [0.5, 1],
+//               color: color,
+//               src: "https://jole84.se/white-marker.svg",
+//             }),
+//           }),
+//         );
+//       });
+//     }
+//     gpxLayer.getSource().addFeatures(gpxFeatures);
+//   }
+//   setExtraInfo(fileNames);
+// }
 
 // checks url parameters and loads gpx file from url:
 const urlParams = window.location.href.split("?").pop().split("&");
@@ -1134,7 +1221,7 @@ function getDeviations() {
           const position = format
             .readGeometry(item.Deviation[0].Geometry.WGS84)
             .transform("EPSG:4326", "EPSG:3857");
-            const feature = new Feature({
+          const feature = new Feature({
             geometry: position,
             name: breakSentence(
               (item.Deviation[0].LocationDescriptor ||
