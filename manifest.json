@@ -4,8 +4,8 @@
     "display": "standalone",
     "description": "Jole84 Navigationsapplikation för mobil",
     "orientation": "any",
-    "background_color": "black",
-    "theme_color": "blue",
+    "background_color": "white",
+    "theme_color": "black",
     "prefer_related_applications": false,
     "icons": [
         {

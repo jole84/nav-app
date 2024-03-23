@@ -980,7 +980,13 @@ if ("launchQueue" in window) {
   launchQueue.setConsumer(async (launchParams) => {
     for (const file of launchParams.files) {
       // load file 
-      console.log(file);
+      const f = await file.getFile();
+      const content = await f.text();
+      const gpxFeatures = new GPX().readFeatures(content, {
+        dataProjection: "EPSG:4326",
+        featureProjection: "EPSG:3857",
+      });
+      gpxLayer.getSource().addFeatures(gpxFeatures);
     }
   });
 }
