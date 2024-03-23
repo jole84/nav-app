@@ -1151,6 +1151,7 @@ function getDeviations() {
           });
           trafficWarningSource.addFeature(feature);
         });
+        getClosestAccident();
       } catch (ex) {
         console.log(ex);
       }
