@@ -32,7 +32,7 @@ let heading = 0;
 let lastInteraction = new Date() - localStorage.interactionDelay;
 let lonlat = toLonLat(currentPosition);
 let maxSpeed = 0;
-let maxSpeedCoord;
+let maxSpeedCoordinate;
 let prevLonlat;
 let speed = 0;
 let speedKmh = 0;
@@ -551,7 +551,7 @@ geolocation.on("change", function () {
     routeInfo.innerHTML = "";
     gpxLayer.getSource().forEachFeature(function (feature) {
       if (feature.getGeometry().getType() == "MultiLineString") {
-        const featureCoordinates = feature.getGeometry().getLineString().getCoordinates()
+        const featureCoordinates = feature.getGeometry().getLineString().getCoordinates();
         const gpxRemainingDistance = getRemainingDistance(featureCoordinates);
         if (gpxRemainingDistance != undefined) {
           routeInfo.innerHTML += toRemainingString(gpxRemainingDistance, gpxRemainingDistance / (speedKmh / 60 / 60));
@@ -579,6 +579,7 @@ geolocation.on("change", function () {
     if (currentTime - lastInteraction > localStorage.interactionDelay) {
       updateView();
     }
+    distanceTraveled += getDistance(lonlat, prevLonlat);
   }
 
   if (speed < 1) {
@@ -588,10 +589,9 @@ geolocation.on("change", function () {
 
   if (speedKmh > maxSpeed && accuracy < 20) {
     maxSpeed = speedKmh;
-    maxSpeedCoord = [lonlat, new Date()];
+    maxSpeedCoordinate = [lonlat, new Date()];
   }
 
-  distanceTraveled += getDistance(lonlat, prevLonlat);
   prevLonlat = lonlat;
   // send text to info box
   document.getElementById("coordinatesDiv").innerHTML = lonlat[1].toFixed(5) + ", " + lonlat[0].toFixed(5);
@@ -792,7 +792,6 @@ function switchMap() {
     ortofoto.setVisible(true);
     ortofoto.setMinZoom(0);
   }
-
   infoGroup.style.fontSize = localStorage.preferredFontSize;
 }
 
@@ -813,7 +812,7 @@ function saveLog() {
   <desc>GPX log created by jole84 webapp</desc>
   <time>${startTime.toISOString()}</time>
 </metadata>
-<wpt lat="${maxSpeedCoord[0][1]}" lon="${maxSpeedCoord[0][0]}"><name>max ${Math.floor(maxSpeed)} km/h ${maxSpeedCoord[1].toLocaleTimeString()}</name></wpt>
+<wpt lat="${maxSpeedCoordinate[0][1]}" lon="${maxSpeedCoordinate[0][0]}"><name>max ${Math.floor(maxSpeed)} km/h ${maxSpeedCoordinate[1].toLocaleTimeString()}</name></wpt>
 <trk>
 <name>${startTime.toLocaleString()}, max ${maxSpeed.toFixed(1)} km/h, total ${(
       distanceTraveled / 1000
@@ -979,16 +978,19 @@ map.on("pointerdrag", function () {
 
 if ("launchQueue" in window) {
   launchQueue.setConsumer(async (launchParams) => {
+    const fileNames = [];
     for (const file of launchParams.files) {
-      // load file 
+      // PWA load file 
       const f = await file.getFile();
       const content = await f.text();
       const gpxFeatures = new GPX().readFeatures(content, {
         dataProjection: "EPSG:4326",
         featureProjection: "EPSG:3857",
       });
+      fileNames.push(f.name);
       gpxLayer.getSource().addFeatures(gpxFeatures);
     }
+    setExtraInfo(fileNames);
   });
 }
 
