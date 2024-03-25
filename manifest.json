@@ -8,21 +8,21 @@
     "prefer_related_applications": false,
     "icons": [
         {
-            "src": "https://jole84.se/84.svg",
+            "src": "https://jole84.se/nav-app.svg",
             "type": "image/svg",
             "sizes": "any",
             "purpose": "any"
         },
         {
-            "src": "https://jole84.se/84.png",
+            "src": "https://jole84.se/nav-app.png",
             "type": "image/png",
             "sizes": "any",
             "purpose": "any"
         },
         {
-            "src": "https://jole84.se/84.svg",
+            "src": "https://jole84.se/nav-app.svg",
             "type": "image/svg",
-            "sizes": "567x567",
+            "sizes": "1814x1814",
             "purpose": "any"
         }
     ],
