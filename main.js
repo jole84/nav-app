@@ -134,7 +134,7 @@ onUnloadDiv.addEventListener("change", function () {
 });
 window.onbeforeunload = function () {
   localStorage.navAppCenter = JSON.stringify(currentPosition);
-  if (JSON.parse(localStorage.onUnload)) {
+  if (JSON.parse(localStorage.onUnload) && window.location === window.parent.location) {
     return "";
   }
 };
