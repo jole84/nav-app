@@ -4,9 +4,8 @@ import { getDistance, getLength } from "ol/sphere";
 import { saveAs } from 'file-saver';
 import { Stroke, Style, Icon, Fill, Text } from "ol/style.js";
 import { Vector as VectorLayer } from "ol/layer.js";
-import GeoJSON from "ol/format/GeoJSON.js";
 import Geolocation from "ol/Geolocation.js";
-import GPX from "ol/format/GPX.js";
+import {GPX, GeoJSON, KML} from 'ol/format.js';
 import LineString from "ol/geom/LineString";
 import MultiPoint from 'ol/geom/MultiPoint.js';
 import OSM from "ol/source/OSM.js";
@@ -419,9 +418,9 @@ gpxLayer.getSource().addEventListener("addfeature", function () {
   }
 });
 
-const gpxFormat = new GPX();
-let gpxFeatures;
 function handleFileSelect(evt) {
+  let gpxFormat;
+  let gpxFeatures;
   customFileButton.blur();
   const files = evt.target.files; // FileList object
   // remove previously loaded gpx files
@@ -433,6 +432,14 @@ function handleFileSelect(evt) {
     const reader = new FileReader();
     reader.readAsText(files[i], "UTF-8");
     reader.onload = function (evt) {
+      const fileExtention = files[0].name.split(".").pop();
+      if (fileExtention === "gpx") {
+        gpxFormat = new GPX();
+      } else if (fileExtention === "kml") {
+        gpxFormat = new KML({extractStyles: false});
+      } else if (fileExtention === "geojson") {
+        gpxFormat = new GeoJSON();
+      }
       gpxFeatures = gpxFormat.readFeatures(evt.target.result, {
         dataProjection: "EPSG:4326",
         featureProjection: "EPSG:3857",
