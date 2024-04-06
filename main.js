@@ -54,6 +54,34 @@ const routeInfo = document.getElementById("routeInfo");
 const saveLogButton = document.getElementById("saveLogButton");
 const trafficWarningDiv = document.getElementById("trafficWarning");
 
+// selectFile in menu
+var selectFile = document.getElementById('selectFile');
+for (var i = 0; i < filesList.length; i++) {
+  var opt = filesList[i];
+  var el = document.createElement("option");
+  el.textContent = opt;
+  el.value = opt;
+  selectFile.appendChild(el);
+}
+
+selectFile.addEventListener("change", function () {
+  gpxLayer.getSource().clear();
+  if (selectFile.value !== "välj gpxfil") {
+    fetch("https://jole84.se/rutter/" + selectFile.value, { mode: "no-cors" })
+      .then((response) => {
+        return response.text();
+      })
+      .then((response) => {
+        const gpxFeatures = new GPX().readFeatures(response, {
+          dataProjection: "EPSG:4326",
+          featureProjection: "EPSG:3857",
+        });
+        setExtraInfo([selectFile.value]);
+        gpxLayer.getSource().addFeatures(gpxFeatures);
+      });
+  }
+});
+
 if (navigator.getBattery) {
   navigator.getBattery().then(function (battery) {
     document.getElementById("batteryLevel").innerHTML = Math.round(battery.level * 100);
@@ -134,7 +162,7 @@ onUnloadDiv.addEventListener("change", function () {
 });
 window.onbeforeunload = function () {
   localStorage.navAppCenter = JSON.stringify(currentPosition);
-  if (JSON.parse(localStorage.onUnload)) {
+  if (JSON.parse(localStorage.onUnload) && window.location === window.parent.location) {
     return "";
   }
 };
@@ -529,8 +557,8 @@ geolocation.on("change", function () {
   const currentTime = new Date();
   positionMarkerPoint.setCoordinates(currentPosition);
 
-  // measure distance and push log if position change > 10 meters and accuracy is good
-  if (getDistance(lonlat, trackLog[trackLog.length - 1][0]) > 10 && accuracy < 20) {
+  // measure distance and push log if position change > 10 meters and accuracy is good and more than 5 seconds
+  if (getDistance(lonlat, trackLog[trackLog.length - 1][0]) > 10 && accuracy < 20 && currentTime - trackLog[trackLog.length - 1][2] > 5000) {
     trackLog.push([
       lonlat,
       altitude,
@@ -546,6 +574,19 @@ geolocation.on("change", function () {
         routeMe();
       }
     }
+  }
+
+  if (speed > 1) {
+    // change marker if speed
+    positionMarkerHeading.getStyle().getImage().setRotation(heading);
+    positionMarker.getStyle().getImage().setOpacity(0);
+    positionMarkerHeading.getStyle().getImage().setOpacity(1);
+
+    // change view if no interaction occurred last 10 seconds
+    if (currentTime - lastInteraction > localStorage.interactionDelay) {
+      updateView();
+    }
+    distanceTraveled += getDistance(lonlat, prevLonlat);
 
     // calculate remaing distance on gpx
     routeInfo.innerHTML = "";
@@ -567,19 +608,6 @@ geolocation.on("change", function () {
         routeInfo.innerHTML += toRemainingString(routeRemainingDistance, routeRemainingDistance / (speedKmh / 60 / 60));
       }
     }
-  }
-
-  if (speed > 1) {
-    // change marker if speed
-    positionMarkerHeading.getStyle().getImage().setRotation(heading);
-    positionMarker.getStyle().getImage().setOpacity(0);
-    positionMarkerHeading.getStyle().getImage().setOpacity(1);
-
-    // change view if no interaction occurred last 10 seconds
-    if (currentTime - lastInteraction > localStorage.interactionDelay) {
-      updateView();
-    }
-    distanceTraveled += getDistance(lonlat, prevLonlat);
   }
 
   if (speed < 1) {
@@ -1069,6 +1097,38 @@ if ("launchQueue" in window) {
 const urlParams = window.location.href.split("?").pop().split("&");
 for (let i = 0; i < urlParams.length; i++) {
   console.log(decodeURIComponent(urlParams[i]));
+
+  if (urlParams[i].includes("trackPoints")) {
+    const line = new LineString([]);
+    const gpxLine = new Feature({
+      geometry: line,
+    });
+    const trackPoints = JSON.parse(decodeURI(urlParams[i].split("=")[1]));
+    for (let i = 0; i < trackPoints.length; i++) {
+      const coordinate = fromLonLat(trackPoints[i]);
+      line.appendCoordinate(coordinate);
+    }
+    gpxLayer.getSource().addFeature(gpxLine);
+
+    // for (let i = 0; i < trackPoints.length; i++) {
+    //   destinationCoordinates.push(trackPoints[i])
+    // }
+    // routeMe();
+  }
+
+  if (urlParams[i].includes("poiPoints")) {
+    const poiPoints = JSON.parse(decodeURI(urlParams[i].split("=")[1]));
+    for (let i = 0; i < poiPoints.length; i++) {
+      const name = poiPoints[i][1];
+      const coordinate = fromLonLat(poiPoints[i][0]);
+      const marker = new Feature({
+        geometry: new Point(coordinate),
+        name: name,
+      });
+      gpxLayer.getSource().addFeature(marker);
+    }
+  }
+
   if (urlParams[i].includes(".gpx")) {
     if (!urlParams[i].includes("http")) {
       urlParams[i] = "https://jole84.se/rutter/" + urlParams[i];
