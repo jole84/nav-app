@@ -1151,7 +1151,7 @@ for (let i = 0; i < urlParams.length; i++) {
     }
     const titleString = decodeURIComponent(urlParams[i].split("/").pop());
     setExtraInfo([titleString]);
-    fetch(urlParams[i], { mode: "no-cors" })
+    fetch(urlParams[i], { mode: "cors" })
       .then((response) => {
         console.log(response);
         return response.text();
