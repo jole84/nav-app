@@ -1097,6 +1097,38 @@ if ("launchQueue" in window) {
 const urlParams = window.location.href.split("?").pop().split("&");
 for (let i = 0; i < urlParams.length; i++) {
   console.log(decodeURIComponent(urlParams[i]));
+
+  if (urlParams[i].includes("trackPoints")) {
+    const line = new LineString([]);
+    const gpxLine = new Feature({
+      geometry: line,
+    });
+    const trackPoints = JSON.parse(decodeURI(urlParams[i].split("=")[1]));
+    for (let i = 0; i < trackPoints.length; i++) {
+      const coordinate = fromLonLat(trackPoints[i]);
+      line.appendCoordinate(coordinate);
+    }
+    gpxLayer.getSource().addFeature(gpxLine);
+
+    // for (let i = 0; i < trackPoints.length; i++) {
+    //   destinationCoordinates.push(trackPoints[i])
+    // }
+    // routeMe();
+  }
+
+  if (urlParams[i].includes("poiPoints")) {
+    const poiPoints = JSON.parse(decodeURI(urlParams[i].split("=")[1]));
+    for (let i = 0; i < poiPoints.length; i++) {
+      const name = poiPoints[i][1];
+      const coordinate = fromLonLat(poiPoints[i][0]);
+      const marker = new Feature({
+        geometry: new Point(coordinate),
+        name: name,
+      });
+      gpxLayer.getSource().addFeature(marker);
+    }
+  }
+
   if (urlParams[i].includes(".gpx")) {
     if (!urlParams[i].includes("http")) {
       urlParams[i] = "https://jole84.se/rutter/" + urlParams[i];
