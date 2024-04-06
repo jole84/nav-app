@@ -54,6 +54,34 @@ const routeInfo = document.getElementById("routeInfo");
 const saveLogButton = document.getElementById("saveLogButton");
 const trafficWarningDiv = document.getElementById("trafficWarning");
 
+// selectFile in menu
+var selectFile = document.getElementById('selectFile');
+for (var i = 0; i < filesList.length; i++) {
+  var opt = filesList[i];
+  var el = document.createElement("option");
+  el.textContent = opt;
+  el.value = opt;
+  selectFile.appendChild(el);
+}
+
+selectFile.addEventListener("change", function () {
+  gpxLayer.getSource().clear();
+  if (selectFile.value !== "välj gpxfil") {
+    fetch("https://jole84.se/rutter/" + selectFile.value, { mode: "no-cors" })
+      .then((response) => {
+        return response.text();
+      })
+      .then((response) => {
+        const gpxFeatures = new GPX().readFeatures(response, {
+          dataProjection: "EPSG:4326",
+          featureProjection: "EPSG:3857",
+        });
+        setExtraInfo([selectFile.value]);
+        gpxLayer.getSource().addFeatures(gpxFeatures);
+      });
+  }
+});
+
 if (navigator.getBattery) {
   navigator.getBattery().then(function (battery) {
     document.getElementById("batteryLevel").innerHTML = Math.round(battery.level * 100);
