@@ -557,8 +557,8 @@ geolocation.on("change", function () {
   const currentTime = new Date();
   positionMarkerPoint.setCoordinates(currentPosition);
 
-  // measure distance and push log if position change > 10 meters and accuracy is good
-  if (getDistance(lonlat, trackLog[trackLog.length - 1][0]) > 10 && accuracy < 20) {
+  // measure distance and push log if position change > 10 meters and accuracy is good and more than 5 seconds
+  if (getDistance(lonlat, trackLog[trackLog.length - 1][0]) > 10 && accuracy < 20 && currentTime - trackLog[trackLog.length - 1][2] > 5000) {
     trackLog.push([
       lonlat,
       altitude,
@@ -574,6 +574,19 @@ geolocation.on("change", function () {
         routeMe();
       }
     }
+  }
+
+  if (speed > 1) {
+    // change marker if speed
+    positionMarkerHeading.getStyle().getImage().setRotation(heading);
+    positionMarker.getStyle().getImage().setOpacity(0);
+    positionMarkerHeading.getStyle().getImage().setOpacity(1);
+
+    // change view if no interaction occurred last 10 seconds
+    if (currentTime - lastInteraction > localStorage.interactionDelay) {
+      updateView();
+    }
+    distanceTraveled += getDistance(lonlat, prevLonlat);
 
     // calculate remaing distance on gpx
     routeInfo.innerHTML = "";
@@ -595,19 +608,6 @@ geolocation.on("change", function () {
         routeInfo.innerHTML += toRemainingString(routeRemainingDistance, routeRemainingDistance / (speedKmh / 60 / 60));
       }
     }
-  }
-
-  if (speed > 1) {
-    // change marker if speed
-    positionMarkerHeading.getStyle().getImage().setRotation(heading);
-    positionMarker.getStyle().getImage().setOpacity(0);
-    positionMarkerHeading.getStyle().getImage().setOpacity(1);
-
-    // change view if no interaction occurred last 10 seconds
-    if (currentTime - lastInteraction > localStorage.interactionDelay) {
-      updateView();
-    }
-    distanceTraveled += getDistance(lonlat, prevLonlat);
   }
 
   if (speed < 1) {
