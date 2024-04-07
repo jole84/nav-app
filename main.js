@@ -44,7 +44,7 @@ const enableLntDiv = document.getElementById("enableLnt");
 const extraTrafikCheckDiv = document.getElementById("extraTrafikCheck");
 const infoGroup = document.getElementById("infoGroup");
 const interactionDelayDiv = document.getElementById("interactionDelay");
-const mapDiv = document.getElementById("map");
+const mapContainer = document.getElementById("mapContainer");
 const onUnloadDiv = document.getElementById("onUnload");
 const openMenuButton = document.getElementById("openMenu");
 const preferredFontSizeDiv = document.getElementById("preferredFontSize");
@@ -772,7 +772,7 @@ function switchMap() {
   ortofoto.setVisible(false);
   topoweb.setVisible(false);
   osm.setVisible(false);
-  mapDiv.setAttribute(
+  mapContainer.setAttribute(
     "style",
     "-webkit-filter: initial;filter: initial;background-color: initial;",
   );
@@ -807,7 +807,7 @@ function switchMap() {
   } else if (localStorage.getItem("mapMode") == 2) {
     // mapMode 2: slitlagerkarta_nedtonad + night mode
     slitlagerkarta_nedtonad.setVisible(true);
-    mapDiv.setAttribute("style", "filter: invert(1) hue-rotate(180deg);");
+    mapContainer.setAttribute("style", "filter: invert(1) hue-rotate(180deg);");
     if (JSON.parse(localStorage.enableLnt)) {
       topoweb.setVisible(true);
       slitlagerkarta_nedtonad.setMaxZoom(15.5);
