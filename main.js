@@ -44,7 +44,7 @@ const enableLntDiv = document.getElementById("enableLnt");
 const extraTrafikCheckDiv = document.getElementById("extraTrafikCheck");
 const infoGroup = document.getElementById("infoGroup");
 const interactionDelayDiv = document.getElementById("interactionDelay");
-const mapDiv = document.getElementById("map");
+const mapContainer = document.getElementById("mapContainer");
 const onUnloadDiv = document.getElementById("onUnload");
 const openMenuButton = document.getElementById("openMenu");
 const preferredFontSizeDiv = document.getElementById("preferredFontSize");
@@ -419,7 +419,7 @@ gpxLayer.getSource().addEventListener("addfeature", function () {
 });
 
 function handleFileSelect(evt) {
-  let gpxFormat;
+  let fileFormat;
   let gpxFeatures;
   customFileButton.blur();
   const files = evt.target.files; // FileList object
@@ -432,15 +432,15 @@ function handleFileSelect(evt) {
     const reader = new FileReader();
     reader.readAsText(files[i], "UTF-8");
     reader.onload = function (evt) {
-      const fileExtention = files[0].name.split(".").pop();
+      const fileExtention = files[0].name.split(".").pop().toLowerCase();
       if (fileExtention === "gpx") {
-        gpxFormat = new GPX();
+        fileFormat = new GPX();
       } else if (fileExtention === "kml") {
-        gpxFormat = new KML({extractStyles: false});
+        fileFormat = new KML({extractStyles: false});
       } else if (fileExtention === "geojson") {
-        gpxFormat = new GeoJSON();
+        fileFormat = new GeoJSON();
       }
-      gpxFeatures = gpxFormat.readFeatures(evt.target.result, {
+      gpxFeatures = fileFormat.readFeatures(evt.target.result, {
         dataProjection: "EPSG:4326",
         featureProjection: "EPSG:3857",
       });
@@ -772,7 +772,7 @@ function switchMap() {
   ortofoto.setVisible(false);
   topoweb.setVisible(false);
   osm.setVisible(false);
-  mapDiv.setAttribute(
+  mapContainer.setAttribute(
     "style",
     "-webkit-filter: initial;filter: initial;background-color: initial;",
   );
@@ -807,7 +807,7 @@ function switchMap() {
   } else if (localStorage.getItem("mapMode") == 2) {
     // mapMode 2: slitlagerkarta_nedtonad + night mode
     slitlagerkarta_nedtonad.setVisible(true);
-    mapDiv.setAttribute("style", "filter: invert(1) hue-rotate(180deg);");
+    mapContainer.setAttribute("style", "filter: invert(1) hue-rotate(180deg);");
     if (JSON.parse(localStorage.enableLnt)) {
       topoweb.setVisible(true);
       slitlagerkarta_nedtonad.setMaxZoom(15.5);
@@ -1013,12 +1013,21 @@ map.on("pointerdrag", function () {
 
 if ("launchQueue" in window) {
   launchQueue.setConsumer(async (launchParams) => {
+    let fileFormat;
     const fileNames = [];
     for (const file of launchParams.files) {
-      // PWA load file 
+      // PWA load file
+      const fileExtention = file.name.split(".").pop().toLowerCase();
+      if (fileExtention === "gpx") {
+        fileFormat = new GPX();
+      } else if (fileExtention === "kml") {
+        fileFormat = new KML({extractStyles: false});
+      } else if (fileExtention === "geojson") {
+        fileFormat = new GeoJSON();
+      }
       const f = await file.getFile();
       const content = await f.text();
-      const gpxFeatures = new GPX().readFeatures(content, {
+      const gpxFeatures = fileFormat.readFeatures(content, {
         dataProjection: "EPSG:4326",
         featureProjection: "EPSG:3857",
       });
@@ -1142,7 +1151,7 @@ for (let i = 0; i < urlParams.length; i++) {
     }
     const titleString = decodeURIComponent(urlParams[i].split("/").pop());
     setExtraInfo([titleString]);
-    fetch(urlParams[i], { mode: "no-cors" })
+    fetch(urlParams[i], { mode: "cors" })
       .then((response) => {
         console.log(response);
         return response.text();
