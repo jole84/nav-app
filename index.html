@@ -63,7 +63,8 @@
 
     #optionButtons {
       flex-wrap: wrap-reverse;
-      /* width: calc(100% - 10px); */
+      width: calc(100% - 10px);
+      /* max-width: 335px; */
       display: flex;
       justify-content: flex-start;
       bottom: 0px;
@@ -73,21 +74,6 @@
       z-index: 10;
       margin: 5px;
     }
-
-    /* .button {
-      flex: 1;
-      background-color: rgb(233, 233, 233);
-      border-radius: 5px;
-      border: 1px solid rgb(116, 116, 116);
-      color: black;
-      font-size: 1.1rem;
-      padding: 7px 15px;
-      text-decoration: none;
-      text-shadow: none;
-      filter: opacity(80%);
-      cursor: pointer;
-      user-select: none;
-    } */
 
     #map .ol-rotate {
       display: none;
@@ -174,11 +160,7 @@
       height: 36px;
     }
 
-    @media (max-width: 650px) {
-      .button {
-        flex: 1;
-      }
-
+    @media (max-width: 550px) {
       .btn {
         flex: 1;
       }
