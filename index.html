@@ -33,6 +33,7 @@
     html,
     body,
     #map {
+      font-family: "B612";
       background-color: #bfe6ff;
       height: 100%;
       margin: 0;
@@ -63,16 +64,16 @@
 
     #optionButtons {
       flex-wrap: wrap-reverse;
-      width: calc(100% - 10px);
-      /* max-width: 335px; */
+      max-width: 335px;
       display: flex;
-      justify-content: flex-start;
+      justify-content: space-between;
       bottom: 0px;
       gap: 5px;
       position: absolute;
       white-space: nowrap;
       z-index: 10;
       margin: 5px;
+      filter: opacity(0.8);
     }
 
     #map .ol-rotate {
@@ -80,7 +81,6 @@
     }
 
     #menuDiv {
-      font-family: "B612";
       position: absolute;
       max-height: 95%;
       min-width: 550px;
@@ -160,14 +160,13 @@
       height: 36px;
     }
 
+    .btn {
+      flex: 1;
+    }
+    
     @media (max-width: 550px) {
-      .btn {
-        flex: 1;
-      }
-
       #optionButtons {
-        filter: opacity(0.8);
-        /* max-width: 333px; */
+        max-width: calc(100% - 10px);
       }
 
       #menuDiv {
@@ -176,6 +175,13 @@
         right: 5px;
         -ms-transform: translate(0%, -50%);
         transform: translate(0%, -50%);
+      }
+    }
+        
+    @media (min-width: 550px) {
+      #optionButtons:hover {
+        filter: opacity(1);
+        transition: all 0.2s;
       }
     }
   </style>
