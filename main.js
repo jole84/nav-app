@@ -78,6 +78,8 @@ selectFile.addEventListener("change", function () {
         setExtraInfo([selectFile.value]);
         gpxLayer.getSource().addFeatures(gpxFeatures);
       });
+  } else {
+    setExtraInfo([]);
   }
 });
 
