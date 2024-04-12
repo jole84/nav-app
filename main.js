@@ -278,7 +278,7 @@ const trafficWarningTextStyleFunction = function (feature) {
         font: "bold 14px Roboto,monospace",
         textAlign: "center",
         textBaseline: "top",
-        offsetY: 20,
+        offsetY: 24,
         fill: new Fill({
           color: "black",
         }),
