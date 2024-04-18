@@ -287,13 +287,13 @@ const trafficWarningTextStyleFunction = function (feature) {
           width: 4,
         }),
         backgroundFill: new Fill({
-          color: [252, 208, 30 , 0.8],
+          color: [252, 208, 30, 0.8],
         }),
         backgroundStroke: new Stroke({
           color: [238, 41, 61, 0.8],
           width: 3,
         }),
-        padding: [2,2,2,2],
+        padding: [2, 2, 2, 2],
       }),
     }),
   ];
@@ -860,7 +860,7 @@ function saveLogButtonFunction() {
 }
 
 // new saveLog function
-function saveLog() {
+async function saveLog() {
   let gpxFile = `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <gpx version="1.1" creator="jole84 webapp">
 <metadata>
@@ -893,7 +893,16 @@ function saveLog() {
   setExtraInfo(["Sparar fil:", filename]);
 
   let file = new Blob([gpxFile], { type: "application/gpx+xml" });
-  saveAs(file, filename);
+
+  // tries to share text file
+  try {
+    await navigator.share({
+      files: [new File([gpxFile], filename + ".txt", { type: "text/plain" })],
+    });
+  } catch (error) {
+    setExtraInfo([error]);
+    saveAs(file, filename);
+  }
 }
 
 function setExtraInfo(infoText) {
