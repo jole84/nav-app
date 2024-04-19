@@ -33,6 +33,7 @@
     html,
     body,
     #map {
+      font-family: "B612";
       background-color: #bfe6ff;
       height: 100%;
       margin: 0;
@@ -62,35 +63,27 @@
     }
 
     #optionButtons {
-      max-width: 245px;
+      flex-wrap: wrap-reverse;
+      max-width: 350px;
+      display: flex;
+      justify-content: space-between;
       bottom: 0px;
-      left: 5px;
+      gap: 5px;
       position: absolute;
       white-space: nowrap;
       z-index: 10;
-    }
-
-    #layerSelector,
-    #centerButton,
-    #saveLogButton,
-    #clickFileButton,
-    #openMenu {
-      margin-bottom: 5px;
+      margin: 5px;
+      filter: opacity(0.8);
     }
 
     #map .ol-rotate {
       display: none;
     }
 
-    #layerSelector {
-      display: inline-block;
-    }
-
     #menuDiv {
       position: absolute;
-      min-width: 350px;
-      max-width: 550px;
-      max-height: 100%;
+      max-height: 95%;
+      min-width: 550px;
       left: 50%;
       top: 50%;
       color: rgb(32, 32, 32);
@@ -113,7 +106,7 @@
     #preferredFontSize,
     #prefferedZoom,
     #interactionDelay {
-      width: 100;
+      width: 130;
       display: inline-block;
     }
 
@@ -121,10 +114,6 @@
     table.table th {
       padding-top: .2rem;
       padding-bottom: .2rem;
-    }
-
-    .B612 {
-      font-family: "B612";
     }
 
     .infoGroup {
@@ -165,6 +154,36 @@
       justify-content: space-between;
       display: flex;
     }
+
+    #layerSelector {
+      max-width: fit-content;
+      height: 36px;
+    }
+
+    .btn {
+      flex: 1;
+    }
+    
+    @media (max-width: 550px) {
+      #optionButtons {
+        max-width: calc(100% - 10px);
+      }
+
+      #menuDiv {
+        min-width: unset;
+        left: 5px;
+        right: 5px;
+        -ms-transform: translate(0%, -50%);
+        transform: translate(0%, -50%);
+      }
+    }
+        
+    @media (min-width: 550px) {
+      #optionButtons:hover {
+        filter: opacity(1);
+        transition: all 0.2s;
+      }
+    }
   </style>
   <script type="module" src="./main.js"></script>
 </head>
@@ -189,6 +208,9 @@
       <div id="trafficWarning"></div>
     </div>
     <div id="optionButtons">
+      <button class="btn btn-danger" id="centerButton">Center</button>
+      <button class="btn btn-primary" id="saveLogButton">Spara spår</button>
+      <button class="btn btn-info" id="clickFileButton">Ladda GPX</button>
       <select class="form-select" id="layerSelector">
         <option value="0">Jole84 Terrängkarta</option>
         <option value="1">Jole84 Vägkarta</option>
@@ -197,10 +219,7 @@
         <!-- <option value="4">Lantmäteriet Topo</option>
         <option value="5">Lantmäteriet Orto</option> -->
       </select>
-      <button class="btn btn-success" id="openMenu">Meny</button><br>
-      <button class="btn btn-danger" id="centerButton">Center</button>
-      <button class="btn btn-primary" id="saveLogButton">Spara spår</button>
-      <button class="btn btn-info" id="clickFileButton">Ladda GPX</button>
+      <button class="btn btn-success" id="openMenu">Meny</button>
     </div>
     <div id="menuDiv">
       <h2>Inställningar</h2>
@@ -249,7 +268,7 @@
             Fördröjning (sek):
           </td>
           <td>
-            <input class="form-control B612" type="number" id="interactionDelay"><br>
+            <input class="form-control" type="number" id="interactionDelay"><br>
           </td>
         </tr>
 
@@ -258,8 +277,8 @@
             Förvald zoom:
           </td>
           <td>
-            <input class="form-control B612" type="number" id="prefferedZoom" value="14" min="6" max="20" step="0.1"
-              required placeholder="14"><br>
+            <input class="form-control" type="number" id="prefferedZoom" value="14" min="6" max="20" step="0.1" required
+              placeholder="14"><br>
           </td>
         </tr>
 
@@ -297,7 +316,8 @@
       <button class="btn btn-success" id="closeMenu">Stäng</button>
     </div>
   </div>
-  <input type="file" id="customFileButton" multiple accept=".gpx,application/gpx+xml,.kml,.geojson" style="display: none;" />
+  <input type="file" id="customFileButton" multiple accept=".gpx,application/gpx+xml,.kml,.geojson"
+    style="display: none;" />
 </body>
 
 </html>

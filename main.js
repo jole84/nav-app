@@ -5,7 +5,7 @@ import { saveAs } from 'file-saver';
 import { Stroke, Style, Icon, Fill, Text } from "ol/style.js";
 import { Vector as VectorLayer } from "ol/layer.js";
 import Geolocation from "ol/Geolocation.js";
-import {GPX, GeoJSON, KML} from 'ol/format.js';
+import { GPX, GeoJSON, KML } from 'ol/format.js';
 import LineString from "ol/geom/LineString";
 import MultiPoint from 'ol/geom/MultiPoint.js';
 import OSM from "ol/source/OSM.js";
@@ -78,6 +78,8 @@ selectFile.addEventListener("change", function () {
         setExtraInfo([selectFile.value]);
         gpxLayer.getSource().addFeatures(gpxFeatures);
       });
+  } else {
+    setExtraInfo([]);
   }
 });
 
@@ -232,8 +234,18 @@ const gpxStyle = {
       width: 10,
     }),
   }),
+  Polygon: new Style({
+    stroke: new Stroke({
+      color: [255, 0, 0, 1],
+      width: 5,
+    }),
+    fill: new Fill({
+      color: [255, 0, 0, 0.2],
+    }),
+  }),
 };
 gpxStyle["MultiLineString"] = gpxStyle["LineString"];
+gpxStyle["MultiPolygon"] = gpxStyle["Polygon"];
 
 const trackStyle = {
   LineString: new Style({
@@ -266,14 +278,22 @@ const trafficWarningTextStyleFunction = function (feature) {
         font: "bold 14px Roboto,monospace",
         textAlign: "center",
         textBaseline: "top",
-        offsetY: 20,
+        offsetY: 24,
         fill: new Fill({
-          color: "#b41412",
+          color: "black",
         }),
         stroke: new Stroke({
-          color: "yellow",
+          color: [252, 208, 30],
           width: 4,
         }),
+        backgroundFill: new Fill({
+          color: [252, 208, 30, 0.8],
+        }),
+        backgroundStroke: new Stroke({
+          color: [238, 41, 61, 0.8],
+          width: 3,
+        }),
+        padding: [2, 2, 2, 2],
       }),
     }),
   ];
@@ -436,7 +456,7 @@ function handleFileSelect(evt) {
       if (fileExtention === "gpx") {
         fileFormat = new GPX();
       } else if (fileExtention === "kml") {
-        fileFormat = new KML({extractStyles: false});
+        fileFormat = new KML({ extractStyles: false });
       } else if (fileExtention === "geojson") {
         fileFormat = new GeoJSON();
       }
@@ -840,7 +860,7 @@ function saveLogButtonFunction() {
 }
 
 // new saveLog function
-function saveLog() {
+async function saveLog() {
   let gpxFile = `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <gpx version="1.1" creator="jole84 webapp">
 <metadata>
@@ -873,7 +893,16 @@ function saveLog() {
   setExtraInfo(["Sparar fil:", filename]);
 
   let file = new Blob([gpxFile], { type: "application/gpx+xml" });
-  saveAs(file, filename);
+
+  // tries to share text file
+  try {
+    await navigator.share({
+      files: [new File([gpxFile], filename + ".txt", { type: "text/plain" })],
+    });
+  } catch (error) {
+    setExtraInfo([error]);
+    saveAs(file, filename);
+  }
 }
 
 function setExtraInfo(infoText) {
@@ -1021,7 +1050,7 @@ if ("launchQueue" in window) {
       if (fileExtention === "gpx") {
         fileFormat = new GPX();
       } else if (fileExtention === "kml") {
-        fileFormat = new KML({extractStyles: false});
+        fileFormat = new KML({ extractStyles: false });
       } else if (fileExtention === "geojson") {
         fileFormat = new GeoJSON();
       }
