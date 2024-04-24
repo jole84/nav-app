@@ -1148,13 +1148,15 @@ for (let i = 0; i < urlParams.length; i++) {
   if (urlParams[i].includes("destinationsPoints")) {
     // https://jole84.se/nav-app/index.html?destinationsPoints=[[lon,lat]]
     const destinationsPoints = JSON.parse(decodeURI(urlParams[i].split("=")[1]));
-    if (destinationsPoints.length == 1) {
-      destinationCoordinates[0] = lonlat;
-      destinationCoordinates.push(destinationsPoints);
-    } else {
-      destinationCoordinates = destinationsPoints;
+    if (destinationsPoints.length > 0) {
+      if (destinationsPoints.length == 1) {
+        destinationCoordinates[0] = lonlat;
+        destinationCoordinates.push(destinationsPoints);
+      } else {
+        destinationCoordinates = destinationsPoints;
+      }
+      routeMe();
     }
-    routeMe();
   }
 
   if (urlParams[i].includes("trackPoints")) {
