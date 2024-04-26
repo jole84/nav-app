@@ -985,16 +985,16 @@ map.on("contextmenu", function (event) {
   lastInteraction = new Date();
   const eventLonLat = toLonLat(event.coordinate);
   let closestWaypoint;
-  
+
   // set start position
   if (destinationCoordinates.length == 0) {
     destinationCoordinates[0] = lonlat;
   }
-  
+
   let clickedOnWaypoint = false;
   const clickedOnCurrentPosition = getDistance(lonlat, eventLonLat) < 200 || getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
   const clickedOnLastDestination = getPixelDistance(event.pixel, map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))) < 40;
-  
+
   // check if clicked on a waypoint
   if (gpxLayer.getSource().getFeatures().length > 0) {
     closestWaypoint = gpxLayer
@@ -1149,12 +1149,9 @@ for (let i = 0; i < urlParams.length; i++) {
     // https://jole84.se/nav-app/index.html?destinationsPoints=[[lon,lat]]
     const destinationsPoints = JSON.parse(decodeURI(urlParams[i].split("=")[1]));
     if (destinationsPoints.length > 0) {
-      if (destinationsPoints.length == 1) {
-        destinationCoordinates[0] = lonlat;
-        destinationCoordinates.push(destinationsPoints);
-      } else {
-        destinationCoordinates = destinationsPoints;
-      }
+      destinationCoordinates = destinationsPoints;
+      destinationCoordinates.unshift(lonlat);
+      console.log(destinationCoordinates)
       routeMe();
     }
   }
