@@ -94,12 +94,12 @@ if (navigator.getBattery) {
     battery.onchargingchange = () => {
       document.getElementById("batteryCharging").innerHTML = battery.charging ? "+" : "-";
       setExtraInfo([
-        (battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>')
+        (battery.charging ? '<div style="text-align:center;color:green;">laddar</div>' : '<div style="text-align:center;color:red;">laddar inte</div>')
       ]);
     }
   });
 }
-setExtraInfo(['<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>']);
+setExtraInfo(['<div style="text-align:center;font-size: 0.4em;">Build: INSERTDATEHERE</div>']);
 
 let wakeLock;
 const acquireWakeLock = async () => {
@@ -992,16 +992,16 @@ map.on("contextmenu", function (event) {
   lastInteraction = new Date();
   const eventLonLat = toLonLat(event.coordinate);
   let closestWaypoint;
-  
+
   // set start position
   if (destinationCoordinates.length == 0) {
     destinationCoordinates[0] = lonlat;
   }
-  
+
   let clickedOnWaypoint = false;
   const clickedOnCurrentPosition = getDistance(lonlat, eventLonLat) < 200 || getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
   const clickedOnLastDestination = getPixelDistance(event.pixel, map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))) < 40;
-  
+
   // check if clicked on a waypoint
   if (gpxLayer.getSource().getFeatures().length > 0) {
     closestWaypoint = gpxLayer
@@ -1155,13 +1155,12 @@ for (let i = 0; i < urlParams.length; i++) {
   if (urlParams[i].includes("destinationsPoints")) {
     // https://jole84.se/nav-app/index.html?destinationsPoints=[[lon,lat]]
     const destinationsPoints = JSON.parse(decodeURI(urlParams[i].split("=")[1]));
-    if (destinationsPoints.length == 1) {
-      destinationCoordinates[0] = lonlat;
-      destinationCoordinates.push(destinationsPoints);
-    } else {
+    if (destinationsPoints.length > 0) {
       destinationCoordinates = destinationsPoints;
+      destinationCoordinates.unshift(lonlat);
+      console.log(destinationCoordinates)
+      routeMe();
     }
-    routeMe();
   }
 
   if (urlParams[i].includes("trackPoints")) {
