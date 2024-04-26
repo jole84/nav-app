@@ -94,12 +94,12 @@ if (navigator.getBattery) {
     battery.onchargingchange = () => {
       document.getElementById("batteryCharging").innerHTML = battery.charging ? "+" : "-";
       setExtraInfo([
-        (battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>')
+        (battery.charging ? '<div style="text-align:center;color:green;">laddar</div>' : '<div style="text-align:center;color:red;">laddar inte</div>')
       ]);
     }
   });
 }
-setExtraInfo(['<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>']);
+setExtraInfo(['<div style="text-align:center;font-size: 0.4em;">Build: INSERTDATEHERE</div>']);
 
 let wakeLock;
 const acquireWakeLock = async () => {
