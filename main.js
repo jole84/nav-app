@@ -94,12 +94,12 @@ if (navigator.getBattery) {
     battery.onchargingchange = () => {
       document.getElementById("batteryCharging").innerHTML = battery.charging ? "+" : "-";
       setExtraInfo([
-        (battery.charging ? '<font style="color:green">laddar</font>' : '<font style="color:red">laddar inte</font>')
+        (battery.charging ? '<div style="text-align:center;color:green;">laddar</div>' : '<div style="text-align:center;color:red;">laddar inte</div>')
       ]);
     }
   });
 }
-setExtraInfo(['<font style="font-size: 0.4em;"> Build: INSERTDATEHERE</font>']);
+setExtraInfo(['<div style="text-align:center;font-size: 0.4em;">Build: INSERTDATEHERE</div>']);
 
 let wakeLock;
 const acquireWakeLock = async () => {
@@ -982,8 +982,20 @@ map.on("singleclick", function (evt) {
 
 // right click/long press to route
 map.on("contextmenu", function (event) {
-  let waypointIsClose = false;
+  lastInteraction = new Date();
+  const eventLonLat = toLonLat(event.coordinate);
   let closestWaypoint;
+
+  // set start position
+  if (destinationCoordinates.length == 0) {
+    destinationCoordinates[0] = lonlat;
+  }
+
+  let clickedOnWaypoint = false;
+  const clickedOnCurrentPosition = getDistance(lonlat, eventLonLat) < 200 || getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
+  const clickedOnLastDestination = getPixelDistance(event.pixel, map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))) < 40;
+
+  // check if clicked on a waypoint
   if (gpxLayer.getSource().getFeatures().length > 0) {
     closestWaypoint = gpxLayer
       .getSource()
@@ -994,35 +1006,25 @@ map.on("contextmenu", function (event) {
         },
       );
 
-    waypointIsClose = getPixelDistance(map.getPixelFromCoordinate(closestWaypoint.getGeometry().getCoordinates()), event.pixel) < 40;
+    clickedOnWaypoint = getPixelDistance(map.getPixelFromCoordinate(closestWaypoint.getGeometry().getCoordinates()), event.pixel) < 40;
   }
-
-  lastInteraction = new Date();
-  const eventLonLat = toLonLat(event.coordinate);
-
-  // set start position
-  if (destinationCoordinates.length == 0) {
-    destinationCoordinates[0] = lonlat;
-  }
-
-  const clickedOnCurrentPosition = getDistance(lonlat, eventLonLat) < 200 || getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
-  const clickedOnLastDestination = getPixelDistance(event.pixel, map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))) < 40;
 
   // measure distance from current pos
   if (clickedOnCurrentPosition) {
     setExtraInfo([Math.round(getDistance(lonlat, eventLonLat)) + '<font class="infoFormat">M</font>']);
   }
+
   // remove last point if click < 40 pixels from last point
   if (destinationCoordinates.length > 2 && clickedOnLastDestination) {
     destinationCoordinates.pop();
     // clear route if click < 40 pixels from last point or click on current position
-  } else if (destinationCoordinates.length == 2 && clickedOnLastDestination || clickedOnCurrentPosition) {
+  } else if ((destinationCoordinates.length == 2 && clickedOnLastDestination) || clickedOnCurrentPosition) {
     routeLayer.getSource().clear();
     routeInfo.innerHTML = "";
     destinationCoordinates = [];
   } else {
     // else push clicked coord to destinationCoordinates
-    if (waypointIsClose) {
+    if (clickedOnWaypoint) {
       destinationCoordinates.push(toLonLat(closestWaypoint.getGeometry().getCoordinates()));
     } else {
       destinationCoordinates.push(eventLonLat);
@@ -1142,6 +1144,17 @@ if ("launchQueue" in window) {
 const urlParams = window.location.href.split("?").pop().split("&");
 for (let i = 0; i < urlParams.length; i++) {
   console.log(decodeURIComponent(urlParams[i]));
+
+  if (urlParams[i].includes("destinationsPoints")) {
+    // https://jole84.se/nav-app/index.html?destinationsPoints=[[lon,lat]]
+    const destinationsPoints = JSON.parse(decodeURI(urlParams[i].split("=")[1]));
+    if (destinationsPoints.length > 0) {
+      destinationCoordinates = destinationsPoints;
+      destinationCoordinates.unshift(lonlat);
+      console.log(destinationCoordinates)
+      routeMe();
+    }
+  }
 
   if (urlParams[i].includes("trackPoints")) {
     const line = new LineString([]);
