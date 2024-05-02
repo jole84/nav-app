@@ -915,7 +915,7 @@ function setExtraInfo(infoText) {
 }
 
 // brouter routing
-function routeMe() {
+function routeMe(targetLayer = routeLayer) {
   fetch(
     "https://brouter.de/brouter" +
     // "https://jole84.se:17777/brouter" +
@@ -962,10 +962,10 @@ function routeMe() {
       });
 
       // remove previus route
-      routeLayer.getSource().clear();
+      targetLayer.getSource().clear();
 
       // finally add route to map
-      routeLayer.getSource().addFeatures([routeFeature, endMarker]);
+      targetLayer.getSource().addFeatures([routeFeature, endMarker]);
     });
   });
 }
@@ -987,9 +987,7 @@ map.on("contextmenu", function (event) {
   let closestWaypoint;
 
   // set start position
-  if (destinationCoordinates.length == 0) {
-    destinationCoordinates[0] = lonlat;
-  }
+  destinationCoordinates[0] = lonlat;
 
   let clickedOnWaypoint = false;
   const clickedOnCurrentPosition = getDistance(lonlat, eventLonLat) < 200 || getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
@@ -1145,14 +1143,17 @@ const urlParams = window.location.href.split("?").pop().split("&");
 for (let i = 0; i < urlParams.length; i++) {
   console.log(decodeURIComponent(urlParams[i]));
 
-  if (urlParams[i].includes("destinationsPoints")) {
-    // https://jole84.se/nav-app/index.html?destinationsPoints=[[lon,lat]]
-    const destinationsPoints = JSON.parse(decodeURI(urlParams[i].split("=")[1]));
-    if (destinationsPoints.length > 0) {
-      destinationCoordinates = destinationsPoints;
-      destinationCoordinates.unshift(lonlat);
-      console.log(destinationCoordinates)
+  if (urlParams[i].includes("destinationPoints")) {
+    // https://jole84.se/nav-app/index.html?destinationPoints=[[lon,lat]]
+    const destinationPoints = JSON.parse(decodeURI(urlParams[i].split("=")[1]));
+    if (destinationPoints.length == 1) {
+      console.log(destinationPoints)
+      destinationCoordinates[0] = lonlat;
+      destinationCoordinates.push(destinationPoints);
       routeMe();
+    } else if (destinationPoints.length > 1) {
+      destinationCoordinates = destinationPoints;
+      routeMe(gpxLayer);
     }
   }
 
@@ -1167,11 +1168,6 @@ for (let i = 0; i < urlParams.length; i++) {
       line.appendCoordinate(coordinate);
     }
     gpxLayer.getSource().addFeature(gpxLine);
-
-    // for (let i = 0; i < trackPoints.length; i++) {
-    //   destinationCoordinates.push(trackPoints[i])
-    // }
-    // routeMe();
   }
 
   if (urlParams[i].includes("poiPoints")) {
