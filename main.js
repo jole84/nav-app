@@ -862,17 +862,17 @@ function saveLogButtonFunction() {
 // new saveLog function
 async function saveLog() {
   let gpxFile = `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<gpx version="1.1" creator="jole84 webapp">
+<gpx version="1.1" creator="Jole84 Nav-app">
 <metadata>
-  <desc>GPX log created by jole84 webapp</desc>
+  <desc>GPX log created by Jole84 Nav-app</desc>
   <time>${startTime.toISOString()}</time>
 </metadata>
 <wpt lat="${maxSpeedCoordinate[0][1]}" lon="${maxSpeedCoordinate[0][0]}"><name>max ${Math.floor(maxSpeed)} km/h ${maxSpeedCoordinate[1].toLocaleTimeString()}</name></wpt>
 <trk>
-<name>${startTime.toLocaleString()}, max ${maxSpeed.toFixed(1)} km/h, total ${(
+  <name>${startTime.toLocaleString()}, max ${maxSpeed.toFixed(1)} km/h, total ${(
       distanceTraveled / 1000
     ).toFixed(2)} km, ${toHHMMSS(new Date() - startTime)}</name>
-<trkseg>`;
+  <trkseg>`;
 
   for (let i = 0; i < trackLog.length; i++) {
     const lon = trackLog[i][0][0].toFixed(6);
@@ -880,12 +880,12 @@ async function saveLog() {
     const ele = trackLog[i][1].toFixed(2);
     const isoTime = trackLog[i][2].toISOString();
     const trkpt = `
-  <trkpt lat="${lat}" lon="${lon}"><ele>${ele}</ele><time>${isoTime}</time></trkpt>`;
+    <trkpt lat="${lat}" lon="${lon}"><ele>${ele}</ele><time>${isoTime}</time></trkpt>`;
     gpxFile += trkpt;
   }
 
   gpxFile += `
-</trkseg>
+  </trkseg>
 </trk>
 </gpx>`;
 
