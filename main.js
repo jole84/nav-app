@@ -94,7 +94,7 @@ if (navigator.getBattery) {
     battery.onchargingchange = () => {
       document.getElementById("batteryCharging").innerHTML = battery.charging ? "+" : "-";
       setExtraInfo([
-        (battery.charging ? '<div style="text-align:center;color:green;">laddar</div>' : '<div style="text-align:center;color:red;">laddar inte</div>')
+        (battery.charging ? '<div style="color:green;">laddar</div>' : '<div style="color:red;">laddar inte</div>')
       ]);
     }
   });
