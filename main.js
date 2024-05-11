@@ -1003,8 +1003,9 @@ map.on("contextmenu", function (event) {
           return feature.getGeometry().getType() === "Point";
         },
       );
-
-    clickedOnWaypoint = getPixelDistance(map.getPixelFromCoordinate(closestWaypoint.getGeometry().getCoordinates()), event.pixel) < 40;
+    if (closestWaypoint != null) {
+      clickedOnWaypoint = getPixelDistance(map.getPixelFromCoordinate(closestWaypoint.getGeometry().getCoordinates()), event.pixel) < 40;
+    }
   }
 
   // measure distance from current pos
