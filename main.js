@@ -911,7 +911,7 @@ function setExtraInfo(infoText) {
   document.getElementById("extraInfo").innerHTML = extraInfo;
   timeOut = setTimeout(function () {
     document.getElementById("extraInfo").innerHTML = "";
-  }, 30000);
+  }, 15000);
 }
 
 // brouter routing
