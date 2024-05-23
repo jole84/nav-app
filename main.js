@@ -432,7 +432,6 @@ gpxLayer.getSource().addEventListener("addfeature", function () {
     lastInteraction = new Date();
     view.fit(gpxLayer.getSource().getExtent(), {
       padding: [padding, padding, padding, padding],
-      duration: 500,
       maxZoom: 15,
     });
   }
