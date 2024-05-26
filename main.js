@@ -532,7 +532,7 @@ function toRemainingString(remainingDistance, secondsInt) {
   const totalMinutes = Math.floor(secondsInt / 60);
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
-  const ETA = new Date(new Date().getTime() + (totalMinutes * 60000));
+  const ETA = new Date(new Date().getTime() + (secondsInt * 1000));
   const ETAString = '<div style="text-align:right;">' + ETA.getHours() + ":" + ETA.getMinutes().toString().padStart(2, "0") + '<font class="infoFormat">ETA</font></div>';
   let returnString = `<div class="equalSpace"><div><font class="infoFormat">-></font> ${Number(remainingDistance).toFixed(1)}<font class="infoFormat">KM</font></div><div>`
   if (hours > 0) {
