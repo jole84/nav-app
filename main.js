@@ -532,11 +532,13 @@ function toRemainingString(remainingDistance, secondsInt) {
   const totalMinutes = Math.floor(secondsInt / 60);
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
+  const ETA = new Date(new Date().getTime() + (totalMinutes * 60000));
+  const ETAString = '<div style="text-align:right;">' + ETA.getHours() + ":" + ETA.getMinutes().toString().padStart(2, "0") + '<font class="infoFormat">ETA</font></div>';
   let returnString = `<div class="equalSpace"><div><font class="infoFormat">-></font> ${Number(remainingDistance).toFixed(1)}<font class="infoFormat">KM</font></div><div>`
   if (hours > 0) {
     returnString += `${hours}<font class="infoFormat">H</font> `
   }
-  return returnString += `${minutes}<font class="infoFormat">MIN</font></div></div>`;
+  return returnString += `${minutes}<font class="infoFormat">MIN</font></div></div>` + ETAString;
 }
 
 // start geolocation
@@ -1147,9 +1149,8 @@ for (let i = 0; i < urlParams.length; i++) {
     // https://jole84.se/nav-app/index.html?destinationPoints=[[lon,lat]]
     const destinationPoints = JSON.parse(decodeURI(urlParams[i].split("=")[1]));
     if (destinationPoints.length == 1) {
-      console.log(destinationPoints)
       destinationCoordinates[0] = lonlat;
-      destinationCoordinates.push(destinationPoints);
+      destinationCoordinates.push(destinationPoints[0]);
       routeMe();
     } else if (destinationPoints.length > 1) {
       destinationCoordinates = destinationPoints;
