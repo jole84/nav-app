@@ -658,24 +658,25 @@ geolocation.on("change", function () {
 });
 
 function getRemainingDistance(featureCoordinates) {
-  const newLineString = new LineString([]);
   const newMultiPoint = new MultiPoint(
     featureCoordinates.reverse(),
   );
-
-  const newLineStringclosestPoint = newMultiPoint.getClosestPoint(currentPosition);
-  const distanceToclosestPoint = getDistance(toLonLat(newLineStringclosestPoint), toLonLat(currentPosition));
-
-  if (distanceToclosestPoint > 500) {
+  let remainingDistance = 0;
+  const closestPoint = newMultiPoint.getClosestPoint(currentPosition);
+  const distanceToClosestPoint = getDistance(toLonLat(closestPoint), lonlat);
+  
+  if (distanceToClosestPoint > 500) {
     return;
   } else {
-    for (let i = 0; i < featureCoordinates.length; i++) {
-      newLineString.appendCoordinate([featureCoordinates[i]]);
-      if (featureCoordinates[i].toString() === newLineStringclosestPoint.toString()) {
+    for (let i = 0; i < featureCoordinates.length - 1; i++) {
+      if (featureCoordinates[i + 1].toString() !== closestPoint.toString() && featureCoordinates[0].toString() !== closestPoint.toString()) {
+        remainingDistance += getDistance(toLonLat(featureCoordinates[i]), toLonLat(featureCoordinates[i + 1]));
+      } else {
+        remainingDistance += getDistance(toLonLat(featureCoordinates[i]), lonlat);
         break;
       }
     }
-    return getLength(newLineString) / 1000;
+    return remainingDistance / 1000;
   }
 }
 
