@@ -432,7 +432,6 @@ gpxLayer.getSource().addEventListener("addfeature", function () {
     lastInteraction = new Date();
     view.fit(gpxLayer.getSource().getExtent(), {
       padding: [padding, padding, padding, padding],
-      duration: 500,
       maxZoom: 15,
     });
   }
@@ -533,11 +532,13 @@ function toRemainingString(remainingDistance, secondsInt) {
   const totalMinutes = Math.floor(secondsInt / 60);
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
+  const ETA = new Date(new Date().getTime() + (secondsInt * 1000));
+  const ETAString = '<div style="text-align:right;">' + ETA.getHours() + ":" + ETA.getMinutes().toString().padStart(2, "0") + '<font class="infoFormat">ETA</font></div>';
   let returnString = `<div class="equalSpace"><div><font class="infoFormat">-></font> ${Number(remainingDistance).toFixed(1)}<font class="infoFormat">KM</font></div><div>`
   if (hours > 0) {
     returnString += `${hours}<font class="infoFormat">H</font> `
   }
-  return returnString += `${minutes}<font class="infoFormat">MIN</font></div></div>`;
+  return returnString += `${minutes}<font class="infoFormat">MIN</font></div></div>` + ETAString;
 }
 
 // start geolocation
@@ -862,17 +863,17 @@ function saveLogButtonFunction() {
 // new saveLog function
 async function saveLog() {
   let gpxFile = `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<gpx version="1.1" creator="jole84 webapp">
+<gpx version="1.1" creator="Jole84 Nav-app">
 <metadata>
-  <desc>GPX log created by jole84 webapp</desc>
+  <desc>GPX log created by Jole84 Nav-app</desc>
   <time>${startTime.toISOString()}</time>
 </metadata>
 <wpt lat="${maxSpeedCoordinate[0][1]}" lon="${maxSpeedCoordinate[0][0]}"><name>max ${Math.floor(maxSpeed)} km/h ${maxSpeedCoordinate[1].toLocaleTimeString()}</name></wpt>
 <trk>
-<name>${startTime.toLocaleString()}, max ${maxSpeed.toFixed(1)} km/h, total ${(
+  <name>${startTime.toLocaleString()}, max ${maxSpeed.toFixed(1)} km/h, total ${(
       distanceTraveled / 1000
     ).toFixed(2)} km, ${toHHMMSS(new Date() - startTime)}</name>
-<trkseg>`;
+  <trkseg>`;
 
   for (let i = 0; i < trackLog.length; i++) {
     const lon = trackLog[i][0][0].toFixed(6);
@@ -880,12 +881,12 @@ async function saveLog() {
     const ele = trackLog[i][1].toFixed(2);
     const isoTime = trackLog[i][2].toISOString();
     const trkpt = `
-  <trkpt lat="${lat}" lon="${lon}"><ele>${ele}</ele><time>${isoTime}</time></trkpt>`;
+    <trkpt lat="${lat}" lon="${lon}"><ele>${ele}</ele><time>${isoTime}</time></trkpt>`;
     gpxFile += trkpt;
   }
 
   gpxFile += `
-</trkseg>
+  </trkseg>
 </trk>
 </gpx>`;
 
@@ -911,7 +912,7 @@ function setExtraInfo(infoText) {
   document.getElementById("extraInfo").innerHTML = extraInfo;
   timeOut = setTimeout(function () {
     document.getElementById("extraInfo").innerHTML = "";
-  }, 30000);
+  }, 15000);
 }
 
 // brouter routing
@@ -941,13 +942,6 @@ function routeMe(targetLayer = routeLayer) {
       const totalTime = result.features[0].properties["total-time"];
 
       // add route information to info box
-      setExtraInfo([
-        `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${destinationCoordinates[destinationCoordinates.length - 1][1]
-        },${destinationCoordinates[destinationCoordinates.length - 1][0]
-        }" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${destinationCoordinates[destinationCoordinates.length - 1][1]
-        },${destinationCoordinates[destinationCoordinates.length - 1][0]
-        }" target="_blank">Streetview</a></div`,
-      ]);
       routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
 
       const routeFeature = new Feature({
@@ -989,6 +983,10 @@ map.on("contextmenu", function (event) {
   // set start position
   destinationCoordinates[0] = lonlat;
 
+  setExtraInfo([
+    `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Streetview</a></div`,
+  ]);
+
   let clickedOnWaypoint = false;
   const clickedOnCurrentPosition = getDistance(lonlat, eventLonLat) < 200 || getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
   const clickedOnLastDestination = getPixelDistance(event.pixel, map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))) < 40;
@@ -1003,8 +1001,9 @@ map.on("contextmenu", function (event) {
           return feature.getGeometry().getType() === "Point";
         },
       );
-
-    clickedOnWaypoint = getPixelDistance(map.getPixelFromCoordinate(closestWaypoint.getGeometry().getCoordinates()), event.pixel) < 40;
+    if (closestWaypoint != null) {
+      clickedOnWaypoint = getPixelDistance(map.getPixelFromCoordinate(closestWaypoint.getGeometry().getCoordinates()), event.pixel) < 40;
+    }
   }
 
   // measure distance from current pos
@@ -1147,9 +1146,8 @@ for (let i = 0; i < urlParams.length; i++) {
     // https://jole84.se/nav-app/index.html?destinationPoints=[[lon,lat]]
     const destinationPoints = JSON.parse(decodeURI(urlParams[i].split("=")[1]));
     if (destinationPoints.length == 1) {
-      console.log(destinationPoints)
       destinationCoordinates[0] = lonlat;
-      destinationCoordinates.push(destinationPoints);
+      destinationCoordinates.push(destinationPoints[0]);
       routeMe();
     } else if (destinationPoints.length > 1) {
       destinationCoordinates = destinationPoints;
