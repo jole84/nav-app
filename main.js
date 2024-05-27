@@ -942,13 +942,6 @@ function routeMe(targetLayer = routeLayer) {
       const totalTime = result.features[0].properties["total-time"];
 
       // add route information to info box
-      setExtraInfo([
-        `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${destinationCoordinates[destinationCoordinates.length - 1][1]
-        },${destinationCoordinates[destinationCoordinates.length - 1][0]
-        }" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${destinationCoordinates[destinationCoordinates.length - 1][1]
-        },${destinationCoordinates[destinationCoordinates.length - 1][0]
-        }" target="_blank">Streetview</a></div`,
-      ]);
       routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
 
       const routeFeature = new Feature({
@@ -989,6 +982,10 @@ map.on("contextmenu", function (event) {
 
   // set start position
   destinationCoordinates[0] = lonlat;
+
+  setExtraInfo([
+    `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Streetview</a></div`,
+  ]);
 
   let clickedOnWaypoint = false;
   const clickedOnCurrentPosition = getDistance(lonlat, eventLonLat) < 200 || getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
