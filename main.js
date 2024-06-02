@@ -1,6 +1,6 @@
 import { Feature, Map, View } from "ol";
 import { fromLonLat, toLonLat } from "ol/proj.js";
-import { getDistance, getLength } from "ol/sphere";
+import { getDistance } from "ol/sphere";
 import { saveAs } from 'file-saver';
 import { Stroke, Style, Icon, Fill, Text } from "ol/style.js";
 import { Vector as VectorLayer } from "ol/layer.js";
