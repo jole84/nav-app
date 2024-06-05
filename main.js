@@ -586,7 +586,7 @@ geolocation.on("change", function () {
   positionMarkerPoint.setCoordinates(currentPosition);
 
   // measure distance and push log if position change > 10 meters and accuracy is good and more than 5 seconds
-  if (getDistance(lonlat, trackLog[trackLog.length - 1][0]) > 10 && accuracy < 20 && currentTime - trackLog[trackLog.length - 1][2] > 5000) {
+  if (getDistance(lonlat, trackLog[trackLog.length - 1][0]) > 10 && accuracy < 25 && currentTime - trackLog[trackLog.length - 1][2] > 5000) {
     trackLog.push([
       lonlat,
       altitude,
@@ -643,7 +643,7 @@ geolocation.on("change", function () {
     positionMarkerHeading.getStyle().getImage().setOpacity(0);
   }
 
-  if (speedKmh > maxSpeed && accuracy < 20) {
+  if (speedKmh > maxSpeed && accuracy < 25) {
     maxSpeed = speedKmh;
     maxSpeedCoordinate = [lonlat, new Date()];
   }
