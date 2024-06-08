@@ -42,12 +42,9 @@
       width: 100%;
     }
 
-    #infoGroup:has(#info:empty):has(#extraInfo:empty):has(#routeInfo:empty):has(#trafficWarning:empty) {
-      display: none;
-    }
-
-    #trafficWarning {
+    .warningClass {
       text-align: center;
+      cursor: pointer;
       color: black;
       font-size: 110%;
       font-weight: bold;
@@ -58,7 +55,7 @@
       padding-right: 3px;
     }
 
-    #trafficWarning:empty {
+    .warningClass:empty {
       display: none;
     }
 
@@ -209,7 +206,10 @@
       </div>
       <div id="routeInfo"></div>
       <div id="extraInfo"></div>
-      <div id="trafficWarning"></div>
+      <div class="warningClass" id="trafficWarning"></div>
+      <a id="vmaLink" href="http://www.krisinformation.se" target=”_blank”>
+        <div class="warningClass" id="vma"></div>
+      </a>
     </div>
     <div id="optionButtons">
       <button class="btn btn-danger" id="centerButton">Center</button>
