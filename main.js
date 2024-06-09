@@ -664,7 +664,7 @@ function getRemainingDistance(featureCoordinates) {
   let remainingDistance = 0;
   const closestPoint = newMultiPoint.getClosestPoint(currentPosition);
   const distanceToClosestPoint = getDistance(toLonLat(closestPoint), lonlat);
-
+  
   if (distanceToClosestPoint > 500) {
     return;
   } else {
@@ -1270,6 +1270,8 @@ function breakSentence(sentence) {
   return returnSentence;
 }
 
+const apiUrl = "https://api.trafikinfo.trafikverket.se/v2/data.json";
+
 function getDeviations() {
   let xmlRequest = `
     <REQUEST>
@@ -1312,7 +1314,7 @@ function getDeviations() {
     </REQUEST>
   `;
   }
-  fetch("https://api.trafikinfo.trafikverket.se/v2/data.json", {
+  fetch(apiUrl, {
     method: "POST",
     headers: {
       "Content-Type": "text/xml",
@@ -1350,34 +1352,7 @@ function getDeviations() {
       } catch (ex) {
         console.log(ex);
       }
-    });
-
-  // MSB VMA
-  // fetch("https://api.krisinformation.se/v3/testvmas")
-  fetch("https://api.krisinformation.se/v3/vmas")
-    .then(response => response.json())
-    .then(result => {
-      try {
-        document.getElementById("vma").innerHTML = "";
-        result.forEach(function (item) {
-          const format = new GeoJSON();
-          const featurePolygon = new Feature({
-            geometry: format
-              .readGeometry(item.Area[0].GeometryInformation.Geometry)
-              .transform("EPSG:4326", "EPSG:3857"),
-            name: breakSentence(item.Headline + " " + item.PushMessage),
-            iconId: "trafficMessage",
-          });
-
-          if (featurePolygon.getGeometry().intersectsCoordinate(currentPosition)) {
-            document.getElementById("vmaLink").href = item.Web || "http://www.krisinformation.se";
-            document.getElementById("vma").innerHTML = item.Headline + " " + item.PushMessage;
-          }
-        });
-      } catch (ex) {
-        console.log(ex);
-      }
-    });
+    })
 };
 
 setInterval(getDeviations, 60000); // getDeviations interval
