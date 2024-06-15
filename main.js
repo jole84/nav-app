@@ -126,6 +126,14 @@ document.getElementById("clickFileButton").onclick = function () {
   customFileButton.click();
 }
 
+infoGroup.addEventListener("dblclick", function () {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else if (document.exitFullscreen) {
+    document.exitFullscreen();
+  }
+});
+
 // menu stuff
 const menuDiv = document.getElementById("menuDiv");
 if (localStorage.firstRun == undefined && window.location === window.parent.location) {
@@ -838,6 +846,7 @@ function switchMap() {
     }
   } else if (localStorage.getItem("mapMode") == 3) {
     // mapMode 3: Openstreetmap
+    mapContainer.setAttribute("style", "filter: saturate(1.3);");
     osm.setVisible(true);
   } else if (JSON.parse(localStorage.enableLnt) && localStorage.getItem("mapMode") == 4) {
     // mapMode 4: topoweb
