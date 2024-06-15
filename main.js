@@ -880,7 +880,7 @@ async function saveLog() {
 </metadata>
 <wpt lat="${maxSpeedCoordinate[0][1]}" lon="${maxSpeedCoordinate[0][0]}"><name>max ${Math.floor(maxSpeed)} km/h ${maxSpeedCoordinate[1].toLocaleTimeString()}</name></wpt>
 <trk>
-  <name>${startTime.toLocaleString()}, max ${maxSpeed.toFixed(1)} km/h, total ${(
+  <name>${startTime.toLocaleString()}, max ${Math.floor(maxSpeed)} km/h, total ${(
       distanceTraveled / 1000
     ).toFixed(2)} km, ${toHHMMSS(new Date() - startTime)}</name>
   <trkseg>`;
