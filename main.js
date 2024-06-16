@@ -67,19 +67,11 @@ selectFile.addEventListener("change", function () {
   gpxSource.clear();
   if (selectFile.value !== "välj gpxfil") {
     fetch("https://jole84.se/rutter/" + selectFile.value, { mode: "no-cors" })
-    .then((response) => {
-      return response.text();
-    })
-    .then((response) => {
-        let fileFormat;
-        const fileExtention = selectFile.value.split(".").pop().toLowerCase();
-        if (fileExtention === "gpx") {
-          fileFormat = new GPX();
-        } else if (fileExtention === "kml") {
-          fileFormat = new KML({ extractStyles: false });
-        } else if (fileExtention === "geojson") {
-          fileFormat = new GeoJSON();
-        }
+      .then((response) => {
+        return response.text();
+      })
+      .then((response) => {
+        const fileFormat = getFileFormat(selectFile.value.split(".").pop().toLowerCase());
         const gpxFeatures = fileFormat.readFeatures(response, {
           dataProjection: "EPSG:4326",
           featureProjection: "EPSG:3857",
@@ -469,8 +461,17 @@ gpxSource.addEventListener("addfeature", function () {
   }
 });
 
+function getFileFormat(fileExtention) {
+  if (fileExtention === "gpx") {
+    return new GPX();
+  } else if (fileExtention === "kml") {
+    return new KML({ extractStyles: false });
+  } else if (fileExtention === "geojson") {
+    return new GeoJSON();
+  }
+}
+
 function handleFileSelect(evt) {
-  let fileFormat;
   let gpxFeatures;
   customFileButton.blur();
   const files = evt.target.files; // FileList object
@@ -483,14 +484,7 @@ function handleFileSelect(evt) {
     const reader = new FileReader();
     reader.readAsText(files[i], "UTF-8");
     reader.onload = function (evt) {
-      const fileExtention = files[0].name.split(".").pop().toLowerCase();
-      if (fileExtention === "gpx") {
-        fileFormat = new GPX();
-      } else if (fileExtention === "kml") {
-        fileFormat = new KML({ extractStyles: false });
-      } else if (fileExtention === "geojson") {
-        fileFormat = new GeoJSON();
-      }
+      const fileFormat = getFileFormat(files[0].name.split(".").pop().toLowerCase());
       gpxFeatures = fileFormat.readFeatures(evt.target.result, {
         dataProjection: "EPSG:4326",
         featureProjection: "EPSG:3857",
@@ -1074,18 +1068,10 @@ map.on("pointerdrag", function () {
 
 if ("launchQueue" in window) {
   launchQueue.setConsumer(async (launchParams) => {
-    let fileFormat;
     const fileNames = [];
     for (const file of launchParams.files) {
       // PWA load file
-      const fileExtention = file.name.split(".").pop().toLowerCase();
-      if (fileExtention === "gpx") {
-        fileFormat = new GPX();
-      } else if (fileExtention === "kml") {
-        fileFormat = new KML({ extractStyles: false });
-      } else if (fileExtention === "geojson") {
-        fileFormat = new GeoJSON();
-      }
+      const fileFormat = getFileFormat(file.name.split(".").pop().toLowerCase());
       const f = await file.getFile();
       const content = await f.text();
       const gpxFeatures = fileFormat.readFeatures(content, {
