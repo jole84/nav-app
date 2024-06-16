@@ -328,6 +328,7 @@ const trackLine = new Feature({
 });
 
 const osm = new TileLayer({
+  className: "saturated",
   source: new OSM(),
   visible: false,
 });
@@ -864,7 +865,6 @@ function switchMap() {
     }
   } else if (localStorage.getItem("mapMode") == 3) {
     // mapMode 3: Openstreetmap
-    mapContainer.setAttribute("style", "filter: saturate(1.3);");
     osm.setVisible(true);
   } else if (JSON.parse(localStorage.enableLnt) && localStorage.getItem("mapMode") == 4) {
     // mapMode 4: topoweb
