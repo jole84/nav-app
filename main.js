@@ -64,7 +64,7 @@ for (var i = 0; i < filesList.length; i++) {
 }
 
 selectFile.addEventListener("change", function () {
-  gpxLayer.getSource().clear();
+  gpxSource.clear();
   if (selectFile.value !== "välj gpxfil") {
     fetch("https://jole84.se/rutter/" + selectFile.value, { mode: "no-cors" })
       .then((response) => {
@@ -76,7 +76,7 @@ selectFile.addEventListener("change", function () {
           featureProjection: "EPSG:3857",
         });
         setExtraInfo([selectFile.value]);
-        gpxLayer.getSource().addFeatures(gpxFeatures);
+        gpxSource.addFeatures(gpxFeatures);
       });
   } else {
     setExtraInfo([]);
@@ -223,18 +223,6 @@ const gpxStyle = {
       anchor: [0.5, 1],
       src: "https://jole84.se/poi-marker.svg",
     }),
-    text: new Text({
-      font: "14px Roboto,monospace",
-      textAlign: "left",
-      offsetX: 10,
-      fill: new Fill({
-        color: "#b41412",
-      }),
-      stroke: new Stroke({
-        color: "white",
-        width: 4,
-      }),
-    }),
   }),
   LineString: new Style({
     stroke: new Stroke({
@@ -249,6 +237,20 @@ const gpxStyle = {
     }),
     fill: new Fill({
       color: [255, 0, 0, 0.2],
+    }),
+  }),
+  Text: new Style({
+    text: new Text({
+      font: "14px Roboto,monospace",
+      textAlign: "left",
+      offsetX: 10,
+      fill: new Fill({
+        color: "#b41412",
+      }),
+      stroke: new Stroke({
+        color: "white",
+        width: 4,
+      }),
     }),
   }),
 };
@@ -373,12 +375,24 @@ const topoweb = new TileLayer({
   visible: false,
 });
 
+const gpxSource = new VectorSource();
+
 const gpxLayer = new VectorLayer({
-  source: new VectorSource(),
+  source: gpxSource,
   style: function (feature) {
-    gpxStyle["Point"].getText().setText(feature.get("name"));
     return gpxStyle[feature.getGeometry().getType()];
   },
+});
+
+const gpxLayerLabels = new VectorLayer({
+  source: gpxSource,
+  style: function (feature) {
+    if (feature.getGeometry().getType() === "Point") {
+      gpxStyle["Text"].getText().setText(feature.get("name"));
+      return gpxStyle["Text"];
+    }
+  },
+  declutter: true,
 });
 
 const trackLayer = new VectorLayer({
@@ -423,6 +437,7 @@ const map = new Map({
     ortofoto,
     topoweb,
     gpxLayer,
+    gpxLayerLabels,
     routeLayer,
     trackLayer,
     trafficWarningIconLayer,
@@ -434,11 +449,11 @@ const map = new Map({
 });
 
 // gpx loader
-gpxLayer.getSource().addEventListener("addfeature", function () {
-  if (gpxLayer.getSource().getState() === "ready") {
+gpxSource.addEventListener("addfeature", function () {
+  if (gpxSource.getState() === "ready") {
     const padding = 100;
     lastInteraction = new Date();
-    view.fit(gpxLayer.getSource().getExtent(), {
+    view.fit(gpxSource.getExtent(), {
       padding: [padding, padding, padding, padding],
       maxZoom: 15,
     });
@@ -451,7 +466,7 @@ function handleFileSelect(evt) {
   customFileButton.blur();
   const files = evt.target.files; // FileList object
   // remove previously loaded gpx files
-  gpxLayer.getSource().clear();
+  gpxSource.clear();
   const fileNames = [];
   for (let i = 0; i < files.length; i++) {
     console.log(files[i]);
@@ -490,7 +505,7 @@ function handleFileSelect(evt) {
                 text: f.get("name"),
                 font: "bold 14px Roboto,monospace",
                 textAlign: "left",
-                placement: "line",
+                offsetX: 10,
                 repeat: 500,
                 fill: new Fill({
                   color: color,
@@ -509,7 +524,7 @@ function handleFileSelect(evt) {
           );
         });
       }
-      gpxLayer.getSource().addFeatures(gpxFeatures);
+      gpxSource.addFeatures(gpxFeatures);
     };
   }
   setExtraInfo(fileNames);
@@ -626,7 +641,7 @@ geolocation.on("change", function () {
 
     // calculate remaing distance on gpx
     routeInfo.innerHTML = "";
-    gpxLayer.getSource().forEachFeature(function (feature) {
+    gpxSource.forEachFeature(function (feature) {
       if (feature.getGeometry().getType() == "MultiLineString") {
         const featureCoordinates = feature.getGeometry().getLineString().getCoordinates();
         const gpxRemainingDistance = getRemainingDistance(featureCoordinates);
@@ -672,7 +687,7 @@ function getRemainingDistance(featureCoordinates) {
   let remainingDistance = 0;
   const closestPoint = newMultiPoint.getClosestPoint(currentPosition);
   const distanceToClosestPoint = getDistance(toLonLat(closestPoint), lonlat);
-  
+
   if (distanceToClosestPoint > 500) {
     return;
   } else {
@@ -926,7 +941,7 @@ function setExtraInfo(infoText) {
 }
 
 // brouter routing
-function routeMe(targetLayer = routeLayer) {
+function routeMe() {
   fetch(
     "https://brouter.de/brouter" +
     // "https://jole84.se:17777/brouter" +
@@ -966,10 +981,10 @@ function routeMe(targetLayer = routeLayer) {
       });
 
       // remove previus route
-      targetLayer.getSource().clear();
+      routeLayer.getSource().clear();
 
       // finally add route to map
-      targetLayer.getSource().addFeatures([routeFeature, endMarker]);
+      routeLayer.getSource().addFeatures([routeFeature, endMarker]);
     });
   });
 }
@@ -1002,9 +1017,8 @@ map.on("contextmenu", function (event) {
   const clickedOnLastDestination = getPixelDistance(event.pixel, map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))) < 40;
 
   // check if clicked on a waypoint
-  if (gpxLayer.getSource().getFeatures().length > 0) {
-    closestWaypoint = gpxLayer
-      .getSource()
+  if (gpxSource.getFeatures().length > 0) {
+    closestWaypoint = gpxSource
       .getClosestFeatureToCoordinate(
         event.coordinate,
         function (feature) {
@@ -1070,7 +1084,7 @@ if ("launchQueue" in window) {
         featureProjection: "EPSG:3857",
       });
       fileNames.push(f.name);
-      gpxLayer.getSource().addFeatures(gpxFeatures);
+      gpxSource.addFeatures(gpxFeatures);
     }
     setExtraInfo(fileNames);
   });
@@ -1079,7 +1093,7 @@ if ("launchQueue" in window) {
 // document.getElementById("clickFileButton").onclick = async function () {
 //   document.getElementById("clickFileButton").blur();
 //   // remove previously loaded gpx files
-//   gpxLayer.getSource().clear();
+//   gpxSource.clear();
 //   const fileNames = [];
 
 //   const pickerOpts = {
@@ -1142,7 +1156,7 @@ if ("launchQueue" in window) {
 //         );
 //       });
 //     }
-//     gpxLayer.getSource().addFeatures(gpxFeatures);
+//     gpxSource.addFeatures(gpxFeatures);
 //   }
 //   setExtraInfo(fileNames);
 // }
@@ -1161,7 +1175,7 @@ for (let i = 0; i < urlParams.length; i++) {
       routeMe();
     } else if (destinationPoints.length > 1) {
       destinationCoordinates = destinationPoints;
-      routeMe(gpxLayer);
+      routeMe();
     }
   }
 
@@ -1175,7 +1189,7 @@ for (let i = 0; i < urlParams.length; i++) {
       const coordinate = fromLonLat(trackPoints[i]);
       line.appendCoordinate(coordinate);
     }
-    gpxLayer.getSource().addFeature(gpxLine);
+    gpxSource.addFeature(gpxLine);
   }
 
   if (urlParams[i].includes("poiPoints")) {
@@ -1187,7 +1201,7 @@ for (let i = 0; i < urlParams.length; i++) {
         geometry: new Point(coordinate),
         name: name,
       });
-      gpxLayer.getSource().addFeature(marker);
+      gpxSource.addFeature(marker);
     }
   }
 
@@ -1207,7 +1221,7 @@ for (let i = 0; i < urlParams.length; i++) {
           dataProjection: "EPSG:4326",
           featureProjection: "EPSG:3857",
         });
-        gpxLayer.getSource().addFeatures(gpxFeatures);
+        gpxSource.addFeatures(gpxFeatures);
       });
   }
 }
