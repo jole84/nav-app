@@ -388,7 +388,7 @@ const gpxLayer = new VectorLayer({
 const gpxLayerLabels = new VectorLayer({
   source: gpxSource,
   style: function (feature) {
-    if (feature.getGeometry().getType() === "Point") {
+    if (feature.getGeometry().getType() !== "MultiLineString") {
       gpxStyle["Text"].getText().setText(feature.get("name"));
       return gpxStyle["Text"];
     }
