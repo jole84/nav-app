@@ -67,11 +67,20 @@ selectFile.addEventListener("change", function () {
   gpxSource.clear();
   if (selectFile.value !== "välj gpxfil") {
     fetch("https://jole84.se/rutter/" + selectFile.value, { mode: "no-cors" })
-      .then((response) => {
-        return response.text();
-      })
-      .then((response) => {
-        const gpxFeatures = new GPX().readFeatures(response, {
+    .then((response) => {
+      return response.text();
+    })
+    .then((response) => {
+        let fileFormat;
+        const fileExtention = selectFile.value.split(".").pop().toLowerCase();
+        if (fileExtention === "gpx") {
+          fileFormat = new GPX();
+        } else if (fileExtention === "kml") {
+          fileFormat = new KML({ extractStyles: false });
+        } else if (fileExtention === "geojson") {
+          fileFormat = new GeoJSON();
+        }
+        const gpxFeatures = fileFormat.readFeatures(response, {
           dataProjection: "EPSG:4326",
           featureProjection: "EPSG:3857",
         });
