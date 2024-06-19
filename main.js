@@ -262,7 +262,7 @@ const trackStyle = {
   LineString: new Style({
     stroke: new Stroke({
       color: [255, 0, 0, 0.8],
-      width: 5,
+      width: 4,
     }),
   }),
   route: new Style({
