@@ -295,13 +295,13 @@ const trafficWarningTextStyleFunction = function (feature) {
         }),
         stroke: new Stroke({
           color: [252, 208, 30],
-          width: 4,
+          width: 6,
         }),
         backgroundFill: new Fill({
-          color: [252, 208, 30, 0.8],
+          color: [252, 208, 30, 0.6],
         }),
         backgroundStroke: new Stroke({
-          color: [238, 41, 61, 0.8],
+          color: [238, 41, 61, 0.6],
           width: 3,
         }),
         padding: [2, 2, 2, 2],
@@ -612,8 +612,8 @@ geolocation.on("change", function () {
   const currentTime = new Date();
   positionMarkerPoint.setCoordinates(currentPosition);
 
-  // measure distance and push log if position change > 10 meters and accuracy is good and more than 5 seconds
-  if (getDistance(lonlat, trackLog[trackLog.length - 1][0]) > 10 && accuracy < 25 && currentTime - trackLog[trackLog.length - 1][2] > 5000) {
+  // measure distance and push log if position change > 10 meters and accuracy is good and more than 3 seconds
+  if (getDistance(lonlat, trackLog[trackLog.length - 1][0]) > 10 && accuracy < 25 && currentTime - trackLog[trackLog.length - 1][2] > 3000) {
     trackLog.push([
       lonlat,
       altitude,
@@ -1296,11 +1296,18 @@ function getDeviations() {
       <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
       <QUERY objecttype='Situation' schemaversion='1.2'>
         <FILTER>
-          <ELEMENTMATCH>
-            <EQ name='Deviation.ManagedCause' value='true' />
-            <EQ name='Deviation.MessageType' value='Olycka' />
-            <GTE name='Deviation.EndTime' value='$now'/>
-          </ELEMENTMATCH>
+          <OR>
+            <ELEMENTMATCH>
+              <EQ name='Deviation.ManagedCause' value='true' />
+              <EQ name='Deviation.MessageType' value='Olycka' />
+              <GTE name='Deviation.EndTime' value='$now'/>
+            </ELEMENTMATCH>
+            <ELEMENTMATCH>
+              <EQ name='Deviation.ManagedCause' value='true'/>
+              <IN name='Deviation.MessageType' value='Trafikmeddelande,Traffic information'/>
+              <GTE name="Deviation.SeverityCode" value="2" />
+            </ELEMENTMATCH>
+          </OR>
         </FILTER>
         <INCLUDE>Deviation.Message</INCLUDE>
         <INCLUDE>Deviation.IconId</INCLUDE>
