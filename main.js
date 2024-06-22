@@ -295,7 +295,7 @@ const trafficWarningTextStyleFunction = function (feature) {
         }),
         stroke: new Stroke({
           color: [252, 208, 30],
-          width: 6,
+          width: 3,
         }),
         backgroundFill: new Fill({
           color: [252, 208, 30, 0.6],
@@ -496,7 +496,7 @@ function handleFileSelect(evt) {
           Math.floor(Math.random() * 255),
           Math.floor(Math.random() * 255),
           Math.floor(Math.random() * 255),
-          0.8,
+          0.5,
         ];
         gpxFeatures.forEach((f) => {
           f.setStyle(
@@ -1119,7 +1119,7 @@ if ("launchQueue" in window) {
 //         Math.floor(Math.random() * 255),
 //         Math.floor(Math.random() * 255),
 //         Math.floor(Math.random() * 255),
-//         0.8,
+//         0.5,
 //       ];
 //       gpxFeatures.forEach((f) => {
 //         f.setStyle(
