@@ -1429,6 +1429,9 @@ function getClosestAccident() {
         return feature.get("iconId") === "roadAccident";
       },
     );
+  }
+
+  if (closestAccident != undefined) {
 
     // check route for accidents
     let routeHasAccident = false;
@@ -1477,7 +1480,6 @@ function getClosestAccident() {
       trafficWarningDiv.innerHTML = "";
     }
   } else {
-    closestAccident = null;
     trafficWarningDiv.innerHTML = "";
   }
 }
