@@ -294,17 +294,17 @@ const trafficWarningTextStyleFunction = function (feature) {
           color: "black",
         }),
         stroke: new Stroke({
-          color: [252, 208, 30],
-          width: 3,
+          color: [238, 210, 2],
+          width: 4,
         }),
-        backgroundFill: new Fill({
-          color: [252, 208, 30, 0.6],
-        }),
-        backgroundStroke: new Stroke({
-          color: [238, 41, 61, 0.6],
-          width: 3,
-        }),
-        padding: [2, 2, 2, 2],
+        // backgroundFill: new Fill({
+        //   color: [252, 208, 30, 0.6],
+        // }),
+        // backgroundStroke: new Stroke({
+        //   color: [238, 41, 61, 0.6],
+        //   width: 3,
+        // }),
+        // padding: [2, 2, 2, 2],
       }),
     }),
   ];
