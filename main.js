@@ -1502,6 +1502,6 @@ function recalculateRoute() {
 addEventListener("deviceorientationabsolute", (event) => {
   document.getElementById("headingDiv").innerHTML = Math.round(Math.abs(event.alpha - 360)) + "&#176";
   if (speed < 1) {
-    positionMarkerHeading.getStyle().getImage().setRotation(degToRad(event.alpha));
+    positionMarkerHeading.getStyle().getImage().setRotation(-degToRad(event.alpha));
   }
 });
