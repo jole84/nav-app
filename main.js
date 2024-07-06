@@ -1400,7 +1400,7 @@ function focusTrafficWarning() {
     duration: duration,
   });
   view.animate({
-    zoom: 10,
+    zoom: 10.5,
     duration: duration,
   });
   view.animate({
