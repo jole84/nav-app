@@ -634,8 +634,8 @@ geolocation.on("change", function () {
   if (speed > 1) {
     // change marker if speed
     positionMarkerHeading.getStyle().getImage().setRotation(heading);
-    positionMarker.getStyle().getImage().setOpacity(0);
-    positionMarkerHeading.getStyle().getImage().setOpacity(1);
+    // positionMarker.getStyle().getImage().setOpacity(0);
+    // positionMarkerHeading.getStyle().getImage().setOpacity(1);
 
     // change view if no interaction occurred last 10 seconds
     if (currentTime - lastInteraction > localStorage.interactionDelay) {
@@ -665,10 +665,10 @@ geolocation.on("change", function () {
     }
   }
 
-  if (speed < 1) {
-    positionMarker.getStyle().getImage().setOpacity(1);
-    positionMarkerHeading.getStyle().getImage().setOpacity(0);
-  }
+  // if (speed < 1) {
+  //   positionMarker.getStyle().getImage().setOpacity(1);
+  //   positionMarkerHeading.getStyle().getImage().setOpacity(0);
+  // }
 
   if (speedKmh > maxSpeed && accuracy < 25) {
     maxSpeed = speedKmh;
@@ -735,6 +735,7 @@ map.addLayer(
 positionMarker.setStyle(
   new Style({
     image: new Icon({
+      opacity: 0,
       anchor: [0.5, 0.5],
       src: "https://openlayers.org/en/latest/examples/data/geolocation_marker.png",
     }),
@@ -744,7 +745,7 @@ positionMarker.setStyle(
 positionMarkerHeading.setStyle(
   new Style({
     image: new Icon({
-      opacity: 0,
+      opacity: 1,
       anchor: [0.5, 0.67],
       src: "https://openlayers.org/en/latest/examples/data/geolocation_marker_heading.png",
       rotateWithView: true,
@@ -1497,3 +1498,10 @@ function recalculateRoute() {
     }
   }
 }
+
+addEventListener("deviceorientationabsolute", (event) => {
+  if (speed < 1) {
+    document.getElementById("headingDiv").innerHTML = Math.round(Math.abs(event.alpha - 360)) + "&#176";
+    positionMarkerHeading.getStyle().getImage().setRotation(degToRad(event.alpha));
+  }
+});
