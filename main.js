@@ -799,12 +799,9 @@ function updateView() {
   view.setRotation(-heading);
 }
 
-// view.on("change:resolution", function () {
-//   document.getElementById("currentZoom").innerHTML = (view.getZoom()).toFixed(1);
-//   if (view.getRotation() != 0 && view.getZoom() < 11) {
-//     view.setRotation(0);
-//   }
-// });
+view.on("change:resolution", function () {
+  document.getElementById("currentZoom").innerHTML = (view.getZoom()).toFixed(1);
+});
 
 layerSelector.addEventListener("change", function () {
   localStorage.setItem("mapMode", layerSelector.value);
@@ -1066,6 +1063,7 @@ map.on("contextmenu", function (event) {
 
 // store time of last interaction
 map.on("pointerdrag", function () {
+  resetRotation();
   lastInteraction = new Date();
 });
 
@@ -1268,6 +1266,7 @@ document.addEventListener("keydown", function (event) {
     if (event.key == "r") {
       recalculateRoute();
     }
+    resetRotation();
   } else {
     if (event.key == "Escape" || event.key == "§") {
       closeMenuButton.click();
@@ -1292,6 +1291,12 @@ function breakSentence(sentence) {
 }
 
 const apiUrl = "https://api.trafikinfo.trafikverket.se/v2/data.json";
+
+function resetRotation() {
+  if (view.getRotation() != 0 && view.getZoom() < 11) {
+    view.setRotation(0);
+  };
+}
 
 function getDeviations() {
   let xmlRequest = `
