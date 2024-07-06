@@ -1500,8 +1500,8 @@ function recalculateRoute() {
 }
 
 addEventListener("deviceorientationabsolute", (event) => {
+  document.getElementById("headingDiv").innerHTML = Math.round(Math.abs(event.alpha - 360)) + "&#176";
   if (speed < 1) {
-    document.getElementById("headingDiv").innerHTML = Math.round(Math.abs(event.alpha - 360)) + "&#176";
     positionMarkerHeading.getStyle().getImage().setRotation(degToRad(event.alpha));
   }
 });
