@@ -294,17 +294,17 @@ const trafficWarningTextStyleFunction = function (feature) {
           color: "black",
         }),
         stroke: new Stroke({
-          color: [252, 208, 30],
+          color: [238, 210, 2],
           width: 4,
         }),
-        backgroundFill: new Fill({
-          color: [252, 208, 30, 0.8],
-        }),
-        backgroundStroke: new Stroke({
-          color: [238, 41, 61, 0.8],
-          width: 3,
-        }),
-        padding: [2, 2, 2, 2],
+        // backgroundFill: new Fill({
+        //   color: [252, 208, 30, 0.6],
+        // }),
+        // backgroundStroke: new Stroke({
+        //   color: [238, 41, 61, 0.6],
+        //   width: 3,
+        // }),
+        // padding: [2, 2, 2, 2],
       }),
     }),
   ];
@@ -496,7 +496,7 @@ function handleFileSelect(evt) {
           Math.floor(Math.random() * 255),
           Math.floor(Math.random() * 255),
           Math.floor(Math.random() * 255),
-          0.8,
+          0.5,
         ];
         gpxFeatures.forEach((f) => {
           f.setStyle(
@@ -612,8 +612,8 @@ geolocation.on("change", function () {
   const currentTime = new Date();
   positionMarkerPoint.setCoordinates(currentPosition);
 
-  // measure distance and push log if position change > 10 meters and accuracy is good and more than 5 seconds
-  if (getDistance(lonlat, trackLog[trackLog.length - 1][0]) > 10 && accuracy < 25 && currentTime - trackLog[trackLog.length - 1][2] > 5000) {
+  // measure distance and push log if position change > 10 meters and accuracy is good and more than 3 seconds
+  if (getDistance(lonlat, trackLog[trackLog.length - 1][0]) > 10 && accuracy < 25 && currentTime - trackLog[trackLog.length - 1][2] > 3000) {
     trackLog.push([
       lonlat,
       altitude,
@@ -798,9 +798,6 @@ function updateView() {
 
 view.on("change:resolution", function () {
   document.getElementById("currentZoom").innerHTML = (view.getZoom()).toFixed(1);
-  if (view.getRotation() != 0 && view.getZoom() < 11) {
-    view.setRotation(0);
-  }
 });
 
 layerSelector.addEventListener("change", function () {
@@ -1063,6 +1060,7 @@ map.on("contextmenu", function (event) {
 
 // store time of last interaction
 map.on("pointerdrag", function () {
+  resetRotation();
   lastInteraction = new Date();
 });
 
@@ -1119,7 +1117,7 @@ if ("launchQueue" in window) {
 //         Math.floor(Math.random() * 255),
 //         Math.floor(Math.random() * 255),
 //         Math.floor(Math.random() * 255),
-//         0.8,
+//         0.5,
 //       ];
 //       gpxFeatures.forEach((f) => {
 //         f.setStyle(
@@ -1265,6 +1263,7 @@ document.addEventListener("keydown", function (event) {
     if (event.key == "r") {
       recalculateRoute();
     }
+    resetRotation();
   } else {
     if (event.key == "Escape" || event.key == "§") {
       closeMenuButton.click();
@@ -1290,17 +1289,30 @@ function breakSentence(sentence) {
 
 const apiUrl = "https://api.trafikinfo.trafikverket.se/v2/data.json";
 
+function resetRotation() {
+  if (view.getRotation() != 0 && view.getZoom() < 11) {
+    view.setRotation(0);
+  };
+}
+
 function getDeviations() {
   let xmlRequest = `
     <REQUEST>
       <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
       <QUERY objecttype='Situation' schemaversion='1.2'>
         <FILTER>
-          <ELEMENTMATCH>
-            <EQ name='Deviation.ManagedCause' value='true' />
-            <EQ name='Deviation.MessageType' value='Olycka' />
-            <GTE name='Deviation.EndTime' value='$now'/>
-          </ELEMENTMATCH>
+          <OR>
+            <ELEMENTMATCH>
+              <EQ name='Deviation.ManagedCause' value='true' />
+              <EQ name='Deviation.MessageType' value='Olycka' />
+              <GTE name='Deviation.EndTime' value='$now'/>
+            </ELEMENTMATCH>
+            <ELEMENTMATCH>
+              <EQ name='Deviation.ManagedCause' value='true'/>
+              <IN name='Deviation.MessageType' value='Trafikmeddelande,Traffic information'/>
+              <GTE name="Deviation.SeverityCode" value="2" />
+            </ELEMENTMATCH>
+          </OR>
         </FILTER>
         <INCLUDE>Deviation.Message</INCLUDE>
         <INCLUDE>Deviation.IconId</INCLUDE>
@@ -1422,6 +1434,9 @@ function getClosestAccident() {
         return feature.get("iconId") === "roadAccident";
       },
     );
+  }
+
+  if (closestAccident != undefined) {
 
     // check route for accidents
     let routeHasAccident = false;
@@ -1470,7 +1485,6 @@ function getClosestAccident() {
       trafficWarningDiv.innerHTML = "";
     }
   } else {
-    closestAccident = null;
     trafficWarningDiv.innerHTML = "";
   }
 }
