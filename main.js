@@ -26,6 +26,7 @@ let closestAccident;
 let closestAccidentPosition;
 let currentPosition = center;
 let destinationCoordinates = [];
+let deviceHeading = 360;
 let distanceTraveled = 0;
 let heading = 0;
 let lastInteraction = new Date() - localStorage.interactionDelay;
@@ -634,8 +635,8 @@ geolocation.on("change", function () {
   if (speed > 1) {
     // change marker if speed
     positionMarkerHeading.getStyle().getImage().setRotation(heading);
-    // positionMarker.getStyle().getImage().setOpacity(0);
-    // positionMarkerHeading.getStyle().getImage().setOpacity(1);
+    positionMarker.getStyle().getImage().setOpacity(0);
+    positionMarkerHeading.getStyle().getImage().setOpacity(1);
 
     // change view if no interaction occurred last 10 seconds
     if (currentTime - lastInteraction > localStorage.interactionDelay) {
@@ -665,10 +666,11 @@ geolocation.on("change", function () {
     }
   }
 
-  // if (speed < 1) {
-  //   positionMarker.getStyle().getImage().setOpacity(1);
-  //   positionMarkerHeading.getStyle().getImage().setOpacity(0);
-  // }
+  if (speed < 1 && deviceHeading != 360) {
+    positionMarkerHeading.getStyle().getImage().setRotation(-degToRad(deviceHeading));
+    // positionMarker.getStyle().getImage().setOpacity(1);
+    // positionMarkerHeading.getStyle().getImage().setOpacity(0);
+  }
 
   if (speedKmh > maxSpeed && accuracy < 25) {
     maxSpeed = speedKmh;
@@ -782,7 +784,7 @@ function centerFunction() {
       duration: duration,
     });
     view.animate({
-      rotation: 0,
+      rotation: view.getRotation() != 0 ? 0 : -degToRad(deviceHeading),
       duration: duration,
     });
   }
@@ -797,12 +799,12 @@ function updateView() {
   view.setRotation(-heading);
 }
 
-view.on("change:resolution", function () {
-  document.getElementById("currentZoom").innerHTML = (view.getZoom()).toFixed(1);
-  if (view.getRotation() != 0 && view.getZoom() < 11) {
-    view.setRotation(0);
-  }
-});
+// view.on("change:resolution", function () {
+//   document.getElementById("currentZoom").innerHTML = (view.getZoom()).toFixed(1);
+//   if (view.getRotation() != 0 && view.getZoom() < 11) {
+//     view.setRotation(0);
+//   }
+// });
 
 layerSelector.addEventListener("change", function () {
   localStorage.setItem("mapMode", layerSelector.value);
@@ -1501,7 +1503,5 @@ function recalculateRoute() {
 
 addEventListener("deviceorientationabsolute", (event) => {
   document.getElementById("headingDiv").innerHTML = Math.round(Math.abs(event.alpha - 360)) + "&#176";
-  if (speed < 1) {
-    positionMarkerHeading.getStyle().getImage().setRotation(-degToRad(event.alpha));
-  }
+  deviceHeading = event.alpha - 360;
 });
