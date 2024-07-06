@@ -666,7 +666,7 @@ geolocation.on("change", function () {
     }
   }
 
-  if (speed < 1 && deviceHeading != 360) {
+  if (speed < 1) {
     positionMarkerHeading.getStyle().getImage().setRotation(-degToRad(deviceHeading));
     // positionMarker.getStyle().getImage().setOpacity(1);
     // positionMarkerHeading.getStyle().getImage().setOpacity(0);
@@ -784,7 +784,7 @@ function centerFunction() {
       duration: duration,
     });
     view.animate({
-      rotation: view.getRotation() != 0 ? 0 : -degToRad(deviceHeading),
+      rotation: (view.getRotation() != 0) ? 0 : degToRad(deviceHeading),
       duration: duration,
     });
   }
