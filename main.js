@@ -484,50 +484,50 @@ function handleFileSelect(evt) {
     fileNames.push(files[i].name);
     const reader = new FileReader();
     reader.readAsText(files[i], "UTF-8");
+    const fileFormat = getFileFormat(files[i].name.split(".").pop().toLowerCase());
     reader.onload = function (evt) {
-      const fileFormat = getFileFormat(files[0].name.split(".").pop().toLowerCase());
       gpxFeatures = fileFormat.readFeatures(evt.target.result, {
         dataProjection: "EPSG:4326",
         featureProjection: "EPSG:3857",
       });
-      if (files.length > 1) {
-        // set random color if two or more files is loaded
-        const color = [
-          Math.floor(Math.random() * 255),
-          Math.floor(Math.random() * 255),
-          Math.floor(Math.random() * 255),
-          0.5,
-        ];
-        gpxFeatures.forEach((f) => {
-          f.setStyle(
-            new Style({
-              stroke: new Stroke({
-                color: color,
-                width: 10,
-              }),
-              text: new Text({
-                text: f.get("name"),
-                font: "bold 14px Roboto,monospace",
-                textAlign: "left",
-                offsetX: 10,
-                repeat: 500,
-                fill: new Fill({
-                  color: color,
-                }),
-                stroke: new Stroke({
-                  color: "white",
-                  width: 4,
-                }),
-              }),
-              image: new Icon({
-                anchor: [0.5, 1],
-                color: color,
-                src: "https://jole84.se/white-marker.svg",
-              }),
-            }),
-          );
-        });
-      }
+      // if (files.length > 1) {
+      //   // set random color if two or more files is loaded
+      //   const color = [
+      //     Math.floor(Math.random() * 255),
+      //     Math.floor(Math.random() * 255),
+      //     Math.floor(Math.random() * 255),
+      //     0.5,
+      //   ];
+      //   gpxFeatures.forEach((f) => {
+      //     f.setStyle(
+      //       new Style({
+      //         stroke: new Stroke({
+      //           color: color,
+      //           width: 10,
+      //         }),
+      //         text: new Text({
+      //           text: f.get("name"),
+      //           font: "bold 14px Roboto,monospace",
+      //           textAlign: "left",
+      //           offsetX: 10,
+      //           repeat: 500,
+      //           fill: new Fill({
+      //             color: color,
+      //           }),
+      //           stroke: new Stroke({
+      //             color: "white",
+      //             width: 4,
+      //           }),
+      //         }),
+      //         image: new Icon({
+      //           anchor: [0.5, 1],
+      //           color: color,
+      //           src: "https://jole84.se/white-marker.svg",
+      //         }),
+      //       }),
+      //     );
+      //   });
+      // }
       gpxSource.addFeatures(gpxFeatures);
     };
   }
