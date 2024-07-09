@@ -1,3 +1,4 @@
+import "./style.css"
 import { Feature, Map, View } from "ol";
 import { fromLonLat, toLonLat } from "ol/proj.js";
 import { getDistance } from "ol/sphere";
