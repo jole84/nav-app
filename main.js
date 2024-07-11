@@ -226,7 +226,7 @@ const gpxStyle = {
       src: "https://jole84.se/poi-marker.svg",
     }),
   }),
-  LineString: new Style({
+  MultiLineString: new Style({
     stroke: new Stroke({
       color: [0, 0, 255, 0.5],
       width: 10,
@@ -256,7 +256,7 @@ const gpxStyle = {
     }),
   }),
 };
-gpxStyle["MultiLineString"] = gpxStyle["LineString"];
+// gpxStyle["LineString"] = gpxStyle["MultiLineString"];
 gpxStyle["MultiPolygon"] = gpxStyle["Polygon"];
 
 const trackStyle = {
