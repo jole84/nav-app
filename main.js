@@ -938,15 +938,15 @@ function switchMap() {
   } else if (localStorage.getItem("mapMode") == 3) {
     // mapMode 3: Openstreetmap
     osm.setVisible(true);
-  } else if (
-    JSON.parse(localStorage.enableLnt) &&
-    localStorage.getItem("mapMode") == 4
-  ) {
+  } else if (localStorage.getItem("mapMode") == 4) {
+    // mapMode 3: mapbox
+    slitlagerkarta_mapbox.setVisible(true);
+  } else if (JSON.parse(localStorage.enableLnt) && localStorage.getItem("mapMode") == 5) {
     // mapMode 4: topoweb
     topoweb.setVisible(true);
     topoweb.setMinZoom(0);
     topoweb.setMaxZoom(20);
-  } else if (JSON.parse(localStorage.enableLnt) && localStorage.getItem("mapMode") == 5) {
+  } else if (JSON.parse(localStorage.enableLnt) && localStorage.getItem("mapMode") == 6) {
     // mapMode 4: orto
     ortofoto.setVisible(true);
     ortofoto.setMinZoom(0);
