@@ -1216,15 +1216,10 @@ for (let i = 0; i < urlParams.length; i++) {
     setExtraInfo([titleString]);
     fetch(urlParams[i], { mode: "cors" })
       .then((response) => {
-        console.log(response);
         return response.text();
       })
       .then((response) => {
-        const gpxFeatures = new GPX().readFeatures(response, {
-          dataProjection: "EPSG:4326",
-          featureProjection: "EPSG:3857",
-        });
-        gpxSource.addFeatures(gpxFeatures);
+        gpxSourceLoader(new File([response], urlParams[i], { type: "application/gpx" }));
       });
   }
 }
