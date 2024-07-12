@@ -260,7 +260,7 @@ function gpxStyle(feature) {
     });
   }
 
-  if (featureType == "Polygon") {
+  if (featureType == "Polygon" || featureType == "MultiPolygon") {
     return new Style({
       stroke: new Stroke({
         color: [255, 0, 0, 1],
@@ -268,6 +268,18 @@ function gpxStyle(feature) {
       }),
       fill: new Fill({
         color: [255, 0, 0, 0.2],
+      }),
+      text: new Text({
+        text: feature.get("name"),
+        font: "14px Roboto,monospace",
+        // overflow: true,
+        fill: new Fill({
+          color: "#b41412",
+        }),
+        stroke: new Stroke({
+          color: "white",
+          width: 4,
+        }),
       }),
     });
   }
