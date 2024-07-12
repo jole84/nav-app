@@ -485,10 +485,6 @@ gpxSource.addEventListener("addfeature", function () {
 
 function gpxSourceLoader(gpxFile) {
   const reader = new FileReader();
-  gpxSource.clear();
-
-  console.log(gpxFile);
-
   const fileExtention = gpxFile.name.split(".").pop().toLowerCase();
   const fileFormat = getFileFormat(fileExtention);
   reader.readAsText(gpxFile, "UTF-8");
@@ -521,7 +517,7 @@ for (var i = 0; i < filesList.length; i++) {
 
 // selectFile in menu
 selectFile.addEventListener("change", function () {
-  // gpxSource.clear();
+  gpxSource.clear();
   if (selectFile.value !== "välj gpxfil") {
     fetch("https://jole84.se/rutter/" + selectFile.value, { mode: "no-cors" })
       .then((response) => {
@@ -537,6 +533,8 @@ selectFile.addEventListener("change", function () {
 });
 
 function handleFileSelect(evt) {
+  gpxSource.clear();
+
   customFileButton.blur();
   const files = evt.target.files; // FileList object
   const fileNames = [];
