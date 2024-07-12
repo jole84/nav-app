@@ -260,7 +260,7 @@ function gpxStyle(feature) {
     });
   }
 
-  if (featureType == "Polygon") {
+  if (featureType == "Polygon" || featureType == "MultiPolygon") {
     return new Style({
       stroke: new Stroke({
         color: [255, 0, 0, 1],
@@ -268,6 +268,18 @@ function gpxStyle(feature) {
       }),
       fill: new Fill({
         color: [255, 0, 0, 0.2],
+      }),
+      text: new Text({
+        text: feature.get("name"),
+        font: "14px Roboto,monospace",
+        // overflow: true,
+        fill: new Fill({
+          color: "#b41412",
+        }),
+        stroke: new Stroke({
+          color: "white",
+          width: 4,
+        }),
       }),
     });
   }
@@ -485,10 +497,6 @@ gpxSource.addEventListener("addfeature", function () {
 
 function gpxSourceLoader(gpxFile) {
   const reader = new FileReader();
-  gpxSource.clear();
-
-  console.log(gpxFile);
-
   const fileExtention = gpxFile.name.split(".").pop().toLowerCase();
   const fileFormat = getFileFormat(fileExtention);
   reader.readAsText(gpxFile, "UTF-8");
@@ -521,7 +529,7 @@ for (var i = 0; i < filesList.length; i++) {
 
 // selectFile in menu
 selectFile.addEventListener("change", function () {
-  // gpxSource.clear();
+  gpxSource.clear();
   if (selectFile.value !== "välj gpxfil") {
     fetch("https://jole84.se/rutter/" + selectFile.value, { mode: "no-cors" })
       .then((response) => {
@@ -537,6 +545,8 @@ selectFile.addEventListener("change", function () {
 });
 
 function handleFileSelect(evt) {
+  gpxSource.clear();
+
   customFileButton.blur();
   const files = evt.target.files; // FileList object
   const fileNames = [];
@@ -1206,15 +1216,10 @@ for (let i = 0; i < urlParams.length; i++) {
     setExtraInfo([titleString]);
     fetch(urlParams[i], { mode: "cors" })
       .then((response) => {
-        console.log(response);
         return response.text();
       })
       .then((response) => {
-        const gpxFeatures = new GPX().readFeatures(response, {
-          dataProjection: "EPSG:4326",
-          featureProjection: "EPSG:3857",
-        });
-        gpxSource.addFeatures(gpxFeatures);
+        gpxSourceLoader(new File([response], urlParams[i], { type: "application/gpx" }));
       });
   }
 }
