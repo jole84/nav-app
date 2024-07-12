@@ -1587,10 +1587,10 @@ document.getElementById("optionButtons").appendChild(startButton);
 document.getElementById("optionButtons").appendChild(stopButton);
 
 startButton.addEventListener("click", function () {
-  if (gpxLayer.getSource().getFeatures().length > 0) {
-    gpxLayer.getSource().forEachFeature(function (feature) {
-      if (feature.getGeometry().getType() === "MultiLineString") {
-        positionList = feature.getGeometry().getCoordinates()[0];
+  if (gpxSource.getFeatures().length > 0) {
+    gpxSource.forEachFeature(function (feature) {
+      if (feature.getGeometry().getType() === "LineString") {
+        positionList = feature.getGeometry().getCoordinates();
       }
     });
   } else if (routeLayer.getSource().getFeatures().length > 0) {
