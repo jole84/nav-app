@@ -272,7 +272,7 @@ function gpxStyle(feature) {
       text: new Text({
         text: feature.get("name"),
         font: "14px Roboto,monospace",
-        // overflow: true,
+        overflow: true,
         fill: new Fill({
           color: "#b41412",
         }),
@@ -509,7 +509,7 @@ function gpxSourceLoader(gpxFile) {
       if (fileExtention == "gpx" && gpxFeatures[i].getGeometry().getType() == "LineString") {
         continue;
       } else if (gpxFeatures[i].getGeometry().getType() == "MultiLineString") {
-        gpxSource.addFeature(new Feature({ geometry: gpxFeatures[i].getGeometry().getLineString()}));
+        gpxSource.addFeature(new Feature({ geometry: gpxFeatures[i].getGeometry().getLineString() }));
       } else {
         gpxSource.addFeature(gpxFeatures[i]);
       }
@@ -640,6 +640,15 @@ geolocation.once("change", function () {
   line.appendCoordinate(currentPosition);
 
   prevLonlat = lonlat;
+});
+
+const accuracyFeature = new Feature();
+geolocation.on('change:accuracyGeometry', function () {
+  if (accuracy < 20) {
+    accuracyFeature.setGeometry();
+  } else {
+    accuracyFeature.setGeometry(geolocation.getAccuracyGeometry());
+  }
 });
 
 // runs when position changes
@@ -795,7 +804,7 @@ const positionMarkerHeading = new Feature({
 map.addLayer(
   new VectorLayer({
     source: new VectorSource({
-      features: [positionMarker, positionMarkerHeading],
+      features: [positionMarker, positionMarkerHeading, accuracyFeature],
     }),
   }),
 );
@@ -840,14 +849,20 @@ function centerFunction() {
     view.setZoom(localStorage.defaultZoom);
     updateView();
   } else {
-    view.animate({
-      center: currentPosition,
+    const padding = 50;
+    view.fit(accuracyFeature.getGeometry().getExtent(), {
+      padding: [padding, padding, padding, padding],
       duration: duration,
+      maxZoom: localStorage.defaultZoom,
     });
-    view.animate({
-      zoom: localStorage.defaultZoom,
-      duration: duration,
-    });
+    // view.animate({
+    //   center: currentPosition,
+    //   duration: duration,
+    // });
+    // view.animate({
+    //   zoom: localStorage.defaultZoom,
+    //   duration: duration,
+    // });
     view.animate({
       rotation: 0,
       duration: duration,
