@@ -272,7 +272,7 @@ function gpxStyle(feature) {
       text: new Text({
         text: feature.get("name"),
         font: "14px Roboto,monospace",
-        // overflow: true,
+        overflow: true,
         fill: new Fill({
           color: "#b41412",
         }),
