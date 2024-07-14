@@ -643,11 +643,11 @@ geolocation.once("change", function () {
 
 const accuracyFeature = new Feature();
 geolocation.on('change:accuracyGeometry', function () {
-  // if (accuracy < 20) {
-  //   accuracyFeature.setGeometry();
-  // } else {
-  // }
-  accuracyFeature.setGeometry(geolocation.getAccuracyGeometry());
+  if (accuracy < 20) {
+    accuracyFeature.setGeometry();
+  } else {
+    accuracyFeature.setGeometry(geolocation.getAccuracyGeometry());
+  }
 });
 
 // runs when position changes
@@ -846,26 +846,32 @@ function centerFunction() {
   const padding = 50;
   if (speed > 1) {
     lastInteraction = new Date() - localStorage.interactionDelay;
-    // view.setZoom(localStorage.defaultZoom);
-    view.fit(accuracyFeature.getGeometry().getExtent(), {
-      padding: [padding, padding, padding, padding],
-      maxZoom: localStorage.defaultZoom,
-    });
+    if(!!accuracyFeature.getGeometry()) {
+      view.fit(accuracyFeature.getGeometry().getExtent(), {
+        padding: [padding, padding, padding, padding],
+        maxZoom: localStorage.defaultZoom,
+      });
+    } else {
+      view.setZoom(localStorage.defaultZoom);
+    }
     updateView();
   } else {
-    view.fit(accuracyFeature.getGeometry().getExtent(), {
-      padding: [padding, padding, padding, padding],
-      duration: duration,
-      maxZoom: localStorage.defaultZoom,
-    });
-    // view.animate({
-    //   center: currentPosition,
-    //   duration: duration,
-    // });
-    // view.animate({
-    //   zoom: localStorage.defaultZoom,
-    //   duration: duration,
-    // });
+    if (!!accuracyFeature.getGeometry()) {
+      view.fit(accuracyFeature.getGeometry().getExtent(), {
+        padding: [padding, padding, padding, padding],
+        duration: duration,
+        maxZoom: localStorage.defaultZoom,
+      });
+    } else {
+      view.animate({
+        center: currentPosition,
+        duration: duration,
+      });
+      view.animate({
+        zoom: localStorage.defaultZoom,
+        duration: duration,
+      });
+    }
     view.animate({
       rotation: 0,
       duration: duration,
