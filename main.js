@@ -135,15 +135,15 @@ enableLntDiv.addEventListener("change", function () {
   location.reload();
 });
 if (JSON.parse(localStorage.enableLnt)) {
+  const option4 = document.createElement("option");
   const option5 = document.createElement("option");
-  const option6 = document.createElement("option");
-  option5.text = "Lantmäteriet Topo";
+  option4.text = "Lantmäteriet Topo";
+  option4.value = 4;
+  option5.text = "Lantmäteriet Orto";
   option5.value = 5;
-  option6.text = "Lantmäteriet Orto";
-  option6.value = 6;
+  layerSelector.add(option4);
   layerSelector.add(option5);
-  layerSelector.add(option6);
-};
+}
 
 extraTrafikCheckDiv.checked = localStorage.extraTrafik == "true";
 extraTrafikCheckDiv.addEventListener("change", function () {
@@ -362,22 +362,22 @@ const osm = new TileLayer({
   visible: false,
 });
 
-import {MapboxVectorLayer} from 'ol-mapbox-style';
-const slitlagerkarta_mapbox = new MapboxVectorLayer({
+import { MapboxVectorLayer } from 'ol-mapbox-style';
+const slitlagerkarta = new MapboxVectorLayer({
   styleUrl: "mapbox://styles/tryckluft/clqmovmf100pb01o9g1li1hxb",
-  accessToken : "pk.eyJ1IjoidHJ5Y2tsdWZ0IiwiYSI6ImNrcTU1YTIzeTFlem8yd3A4MXRsMTZreWQifQ.lI612CDqRgWujJDv6zlBqw",
+  accessToken: "pk.eyJ1IjoidHJ5Y2tsdWZ0IiwiYSI6ImNrcTU1YTIzeTFlem8yd3A4MXRsMTZreWQifQ.lI612CDqRgWujJDv6zlBqw",
   visible: false,
 });
 
-const slitlagerkarta = new TileLayer({
-  source: new XYZ({
-    url: "https://jole84.se/slitlagerkarta/{z}/{x}/{y}.jpg",
-    minZoom: 6,
-    maxZoom: 14,
-  }),
-  visible: false,
-  useInterimTilesOnError: false,
-});
+// const slitlagerkarta = new TileLayer({
+//   source: new XYZ({
+//     url: "https://jole84.se/slitlagerkarta/{z}/{x}/{y}.jpg",
+//     minZoom: 6,
+//     maxZoom: 14,
+//   }),
+//   visible: false,
+//   useInterimTilesOnError: false,
+// });
 
 const slitlagerkarta_nedtonad = new TileLayer({
   source: new XYZ({
@@ -460,7 +460,6 @@ const map = new Map({
     slitlagerkarta,
     slitlagerkarta_nedtonad,
     osm,
-    slitlagerkarta_mapbox,
     ortofoto,
     topoweb,
     gpxLayer,
@@ -849,7 +848,7 @@ function centerFunction() {
   const padding = 50;
   if (speed > 1) {
     lastInteraction = new Date() - localStorage.interactionDelay;
-    if(!!accuracyFeature.getGeometry()) {
+    if (!!accuracyFeature.getGeometry()) {
       view.fit(accuracyFeature.getGeometry().getExtent(), {
         padding: [padding, padding, padding, padding],
         maxZoom: localStorage.defaultZoom,
@@ -911,7 +910,6 @@ function switchMap() {
   slitlagerkarta_nedtonad.setVisible(false);
   slitlagerkarta.setVisible(false);
   ortofoto.setVisible(false);
-  slitlagerkarta_mapbox.setVisible(false);
   topoweb.setVisible(false);
   osm.setVisible(false);
   document.getElementsByTagName("body")[0].setAttribute(
@@ -919,7 +917,7 @@ function switchMap() {
     "-webkit-filter: initial;filter: initial;background-color: initial;",
   );
 
-  if (localStorage.enableLnt == "true" && localStorage.getItem("mapMode") > 6) {
+  if (localStorage.enableLnt == "true" && localStorage.getItem("mapMode") > 5) {
     localStorage.setItem("mapMode", 0);
   }
   if (
@@ -962,15 +960,18 @@ function switchMap() {
   } else if (localStorage.getItem("mapMode") == 3) {
     // mapMode 3: Openstreetmap
     osm.setVisible(true);
-  } else if (localStorage.getItem("mapMode") == 4) {
-    // mapMode 3: mapbox
-    slitlagerkarta_mapbox.setVisible(true);
-  } else if (JSON.parse(localStorage.enableLnt) && localStorage.getItem("mapMode") == 5) {
+  } else if (
+    JSON.parse(localStorage.enableLnt) &&
+    localStorage.getItem("mapMode") == 4
+  ) {
     // mapMode 4: topoweb
     topoweb.setVisible(true);
     topoweb.setMinZoom(0);
     topoweb.setMaxZoom(20);
-  } else if (JSON.parse(localStorage.enableLnt) && localStorage.getItem("mapMode") == 6) {
+  } else if (
+    JSON.parse(localStorage.enableLnt) &&
+    localStorage.getItem("mapMode") == 5
+  ) {
     // mapMode 4: orto
     ortofoto.setVisible(true);
     ortofoto.setMinZoom(0);
