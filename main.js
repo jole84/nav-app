@@ -846,7 +846,7 @@ function centerFunction() {
   const padding = 50;
   if (speed > 1) {
     lastInteraction = new Date() - localStorage.interactionDelay;
-    if(!!accuracyFeature.getGeometry()) {
+    if (!!accuracyFeature.getGeometry()) {
       view.fit(accuracyFeature.getGeometry().getExtent(), {
         padding: [padding, padding, padding, padding],
         maxZoom: localStorage.defaultZoom,
