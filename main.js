@@ -45,7 +45,6 @@ const enableLntDiv = document.getElementById("enableLnt");
 const extraTrafikCheckDiv = document.getElementById("extraTrafikCheck");
 const infoGroup = document.getElementById("infoGroup");
 const interactionDelayDiv = document.getElementById("interactionDelay");
-const mapContainer = document.getElementById("mapContainer");
 const onUnloadDiv = document.getElementById("onUnload");
 const openMenuButton = document.getElementById("openMenu");
 const preferredFontSizeDiv = document.getElementById("preferredFontSize");
@@ -644,11 +643,11 @@ geolocation.once("change", function () {
 
 const accuracyFeature = new Feature();
 geolocation.on('change:accuracyGeometry', function () {
-  if (accuracy < 20) {
-    accuracyFeature.setGeometry();
-  } else {
-    accuracyFeature.setGeometry(geolocation.getAccuracyGeometry());
-  }
+  // if (accuracy < 20) {
+  //   accuracyFeature.setGeometry();
+  // } else {
+  // }
+  accuracyFeature.setGeometry(geolocation.getAccuracyGeometry());
 });
 
 // runs when position changes
@@ -844,12 +843,16 @@ function getCenterWithHeading(position, rotation) {
 // center map function
 function centerFunction() {
   const duration = 500;
+  const padding = 50;
   if (speed > 1) {
     lastInteraction = new Date() - localStorage.interactionDelay;
-    view.setZoom(localStorage.defaultZoom);
+    // view.setZoom(localStorage.defaultZoom);
+    view.fit(accuracyFeature.getGeometry().getExtent(), {
+      padding: [padding, padding, padding, padding],
+      maxZoom: localStorage.defaultZoom,
+    });
     updateView();
   } else {
-    const padding = 50;
     view.fit(accuracyFeature.getGeometry().getExtent(), {
       padding: [padding, padding, padding, padding],
       duration: duration,
@@ -901,7 +904,7 @@ function switchMap() {
   ortofoto.setVisible(false);
   topoweb.setVisible(false);
   osm.setVisible(false);
-  mapContainer.setAttribute(
+  document.getElementsByTagName("body")[0].setAttribute(
     "style",
     "-webkit-filter: initial;filter: initial;background-color: initial;",
   );
@@ -939,7 +942,7 @@ function switchMap() {
   } else if (localStorage.getItem("mapMode") == 2) {
     // mapMode 2: slitlagerkarta_nedtonad + night mode
     slitlagerkarta_nedtonad.setVisible(true);
-    mapContainer.setAttribute("style", "filter: invert(1) hue-rotate(180deg);");
+    document.getElementsByTagName("body")[0].setAttribute("style", "filter: invert(1) hue-rotate(180deg);");
     if (JSON.parse(localStorage.enableLnt)) {
       topoweb.setVisible(true);
       slitlagerkarta_nedtonad.setMaxZoom(15.5);
