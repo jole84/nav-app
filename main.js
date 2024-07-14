@@ -363,9 +363,10 @@ const osm = new TileLayer({
 });
 
 import { MapboxVectorLayer } from 'ol-mapbox-style';
+const accessToken = "pk.eyJ1IjoidHJ5Y2tsdWZ0IiwiYSI6ImNrcTU1YTIzeTFlem8yd3A4MXRsMTZreWQifQ.lI612CDqRgWujJDv6zlBqw";
 const slitlagerkarta = new MapboxVectorLayer({
   styleUrl: "mapbox://styles/tryckluft/clqmovmf100pb01o9g1li1hxb",
-  accessToken: "pk.eyJ1IjoidHJ5Y2tsdWZ0IiwiYSI6ImNrcTU1YTIzeTFlem8yd3A4MXRsMTZreWQifQ.lI612CDqRgWujJDv6zlBqw",
+  accessToken: accessToken,
   visible: false,
 });
 
@@ -379,15 +380,21 @@ const slitlagerkarta = new MapboxVectorLayer({
 //   useInterimTilesOnError: false,
 // });
 
-const slitlagerkarta_nedtonad = new TileLayer({
-  source: new XYZ({
-    url: "https://jole84.se/slitlagerkarta_nedtonad/{z}/{x}/{y}.jpg",
-    minZoom: 6,
-    maxZoom: 14,
-  }),
+const slitlagerkarta_nedtonad = new MapboxVectorLayer({
+  styleUrl: "mapbox://styles/tryckluft/clylee4ra013201qp02kk1wxy",
+  accessToken: accessToken,
   visible: false,
-  useInterimTilesOnError: false,
 });
+
+// const slitlagerkarta_nedtonad = new TileLayer({
+//   source: new XYZ({
+//     url: "https://jole84.se/slitlagerkarta_nedtonad/{z}/{x}/{y}.jpg",
+//     minZoom: 6,
+//     maxZoom: 14,
+//   }),
+//   visible: false,
+//   useInterimTilesOnError: false,
+// });
 
 const ortofoto = new TileLayer({
   source: new TileWMS({
