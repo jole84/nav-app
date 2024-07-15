@@ -158,7 +158,7 @@ onUnloadDiv.addEventListener("change", function () {
 window.onbeforeunload = function () {
   localStorage.navAppCenter = JSON.stringify(currentPosition);
   if (
-    JSON.parse(localStorage.onUnload) &&
+    JSON.parse(localStorage.onUnload || "false") &&
     window.location === window.parent.location
   ) {
     return "";
