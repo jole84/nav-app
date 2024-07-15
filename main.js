@@ -145,20 +145,20 @@ if (JSON.parse(localStorage.enableLnt)) {
   layerSelector.add(option5);
 }
 
-extraTrafikCheckDiv.checked = localStorage.extraTrafik == "true";
+extraTrafikCheckDiv.checked = JSON.parse(localStorage.extraTrafik || "false");
 extraTrafikCheckDiv.addEventListener("change", function () {
   localStorage.extraTrafik = extraTrafikCheckDiv.checked;
   getDeviations();
 });
 
-onUnloadDiv.checked = localStorage.onUnload == "true";
+onUnloadDiv.checked = JSON.parse(localStorage.onUnload || "false");
 onUnloadDiv.addEventListener("change", function () {
   localStorage.onUnload = onUnloadDiv.checked;
 });
 window.onbeforeunload = function () {
   localStorage.navAppCenter = JSON.stringify(currentPosition);
   if (
-    JSON.parse(localStorage.onUnload || "false") &&
+    onUnloadDiv.checked &&
     window.location === window.parent.location
   ) {
     return "";
@@ -195,7 +195,7 @@ interactionDelayDiv.addEventListener("change", function () {
 });
 
 localStorage.preferredFontSize = preferredFontSizeDiv.value =
-  localStorage.preferredFontSize || "20";
+  localStorage.preferredFontSize || "20px";
 preferredFontSizeDiv.addEventListener("change", function () {
   localStorage.preferredFontSize = preferredFontSizeDiv.value;
   infoGroup.style.fontSize = localStorage.preferredFontSize;
