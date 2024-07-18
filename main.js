@@ -487,6 +487,7 @@ gpxSource.addEventListener("addfeature", function () {
   if (gpxSource.getState() === "ready") {
     const padding = 100;
     lastInteraction = new Date();
+    view.setRotation(0);
     view.fit(gpxSource.getExtent(), {
       padding: [padding, padding, padding, padding],
       maxZoom: 15,
