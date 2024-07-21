@@ -32,7 +32,6 @@ let heading = 0;
 let lastInteraction = new Date() - localStorage.interactionDelay;
 let lonlat = toLonLat(currentPosition);
 let maxSpeed = 0;
-let maxSpeedCoordinate;
 let prevLonlat;
 let speed = 0;
 let speedKmh = 0;
@@ -317,10 +316,11 @@ const trafficWarningTextStyleFunction = function (feature) {
         textBaseline: "top",
         offsetY: 24,
         fill: new Fill({
-          color: "black",
+          color: "yellow",
         }),
         stroke: new Stroke({
-          color: [238, 210, 2],
+          // color: [238, 210, 2],
+          color: "black",
           width: 4,
         }),
         // backgroundFill: new Fill({
@@ -739,7 +739,6 @@ geolocation.on("change", function () {
 
   if (speedKmh > maxSpeed && accuracy < 25) {
     maxSpeed = speedKmh;
-    maxSpeedCoordinate = [lonlat, new Date()];
   }
 
   prevLonlat = lonlat;
@@ -995,7 +994,6 @@ async function saveLog() {
   <desc>GPX log created by Jole84 Nav-app</desc>
   <time>${startTime.toISOString()}</time>
 </metadata>
-<!-- <wpt lat="${maxSpeedCoordinate[0][1]}" lon="${maxSpeedCoordinate[0][0]}"><name>max ${Math.floor(maxSpeed)} km/h ${maxSpeedCoordinate[1].toLocaleTimeString()}</name></wpt> -->
 <trk>
   <name>${startTime.toLocaleString()}, max ${Math.floor(maxSpeed)} km/h, total ${(
       distanceTraveled / 1000
