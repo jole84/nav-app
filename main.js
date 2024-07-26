@@ -79,7 +79,6 @@ if (navigator.getBattery) {
 }
 setExtraInfo([
   '<div style="text-align:center;font-size: 0.4em;">Build: INSERTDATEHERE</div>',
-  '<button class="btn btn-danger btn-lg" id="resetRoute2" style="width: 100%;display: block;margin-left: auto;margin-right: auto;margin-bottom:5px;margin-top:-20px">Nollställ rutt</button>'
 ]);
 
 let wakeLock;
@@ -656,6 +655,8 @@ for (let i = 0; i < trackLog.length - 1; i++) {
 
 document.getElementById("resetRoute").addEventListener("click", clearRoute);
 document.getElementById("resetRoute2").addEventListener("click", clearRoute);
+
+setTimeout(function () {document.getElementById("resetRoute2").style.display = "none"}, 15000);
 
 function clearRoute() {
   distanceTraveled = 0;

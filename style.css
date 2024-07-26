@@ -63,6 +63,11 @@ body,
   filter: opacity(0.9);
 }
 
+#resetRoute2 {
+  width: 100%;
+  margin-bottom:5px;
+}
+
 #map .ol-rotate {
   display: none;
 }
