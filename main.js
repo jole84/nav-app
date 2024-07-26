@@ -1656,6 +1656,7 @@ function simulatePositionChange() {
 }
 
 function changeGeolocationPosition(longitude, latitude) {
+  localStorage.trackLog = JSON.stringify(trackLog);
   geolocation.set("accuracy", 10);
   geolocation.set("position", [longitude, latitude]);
   if (trackLog.length > 1) {
