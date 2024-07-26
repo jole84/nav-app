@@ -1275,12 +1275,12 @@ document.addEventListener("keydown", function (event) {
       // store time of last interaction
       lastInteraction = new Date();
     }
+    if (event.key == "Enter" && new Date() - startTime < 15000) {
+      clearRoute();
+    }
     if (event.key == "c" || event.key == "Enter") {
       event.preventDefault();
       centerFunction();
-      if (new Date() - startTime < 15000) {
-        clearRoute();
-      }
     }
     if (event.key == "v") {
       localStorage.setItem(
