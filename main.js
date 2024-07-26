@@ -36,12 +36,11 @@ let prevLonlat;
 let speed = 0;
 let speedKmh = 0;
 let timeOut;
-let trackLog = [];
+let trackLog = JSON.parse(localStorage.trackLog || "[]");
 const centerButton = document.getElementById("centerButton");
 const closeMenuButton = document.getElementById("closeMenu");
 const customFileButton = document.getElementById("customFileButton");
 const enableLntDiv = document.getElementById("enableLnt");
-const extraTrafikCheckDiv = document.getElementById("extraTrafikCheck");
 const infoGroup = document.getElementById("infoGroup");
 const interactionDelayDiv = document.getElementById("interactionDelay");
 const onUnloadDiv = document.getElementById("onUnload");
@@ -80,6 +79,7 @@ if (navigator.getBattery) {
 }
 setExtraInfo([
   '<div style="text-align:center;font-size: 0.4em;">Build: INSERTDATEHERE</div>',
+  '<button class="btn btn-danger btn-lg" id="resetRoute2" style="width: 100%;display: block;margin-left: auto;margin-right: auto;margin-bottom:5px;margin-top:-20px">Återställ rutt</button>'
 ]);
 
 let wakeLock;
@@ -143,12 +143,6 @@ if (JSON.parse(localStorage.enableLnt)) {
   layerSelector.add(option4);
   layerSelector.add(option5);
 }
-
-extraTrafikCheckDiv.checked = JSON.parse(localStorage.extraTrafik || "false");
-extraTrafikCheckDiv.addEventListener("change", function () {
-  localStorage.extraTrafik = extraTrafikCheckDiv.checked;
-  getDeviations();
-});
 
 onUnloadDiv.checked = JSON.parse(localStorage.onUnload || "false");
 onUnloadDiv.addEventListener("change", function () {
@@ -651,6 +645,30 @@ geolocation.on('change:accuracyGeometry', function () {
   }
 });
 
+for (let i = 0; i < trackLog.length; i++) {
+  line.appendCoordinate(fromLonLat(trackLog[i][0]));
+  trackLog[i] = [trackLog[i][0], trackLog[i][1], new Date(trackLog[i][2])];
+}
+
+for (let i = 0; i < trackLog.length - 1; i++) {
+  distanceTraveled += getDistance(trackLog[i][0], trackLog[i + 1][0]);
+}
+
+document.getElementById("resetRoute").addEventListener("click", clearRoute);
+document.getElementById("resetRoute2").addEventListener("click", clearRoute);
+
+function clearRoute() {
+  menuDiv.style.display = "none"
+  console.log("reset");
+  maxSpeed = 0;
+  distanceTraveled = 0;
+  document.getElementById("distanceTraveledDiv").innerHTML = "0.00";
+  line.setCoordinates([]);
+  trackLog = [[lonlat, altitude, new Date()]];
+  localStorage.trackLog = JSON.stringify(trackLog);
+}
+
+
 // runs when position changes
 geolocation.on("change", function () {
   currentPosition = geolocation.getPosition();
@@ -658,7 +676,7 @@ geolocation.on("change", function () {
   heading = geolocation.getHeading() || 0;
   speed = geolocation.getSpeed() || 0;
   speedKmh = speed * 3.6;
-  altitude = geolocation.getAltitude() || 0;
+  altitude = Math.round(geolocation.getAltitude() || 0);
   lonlat = toLonLat(currentPosition);
   const currentTime = new Date();
   positionMarkerPoint.setCoordinates(currentPosition);
@@ -670,6 +688,7 @@ geolocation.on("change", function () {
     currentTime - trackLog[trackLog.length - 1][2] > 3000
   ) {
     trackLog.push([lonlat, altitude, currentTime]);
+    localStorage.trackLog = JSON.stringify(trackLog);
     line.appendCoordinate(currentPosition);
 
     // recalculate route if > 300 m off route
@@ -1354,27 +1373,6 @@ function getDeviations() {
       </QUERY>
     </REQUEST>
   `;
-
-  if (localStorage.extraTrafik == "true") {
-    xmlRequest = `
-    <REQUEST>
-      <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
-      <QUERY objecttype='Situation' schemaversion='1.2'>
-        <FILTER>
-          <ELEMENTMATCH>
-            <GTE name='Deviation.EndTime' value='$now'/>
-          </ELEMENTMATCH>
-        </FILTER>
-        <INCLUDE>Deviation.Message</INCLUDE>
-        <INCLUDE>Deviation.IconId</INCLUDE>
-        <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
-        <INCLUDE>Deviation.RoadNumber</INCLUDE>
-        <INCLUDE>Deviation.EndTime</INCLUDE>
-        <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
-      </QUERY>
-    </REQUEST>
-  `;
-  }
   fetch(apiUrl, {
     method: "POST",
     headers: {
