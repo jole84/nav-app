@@ -1278,6 +1278,9 @@ document.addEventListener("keydown", function (event) {
     if (event.key == "c" || event.key == "Enter") {
       event.preventDefault();
       centerFunction();
+      if (new Date() - startTime < 15000) {
+        clearRoute();
+      }
     }
     if (event.key == "v") {
       localStorage.setItem(
