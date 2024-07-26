@@ -622,7 +622,7 @@ const geolocation = new Geolocation({
 // run once to get things going
 geolocation.once("change", function () {
   currentPosition = geolocation.getPosition();
-  altitude = geolocation.getAltitude() || 0;
+  altitude = Math.round(geolocation.getAltitude() || 0);
   lonlat = toLonLat(currentPosition);
   const currentTime = new Date();
   if (currentTime - lastInteraction > localStorage.interactionDelay) {
