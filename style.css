@@ -42,6 +42,7 @@ body,
   border-radius: 5px;
   padding-left: 3px;
   padding-right: 3px;
+  margin-bottom: 5px;
 }
 
 #trafficWarning:empty {
