@@ -79,7 +79,7 @@ if (navigator.getBattery) {
 }
 setExtraInfo([
   '<div style="text-align:center;font-size: 0.4em;">Build: INSERTDATEHERE</div>',
-  '<button class="btn btn-danger btn-lg" id="resetRoute2" style="width: 100%;display: block;margin-left: auto;margin-right: auto;margin-bottom:5px;margin-top:-20px">Återställ rutt</button>'
+  '<button class="btn btn-danger btn-lg" id="resetRoute2" style="width: 100%;display: block;margin-left: auto;margin-right: auto;margin-bottom:5px;margin-top:-20px">Nollställ rutt</button>'
 ]);
 
 let wakeLock;
@@ -658,12 +658,12 @@ document.getElementById("resetRoute").addEventListener("click", clearRoute);
 document.getElementById("resetRoute2").addEventListener("click", clearRoute);
 
 function clearRoute() {
-  menuDiv.style.display = "none"
-  console.log("reset");
-  maxSpeed = 0;
   distanceTraveled = 0;
   document.getElementById("distanceTraveledDiv").innerHTML = "0.00";
   line.setCoordinates([]);
+  maxSpeed = 0;
+  menuDiv.style.display = "none";
+  setExtraInfo(["Rutt nollställd!"]);
   trackLog = [[lonlat, altitude, new Date()]];
   localStorage.trackLog = JSON.stringify(trackLog);
 }
@@ -1011,12 +1011,12 @@ async function saveLog() {
 <gpx version="1.1" creator="Jole84 Nav-app">
 <metadata>
   <desc>GPX log created by Jole84 Nav-app</desc>
-  <time>${startTime.toISOString()}</time>
+  <time>${trackLog[0][2].toISOString()}</time>
 </metadata>
 <trk>
-  <name>${startTime.toLocaleString()}, max ${Math.floor(maxSpeed)} km/h, total ${(
+  <name>${trackLog[0][2].toLocaleString()}, max ${Math.floor(maxSpeed)} km/h, total ${(
       distanceTraveled / 1000
-    ).toFixed(2)} km, ${toHHMMSS(new Date() - startTime)}</name>
+    ).toFixed(2)} km, ${toHHMMSS(new Date() - trackLog[0][2])}</name>
   <trkseg>`;
 
   for (let i = 0; i < trackLog.length; i++) {
@@ -1035,7 +1035,7 @@ async function saveLog() {
 </gpx>`;
 
   const filename =
-    startTime.toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + ".gpx";
+    trackLog[0][2].toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + ".gpx";
   setExtraInfo(["Sparar fil:", filename]);
 
   let file = new Blob([gpxFile], { type: "application/gpx+xml" });
