@@ -1276,6 +1276,7 @@ document.addEventListener("keydown", function (event) {
       lastInteraction = new Date();
     }
     if (event.key == "Enter" && new Date() - startTime < 15000) {
+      event.preventDefault();
       clearRoute();
     }
     if (event.key == "c" || event.key == "Enter") {
