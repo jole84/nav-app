@@ -674,17 +674,17 @@ function restoreRoute () {
   setExtraInfo(["Rutt återställd!"]);
 }
 
-document.getElementById("resetRoute").addEventListener("click", clearRoute);
+document.getElementById("clearRouteButton").addEventListener("click", clearRoute);
 function clearRoute() {
   distanceTraveled = 0;
   document.getElementById("distanceTraveledDiv").innerHTML = "0.00";
   line.setCoordinates([]);
   maxSpeed = 0;
   menuDiv.style.display = "none";
+  document.getElementById("recallRouteButton").style.display = "none";
   setExtraInfo(["Rutt nollställd!"]);
   trackLog = [[lonlat, altitude, new Date()]];
-  localStorage.removeItem("trackLog")
-  // localStorage.trackLog = JSON.stringify(trackLog);
+  localStorage.removeItem("trackLog");
 }
 
 // runs when position changes
@@ -1036,7 +1036,7 @@ async function saveLog() {
 <trk>
   <name>${trackLog[0][2].toLocaleString()}, max ${Math.floor(maxSpeed)} km/h, total ${(
       distanceTraveled / 1000
-    ).toFixed(2)} km, ${toHHMMSS(new Date() - trackLog[0][2])}</name>
+    ).toFixed(2)} km, ${toHHMMSS(trackLog[trackLog.length - 1][2] - trackLog[0][2])}</name>
   <trkseg>`;
 
   for (let i = 0; i < trackLog.length; i++) {
