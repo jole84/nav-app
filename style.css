@@ -63,7 +63,8 @@ body,
   filter: opacity(0.9);
 }
 
-#resetRoute2 {
+#recallRouteButton {
+  display: none;
   width: 100%;
   margin-bottom:5px;
 }

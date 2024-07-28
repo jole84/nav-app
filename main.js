@@ -36,7 +36,7 @@ let prevLonlat;
 let speed = 0;
 let speedKmh = 0;
 let timeOut;
-let trackLog = JSON.parse(localStorage.trackLog || "[]");
+let trackLog = [];
 const centerButton = document.getElementById("centerButton");
 const closeMenuButton = document.getElementById("closeMenu");
 const customFileButton = document.getElementById("customFileButton");
@@ -644,20 +644,37 @@ geolocation.on('change:accuracyGeometry', function () {
   }
 });
 
-for (let i = 0; i < trackLog.length; i++) {
-  line.appendCoordinate(fromLonLat(trackLog[i][0]));
-  trackLog[i] = [trackLog[i][0], trackLog[i][1], new Date(trackLog[i][2])];
+if (!!localStorage.trackLog) {
+  document.getElementById("recallRouteButton").style.display = "unset";
 }
+document.getElementById("recallRouteButton").addEventListener("click", restoreRoute);
+setTimeout(function () {document.getElementById("recallRouteButton").style.display = "none"}, 30000);
 
-for (let i = 0; i < trackLog.length - 1; i++) {
-  distanceTraveled += getDistance(trackLog[i][0], trackLog[i + 1][0]);
+function restoreRoute () {
+  // read old route from localStorage
+  const oldRoute = JSON.parse(localStorage.trackLog);
+  
+  // restore line geometry
+  line.setCoordinates([]);
+  for (let i = 0; i < oldRoute.length; i++) {
+    line.appendCoordinate(fromLonLat(oldRoute[i][0]));
+    trackLog[i] = [oldRoute[i][0], oldRoute[i][1], new Date(oldRoute[i][2])];
+  }
+  
+  // restore distanceTraveled
+  distanceTraveled = 0;
+  for (let i = 0; i < oldRoute.length - 1; i++) {
+    distanceTraveled += getDistance(oldRoute[i][0], oldRoute[i + 1][0]);
+  }
+  document.getElementById("distanceTraveledDiv").innerHTML = (
+    distanceTraveled / 1000
+  ).toFixed(2);
+
+  document.getElementById("recallRouteButton").style.display = "none";
+  setExtraInfo(["Rutt återställd!"]);
 }
 
 document.getElementById("resetRoute").addEventListener("click", clearRoute);
-document.getElementById("resetRoute2").addEventListener("click", clearRoute);
-
-setTimeout(function () {document.getElementById("resetRoute2").style.display = "none"}, 15000);
-
 function clearRoute() {
   distanceTraveled = 0;
   document.getElementById("distanceTraveledDiv").innerHTML = "0.00";
@@ -666,9 +683,9 @@ function clearRoute() {
   menuDiv.style.display = "none";
   setExtraInfo(["Rutt nollställd!"]);
   trackLog = [[lonlat, altitude, new Date()]];
-  localStorage.trackLog = JSON.stringify(trackLog);
+  localStorage.removeItem("trackLog")
+  // localStorage.trackLog = JSON.stringify(trackLog);
 }
-
 
 // runs when position changes
 geolocation.on("change", function () {
@@ -689,8 +706,10 @@ geolocation.on("change", function () {
     currentTime - trackLog[trackLog.length - 1][2] > 3000
   ) {
     trackLog.push([lonlat, altitude, currentTime]);
-    localStorage.trackLog = JSON.stringify(trackLog);
     line.appendCoordinate(currentPosition);
+    if (currentTime - startTime > 300000) {
+      localStorage.trackLog = JSON.stringify(trackLog);
+    }
 
     // recalculate route if > 300 m off route
     if (destinationCoordinates.length == 2) {
@@ -1276,9 +1295,9 @@ document.addEventListener("keydown", function (event) {
       // store time of last interaction
       lastInteraction = new Date();
     }
-    if (event.key == "Enter" && new Date() - startTime < 15000) {
+    if (event.key == "Enter" && new Date() - startTime < 30000) {
       event.preventDefault();
-      clearRoute();
+      restoreRoute();
     }
     if (event.key == "c" || event.key == "Enter") {
       event.preventDefault();
