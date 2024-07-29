@@ -233,19 +233,10 @@ function gpxStyle(feature) {
     });
   }
 
-  if (featureType == "LineString") {
+  if (featureType == "LineString" || featureType == "MultiLineString") {
     return new Style({
       stroke: new Stroke({
         color: [0, 0, 255, 0.5],
-        width: 10,
-      }),
-    });
-  }
-
-  if (featureType == "MultiLineString") {
-    return new Style({
-      stroke: new Stroke({
-        color: [255, 0, 0, 0.5],
         width: 10,
       }),
     });
@@ -499,13 +490,7 @@ function gpxSourceLoader(gpxFile) {
       featureProjection: "EPSG:3857",
     });
     for (let i = 0; i < gpxFeatures.length; i++) {
-      if (fileExtention == "gpx" && gpxFeatures[i].getGeometry().getType() == "LineString") {
-        continue;
-      } else if (gpxFeatures[i].getGeometry().getType() == "MultiLineString") {
-        gpxSource.addFeature(new Feature({ geometry: gpxFeatures[i].getGeometry().getLineString() }));
-      } else {
-        gpxSource.addFeature(gpxFeatures[i]);
-      }
+      gpxSource.addFeature(gpxFeatures[i]);
     }
   };
 }
@@ -648,19 +633,19 @@ if (!!localStorage.trackLog) {
   document.getElementById("recallRouteButton").style.display = "unset";
 }
 document.getElementById("recallRouteButton").addEventListener("click", restoreRoute);
-setTimeout(function () {document.getElementById("recallRouteButton").style.display = "none"}, 30000);
+setTimeout(function () { document.getElementById("recallRouteButton").style.display = "none" }, 30000);
 
-function restoreRoute () {
+function restoreRoute() {
   // read old route from localStorage
   const oldRoute = JSON.parse(localStorage.trackLog);
-  
+
   // restore line geometry
   line.setCoordinates([]);
   for (let i = 0; i < oldRoute.length; i++) {
     line.appendCoordinate(fromLonLat(oldRoute[i][0]));
     trackLog[i] = [oldRoute[i][0], oldRoute[i][1], new Date(oldRoute[i][2])];
   }
-  
+
   // restore distanceTraveled
   distanceTraveled = 0;
   for (let i = 0; i < oldRoute.length - 1; i++) {
