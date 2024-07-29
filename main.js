@@ -666,6 +666,7 @@ function restoreRoute () {
   for (let i = 0; i < oldRoute.length - 1; i++) {
     distanceTraveled += getDistance(oldRoute[i][0], oldRoute[i + 1][0]);
   }
+  distanceTraveled += getDistance(lonlat, oldRoute[oldRoute.length - 1][0]);
   document.getElementById("distanceTraveledDiv").innerHTML = (
     distanceTraveled / 1000
   ).toFixed(2);
