@@ -73,10 +73,15 @@ body,
   display: none;
 }
 
+.form-check-input[type=checkbox] {
+  margin-right: 0px;
+}
+
 #menuDiv {
   position: absolute;
-  max-height: 95%;
+  max-height: 98%;
   min-width: 550px;
+  max-width: 700px;
   left: 50%;
   top: 50%;
   color: rgb(32, 32, 32);
@@ -103,12 +108,12 @@ body,
 #preferredFontSize,
 #prefferedZoom,
 #interactionDelay {
-  width: 130;
   display: inline-block;
 }
 
 table.table td,
 table.table th {
+  width: 50%;
   padding-top: .2rem;
   padding-bottom: .2rem;
 }

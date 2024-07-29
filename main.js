@@ -699,9 +699,9 @@ geolocation.on("change", function () {
   const currentTime = new Date();
   positionMarkerPoint.setCoordinates(currentPosition);
 
-  // measure distance and push log if position change > 10 meters and accuracy is good and more than 3 seconds
+  // measure distance and push log if position change > 5 meters and accuracy is good and more than 3 seconds
   if (
-    getDistance(lonlat, trackLog[trackLog.length - 1][0]) > 10 &&
+    getDistance(lonlat, trackLog[trackLog.length - 1][0]) > 5 &&
     accuracy < 25 &&
     currentTime - trackLog[trackLog.length - 1][2] > 3000
   ) {
