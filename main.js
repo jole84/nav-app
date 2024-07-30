@@ -32,7 +32,6 @@ let heading = 0;
 let lastInteraction = new Date() - localStorage.interactionDelay;
 let lonlat = toLonLat(currentPosition);
 let maxSpeed = 0;
-let maxSpeedCoordinate;
 let prevLonlat;
 let speed = 0;
 let speedKmh = 0;
@@ -42,7 +41,6 @@ const centerButton = document.getElementById("centerButton");
 const closeMenuButton = document.getElementById("closeMenu");
 const customFileButton = document.getElementById("customFileButton");
 const enableLntDiv = document.getElementById("enableLnt");
-const extraTrafikCheckDiv = document.getElementById("extraTrafikCheck");
 const infoGroup = document.getElementById("infoGroup");
 const interactionDelayDiv = document.getElementById("interactionDelay");
 const onUnloadDiv = document.getElementById("onUnload");
@@ -145,12 +143,6 @@ if (JSON.parse(localStorage.enableLnt)) {
   layerSelector.add(option5);
 }
 
-extraTrafikCheckDiv.checked = JSON.parse(localStorage.extraTrafik || "false");
-extraTrafikCheckDiv.addEventListener("change", function () {
-  localStorage.extraTrafik = extraTrafikCheckDiv.checked;
-  getDeviations();
-});
-
 onUnloadDiv.checked = JSON.parse(localStorage.onUnload || "false");
 onUnloadDiv.addEventListener("change", function () {
   localStorage.onUnload = onUnloadDiv.checked;
@@ -241,19 +233,10 @@ function gpxStyle(feature) {
     });
   }
 
-  if (featureType == "LineString") {
+  if (featureType == "LineString" || featureType == "MultiLineString") {
     return new Style({
       stroke: new Stroke({
         color: [0, 0, 255, 0.5],
-        width: 10,
-      }),
-    });
-  }
-
-  if (featureType == "MultiLineString") {
-    return new Style({
-      stroke: new Stroke({
-        color: [255, 0, 0, 0.5],
         width: 10,
       }),
     });
@@ -317,10 +300,11 @@ const trafficWarningTextStyleFunction = function (feature) {
         textBaseline: "top",
         offsetY: 24,
         fill: new Fill({
-          color: "black",
+          color: "yellow",
         }),
         stroke: new Stroke({
-          color: [238, 210, 2],
+          // color: [238, 210, 2],
+          color: "black",
           width: 4,
         }),
         // backgroundFill: new Fill({
@@ -515,13 +499,7 @@ function gpxSourceLoader(gpxFile) {
       featureProjection: "EPSG:3857",
     });
     for (let i = 0; i < gpxFeatures.length; i++) {
-      if (fileExtention == "gpx" && gpxFeatures[i].getGeometry().getType() == "LineString") {
-        continue;
-      } else if (gpxFeatures[i].getGeometry().getType() == "MultiLineString") {
-        gpxSource.addFeature(new Feature({ geometry: gpxFeatures[i].getGeometry().getLineString() }));
-      } else {
-        gpxSource.addFeature(gpxFeatures[i]);
-      }
+      gpxSource.addFeature(gpxFeatures[i]);
     }
   };
 }
@@ -637,7 +615,7 @@ const geolocation = new Geolocation({
 // run once to get things going
 geolocation.once("change", function () {
   currentPosition = geolocation.getPosition();
-  altitude = geolocation.getAltitude() || 0;
+  altitude = Math.round(geolocation.getAltitude() || 0);
   lonlat = toLonLat(currentPosition);
   const currentTime = new Date();
   if (currentTime - lastInteraction > localStorage.interactionDelay) {
@@ -660,6 +638,50 @@ geolocation.on('change:accuracyGeometry', function () {
   }
 });
 
+if (!!localStorage.trackLog) {
+  document.getElementById("restoreRouteButton").style.display = "unset";
+}
+document.getElementById("restoreRouteButton").addEventListener("click", restoreRoute);
+setTimeout(function () { document.getElementById("restoreRouteButton").style.display = "none" }, 30000);
+
+function restoreRoute() {
+  // read old route from localStorage
+  const oldRoute = JSON.parse(localStorage.trackLog);
+  distanceTraveled = 0;
+  line.setCoordinates([]);
+
+  // restore line geometry
+  for (let i = 0; i < oldRoute.length; i++) {
+    line.appendCoordinate(fromLonLat(oldRoute[i][0]));
+    trackLog[i] = [oldRoute[i][0], oldRoute[i][1], new Date(oldRoute[i][2])];
+    if (i == oldRoute.length - 1) {
+      distanceTraveled += getDistance(lonlat, oldRoute[i][0]);
+    } else {
+      distanceTraveled += getDistance(oldRoute[i][0], oldRoute[i + 1][0]);
+    }
+  }
+
+  document.getElementById("distanceTraveledDiv").innerHTML = (
+    distanceTraveled / 1000
+  ).toFixed(2);
+
+  document.getElementById("restoreRouteButton").style.display = "none";
+  setExtraInfo(["Rutt återställd!"]);
+}
+
+document.getElementById("clearRouteButton").addEventListener("click", clearRoute);
+function clearRoute() {
+  distanceTraveled = 0;
+  document.getElementById("distanceTraveledDiv").innerHTML = "0.00";
+  line.setCoordinates([]);
+  maxSpeed = 0;
+  menuDiv.style.display = "none";
+  document.getElementById("restoreRouteButton").style.display = "none";
+  setExtraInfo(["Rutt nollställd!"]);
+  trackLog = [[lonlat, altitude, new Date()]];
+  localStorage.removeItem("trackLog");
+}
+
 // runs when position changes
 geolocation.on("change", function () {
   currentPosition = geolocation.getPosition();
@@ -667,19 +689,22 @@ geolocation.on("change", function () {
   heading = geolocation.getHeading() || 0;
   speed = geolocation.getSpeed() || 0;
   speedKmh = speed * 3.6;
-  altitude = geolocation.getAltitude() || 0;
+  altitude = Math.round(geolocation.getAltitude() || 0);
   lonlat = toLonLat(currentPosition);
   const currentTime = new Date();
   positionMarkerPoint.setCoordinates(currentPosition);
 
-  // measure distance and push log if position change > 10 meters and accuracy is good and more than 3 seconds
+  // measure distance and push log if position change > 5 meters and accuracy is good and more than 3 seconds
   if (
-    getDistance(lonlat, trackLog[trackLog.length - 1][0]) > 10 &&
+    getDistance(lonlat, trackLog[trackLog.length - 1][0]) > 5 &&
     accuracy < 25 &&
     currentTime - trackLog[trackLog.length - 1][2] > 3000
   ) {
     trackLog.push([lonlat, altitude, currentTime]);
     line.appendCoordinate(currentPosition);
+    if (currentTime - startTime > 300000) {
+      localStorage.trackLog = JSON.stringify(trackLog);
+    }
 
     // recalculate route if > 300 m off route
     if (destinationCoordinates.length == 2) {
@@ -748,7 +773,6 @@ geolocation.on("change", function () {
 
   if (speedKmh > maxSpeed && accuracy < 25) {
     maxSpeed = speedKmh;
-    maxSpeedCoordinate = [lonlat, new Date()];
   }
 
   prevLonlat = lonlat;
@@ -1002,13 +1026,12 @@ async function saveLog() {
 <gpx version="1.1" creator="Jole84 Nav-app">
 <metadata>
   <desc>GPX log created by Jole84 Nav-app</desc>
-  <time>${startTime.toISOString()}</time>
+  <time>${trackLog[0][2].toISOString()}</time>
 </metadata>
-<!-- <wpt lat="${maxSpeedCoordinate[0][1]}" lon="${maxSpeedCoordinate[0][0]}"><name>max ${Math.floor(maxSpeed)} km/h ${maxSpeedCoordinate[1].toLocaleTimeString()}</name></wpt> -->
 <trk>
-  <name>${startTime.toLocaleString()}, max ${Math.floor(maxSpeed)} km/h, total ${(
+  <name>${trackLog[0][2].toLocaleString()}, max ${Math.floor(maxSpeed)} km/h, total ${(
       distanceTraveled / 1000
-    ).toFixed(2)} km, ${toHHMMSS(new Date() - startTime)}</name>
+    ).toFixed(2)} km, ${toHHMMSS(trackLog[trackLog.length - 1][2] - trackLog[0][2])}</name>
   <trkseg>`;
 
   for (let i = 0; i < trackLog.length; i++) {
@@ -1027,7 +1050,7 @@ async function saveLog() {
 </gpx>`;
 
   const filename =
-    startTime.toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + ".gpx";
+    trackLog[0][2].toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + ".gpx";
   setExtraInfo(["Sparar fil:", filename]);
 
   let file = new Blob([gpxFile], { type: "application/gpx+xml" });
@@ -1267,6 +1290,10 @@ document.addEventListener("keydown", function (event) {
       // store time of last interaction
       lastInteraction = new Date();
     }
+    if (event.key == "Enter" && new Date() - startTime < 30000 && !!localStorage.trackLog) {
+      event.preventDefault();
+      restoreRoute();
+    }
     if (event.key == "c" || event.key == "Enter") {
       event.preventDefault();
       centerFunction();
@@ -1365,27 +1392,6 @@ function getDeviations() {
       </QUERY>
     </REQUEST>
   `;
-
-  if (localStorage.extraTrafik == "true") {
-    xmlRequest = `
-    <REQUEST>
-      <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
-      <QUERY objecttype='Situation' schemaversion='1.2'>
-        <FILTER>
-          <ELEMENTMATCH>
-            <GTE name='Deviation.EndTime' value='$now'/>
-          </ELEMENTMATCH>
-        </FILTER>
-        <INCLUDE>Deviation.Message</INCLUDE>
-        <INCLUDE>Deviation.IconId</INCLUDE>
-        <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
-        <INCLUDE>Deviation.RoadNumber</INCLUDE>
-        <INCLUDE>Deviation.EndTime</INCLUDE>
-        <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
-      </QUERY>
-    </REQUEST>
-  `;
-  }
   fetch(apiUrl, {
     method: "POST",
     headers: {
