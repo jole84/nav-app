@@ -630,33 +630,33 @@ geolocation.on('change:accuracyGeometry', function () {
 });
 
 if (!!localStorage.trackLog) {
-  document.getElementById("recallRouteButton").style.display = "unset";
+  document.getElementById("restoreRouteButton").style.display = "unset";
 }
-document.getElementById("recallRouteButton").addEventListener("click", restoreRoute);
-setTimeout(function () { document.getElementById("recallRouteButton").style.display = "none" }, 30000);
+document.getElementById("restoreRouteButton").addEventListener("click", restoreRoute);
+setTimeout(function () { document.getElementById("restoreRouteButton").style.display = "none" }, 30000);
 
 function restoreRoute() {
   // read old route from localStorage
   const oldRoute = JSON.parse(localStorage.trackLog);
+  distanceTraveled = 0;
+  line.setCoordinates([]);
 
   // restore line geometry
-  line.setCoordinates([]);
   for (let i = 0; i < oldRoute.length; i++) {
     line.appendCoordinate(fromLonLat(oldRoute[i][0]));
     trackLog[i] = [oldRoute[i][0], oldRoute[i][1], new Date(oldRoute[i][2])];
+    if (i == oldRoute.length - 1) {
+      distanceTraveled += getDistance(lonlat, oldRoute[i][0]);
+    } else {
+      distanceTraveled += getDistance(oldRoute[i][0], oldRoute[i + 1][0]);
+    }
   }
 
-  // restore distanceTraveled
-  distanceTraveled = 0;
-  for (let i = 0; i < oldRoute.length - 1; i++) {
-    distanceTraveled += getDistance(oldRoute[i][0], oldRoute[i + 1][0]);
-  }
-  distanceTraveled += getDistance(lonlat, oldRoute[oldRoute.length - 1][0]);
   document.getElementById("distanceTraveledDiv").innerHTML = (
     distanceTraveled / 1000
   ).toFixed(2);
 
-  document.getElementById("recallRouteButton").style.display = "none";
+  document.getElementById("restoreRouteButton").style.display = "none";
   setExtraInfo(["Rutt återställd!"]);
 }
 
@@ -667,7 +667,7 @@ function clearRoute() {
   line.setCoordinates([]);
   maxSpeed = 0;
   menuDiv.style.display = "none";
-  document.getElementById("recallRouteButton").style.display = "none";
+  document.getElementById("restoreRouteButton").style.display = "none";
   setExtraInfo(["Rutt nollställd!"]);
   trackLog = [[lonlat, altitude, new Date()]];
   localStorage.removeItem("trackLog");
@@ -1281,7 +1281,7 @@ document.addEventListener("keydown", function (event) {
       // store time of last interaction
       lastInteraction = new Date();
     }
-    if (event.key == "Enter" && new Date() - startTime < 30000) {
+    if (event.key == "Enter" && new Date() - startTime < 30000 && !!localStorage.trackLog) {
       event.preventDefault();
       restoreRoute();
     }
