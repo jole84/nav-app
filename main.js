@@ -1020,7 +1020,7 @@ async function saveLog() {
   <time>${trackLog[0][2].toISOString()}</time>
 </metadata>
 <trk>
-  <name>${trackLog[0][2].toLocaleString()}, max ${Math.floor(maxSpeed)} km/h, total ${(
+  <name>${trackLog[0][2].toLocaleString()}, max ${Math.floor(maxSpeed)} km/h, ${(
       distanceTraveled / 1000
     ).toFixed(2)} km, ${toHHMMSS(trackLog[trackLog.length - 1][2] - trackLog[0][2])}</name>
   <trkseg>`;
@@ -1041,7 +1041,7 @@ async function saveLog() {
 </gpx>`;
 
   const filename =
-    trackLog[0][2].toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + ".gpx";
+    trackLog[0][2].toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + "_" + (distanceTraveled / 1000).toFixed(2) + "km.gpx";
   setExtraInfo(["Sparar fil:", filename]);
 
   let file = new Blob([gpxFile], { type: "application/gpx+xml" });
