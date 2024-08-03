@@ -728,9 +728,7 @@ geolocation.on("change", function () {
     gpxSource.forEachFeature(function (feature) {
       const featureType = feature.getGeometry().getType();
       if (featureType == "LineString" || featureType == "MultiLineString") {
-        const featureCoordinates = feature
-          .getGeometry()
-          .getCoordinates();
+        const featureCoordinates = featureType == "MultiLineString" ? feature.getGeometry().getLineString().getCoordinates() : feature.getGeometry().getCoordinates();
         const gpxRemainingDistance = getRemainingDistance(featureCoordinates);
         if (gpxRemainingDistance != undefined) {
           routeInfo.innerHTML += toRemainingString(
