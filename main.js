@@ -726,7 +726,8 @@ geolocation.on("change", function () {
     // calculate remaing distance on gpx
     routeInfo.innerHTML = "";
     gpxSource.forEachFeature(function (feature) {
-      if (feature.getGeometry().getType() == "LineString") {
+      const featureType = feature.getGeometry().getType();
+      if (featureType == "LineString" || featureType == "MultiLineString") {
         const featureCoordinates = feature
           .getGeometry()
           .getCoordinates();
