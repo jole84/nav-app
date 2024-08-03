@@ -36,7 +36,7 @@ let prevLonlat;
 let speed = 0;
 let speedKmh = 0;
 let timeOut;
-let trackLog = JSON.parse(localStorage.trackLog || "[]");
+let trackLog = [];
 const centerButton = document.getElementById("centerButton");
 const closeMenuButton = document.getElementById("closeMenu");
 const customFileButton = document.getElementById("customFileButton");
@@ -79,7 +79,6 @@ if (navigator.getBattery) {
 }
 setExtraInfo([
   '<div style="text-align:center;font-size: 0.4em;">Build: INSERTDATEHERE</div>',
-  '<button class="btn btn-danger btn-lg" id="resetRoute2" style="width: 100%;display: block;margin-left: auto;margin-right: auto;margin-bottom:5px;margin-top:-20px">Återställ rutt</button>'
 ]);
 
 let wakeLock;
@@ -234,19 +233,10 @@ function gpxStyle(feature) {
     });
   }
 
-  if (featureType == "LineString") {
+  if (featureType == "LineString" || featureType == "MultiLineString") {
     return new Style({
       stroke: new Stroke({
         color: [0, 0, 255, 0.5],
-        width: 10,
-      }),
-    });
-  }
-
-  if (featureType == "MultiLineString") {
-    return new Style({
-      stroke: new Stroke({
-        color: [255, 0, 0, 0.5],
         width: 10,
       }),
     });
@@ -500,13 +490,7 @@ function gpxSourceLoader(gpxFile) {
       featureProjection: "EPSG:3857",
     });
     for (let i = 0; i < gpxFeatures.length; i++) {
-      if (fileExtention == "gpx" && gpxFeatures[i].getGeometry().getType() == "LineString") {
-        continue;
-      } else if (gpxFeatures[i].getGeometry().getType() == "MultiLineString") {
-        gpxSource.addFeature(new Feature({ geometry: gpxFeatures[i].getGeometry().getLineString() }));
-      } else {
-        gpxSource.addFeature(gpxFeatures[i]);
-      }
+      gpxSource.addFeature(gpxFeatures[i]);
     }
   };
 }
@@ -622,7 +606,7 @@ const geolocation = new Geolocation({
 // run once to get things going
 geolocation.once("change", function () {
   currentPosition = geolocation.getPosition();
-  altitude = geolocation.getAltitude() || 0;
+  altitude = Math.round(geolocation.getAltitude() || 0);
   lonlat = toLonLat(currentPosition);
   const currentTime = new Date();
   if (currentTime - lastInteraction > localStorage.interactionDelay) {
@@ -645,29 +629,49 @@ geolocation.on('change:accuracyGeometry', function () {
   }
 });
 
-for (let i = 0; i < trackLog.length; i++) {
-  line.appendCoordinate(fromLonLat(trackLog[i][0]));
-  trackLog[i] = [trackLog[i][0], trackLog[i][1], new Date(trackLog[i][2])];
+if (!!localStorage.trackLog) {
+  document.getElementById("restoreRouteButton").style.display = "unset";
+}
+document.getElementById("restoreRouteButton").addEventListener("click", restoreRoute);
+setTimeout(function () { document.getElementById("restoreRouteButton").style.display = "none" }, 30000);
+
+function restoreRoute() {
+  // read old route from localStorage
+  const oldRoute = JSON.parse(localStorage.trackLog);
+  distanceTraveled = 0;
+  line.setCoordinates([]);
+
+  // restore line geometry
+  for (let i = 0; i < oldRoute.length; i++) {
+    line.appendCoordinate(fromLonLat(oldRoute[i][0]));
+    trackLog[i] = [oldRoute[i][0], oldRoute[i][1], new Date(oldRoute[i][2])];
+    if (i == oldRoute.length - 1) {
+      distanceTraveled += getDistance(lonlat, oldRoute[i][0]);
+    } else {
+      distanceTraveled += getDistance(oldRoute[i][0], oldRoute[i + 1][0]);
+    }
+  }
+
+  document.getElementById("distanceTraveledDiv").innerHTML = (
+    distanceTraveled / 1000
+  ).toFixed(2);
+
+  document.getElementById("restoreRouteButton").style.display = "none";
+  setExtraInfo(["Rutt återställd!"]);
 }
 
-for (let i = 0; i < trackLog.length - 1; i++) {
-  distanceTraveled += getDistance(trackLog[i][0], trackLog[i + 1][0]);
-}
-
-document.getElementById("resetRoute").addEventListener("click", clearRoute);
-document.getElementById("resetRoute2").addEventListener("click", clearRoute);
-
+document.getElementById("clearRouteButton").addEventListener("click", clearRoute);
 function clearRoute() {
-  menuDiv.style.display = "none"
-  console.log("reset");
-  maxSpeed = 0;
   distanceTraveled = 0;
   document.getElementById("distanceTraveledDiv").innerHTML = "0.00";
   line.setCoordinates([]);
+  maxSpeed = 0;
+  menuDiv.style.display = "none";
+  document.getElementById("restoreRouteButton").style.display = "none";
+  setExtraInfo(["Rutt nollställd!"]);
   trackLog = [[lonlat, altitude, new Date()]];
-  localStorage.trackLog = JSON.stringify(trackLog);
+  localStorage.removeItem("trackLog");
 }
-
 
 // runs when position changes
 geolocation.on("change", function () {
@@ -681,15 +685,17 @@ geolocation.on("change", function () {
   const currentTime = new Date();
   positionMarkerPoint.setCoordinates(currentPosition);
 
-  // measure distance and push log if position change > 10 meters and accuracy is good and more than 3 seconds
+  // measure distance and push log if position change > 5 meters and accuracy is good and more than 3 seconds
   if (
-    getDistance(lonlat, trackLog[trackLog.length - 1][0]) > 10 &&
+    getDistance(lonlat, trackLog[trackLog.length - 1][0]) > 5 &&
     accuracy < 25 &&
     currentTime - trackLog[trackLog.length - 1][2] > 3000
   ) {
     trackLog.push([lonlat, altitude, currentTime]);
-    localStorage.trackLog = JSON.stringify(trackLog);
     line.appendCoordinate(currentPosition);
+    if (currentTime - startTime > 300000) {
+      localStorage.trackLog = JSON.stringify(trackLog);
+    }
 
     // recalculate route if > 300 m off route
     if (destinationCoordinates.length == 2) {
@@ -720,7 +726,8 @@ geolocation.on("change", function () {
     // calculate remaing distance on gpx
     routeInfo.innerHTML = "";
     gpxSource.forEachFeature(function (feature) {
-      if (feature.getGeometry().getType() == "LineString") {
+      const featureType = feature.getGeometry().getType();
+      if (featureType == "LineString" || featureType == "MultiLineString") {
         const featureCoordinates = feature
           .getGeometry()
           .getCoordinates();
@@ -1011,12 +1018,12 @@ async function saveLog() {
 <gpx version="1.1" creator="Jole84 Nav-app">
 <metadata>
   <desc>GPX log created by Jole84 Nav-app</desc>
-  <time>${startTime.toISOString()}</time>
+  <time>${trackLog[0][2].toISOString()}</time>
 </metadata>
 <trk>
-  <name>${startTime.toLocaleString()}, max ${Math.floor(maxSpeed)} km/h, total ${(
+  <name>${trackLog[0][2].toLocaleString()}, max ${Math.floor(maxSpeed)} km/h, ${(
       distanceTraveled / 1000
-    ).toFixed(2)} km, ${toHHMMSS(new Date() - startTime)}</name>
+    ).toFixed(2)} km, ${toHHMMSS(trackLog[trackLog.length - 1][2] - trackLog[0][2])}</name>
   <trkseg>`;
 
   for (let i = 0; i < trackLog.length; i++) {
@@ -1035,7 +1042,7 @@ async function saveLog() {
 </gpx>`;
 
   const filename =
-    startTime.toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + ".gpx";
+    trackLog[0][2].toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + "_" + (distanceTraveled / 1000).toFixed(2) + "km.gpx";
   setExtraInfo(["Sparar fil:", filename]);
 
   let file = new Blob([gpxFile], { type: "application/gpx+xml" });
@@ -1274,6 +1281,10 @@ document.addEventListener("keydown", function (event) {
     if (event.key != "a" && event.key != "Escape" && event.key != "§") {
       // store time of last interaction
       lastInteraction = new Date();
+    }
+    if (event.key == "Enter" && new Date() - startTime < 30000 && !!localStorage.trackLog) {
+      event.preventDefault();
+      restoreRoute();
     }
     if (event.key == "c" || event.key == "Enter") {
       event.preventDefault();
