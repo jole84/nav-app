@@ -103,6 +103,7 @@ customFileButton.addEventListener("change", handleFileSelect, false);
 trafficWarningDiv.addEventListener("click", focusTrafficWarning);
 saveLogButton.onclick = saveLogButtonFunction;
 document.getElementById("clickFileButton").onclick = function () {
+  gpxSource.clear();
   customFileButton.click();
 };
 
@@ -523,8 +524,6 @@ selectFile.addEventListener("change", function () {
 });
 
 function handleFileSelect(evt) {
-  gpxSource.clear();
-
   customFileButton.blur();
   const files = evt.target.files; // FileList object
   const fileNames = [];
@@ -1085,8 +1084,7 @@ function routeMe() {
         .readFeature(result.features[0], {
           dataProjection: "EPSG:4326",
           featureProjection: "EPSG:3857",
-        })
-        .getGeometry();
+        }).getGeometry();
 
       const totalLength = result.features[0].properties["track-length"] / 1000; // track-length in km
       const totalTime = result.features[0].properties["total-time"];
@@ -1140,14 +1138,11 @@ map.on("contextmenu", function (event) {
   let clickedOnWaypoint = false;
   const clickedOnCurrentPosition =
     getDistance(lonlat, eventLonLat) < 200 ||
-    getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) <
-    50;
+    getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
   const clickedOnLastDestination =
     getPixelDistance(
-      event.pixel,
-      map.getPixelFromCoordinate(
-        fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]),
-      ),
+      event.pixel, 
+      map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))
     ) < 40;
 
   // check if clicked on a waypoint
