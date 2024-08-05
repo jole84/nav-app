@@ -78,6 +78,11 @@ body,
 }
 
 #menuDiv {
+  background-image: linear-gradient(rgba(255,255,255,0.95), rgba(255,255,255,0.95)),url("https://jole84.se/84.svg");
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center; 
+  background-size: 90%;
   position: absolute;
   max-height: 98%;
   min-width: 550px;

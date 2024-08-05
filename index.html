@@ -60,25 +60,10 @@
     <button class="btn btn-success" id="openMenu">Meny</button>
   </div>
   <div id="menuDiv">
-    <p><img src="https://jole84.se/84.svg" height="30"> Jole84 navigationsapp med <a
-        href="https://github.com/jole84/nav-app">öppen källkod</a>, karta skapad av öppna data från Lantmäteriet och
-      Trafikverket. Baserad på <a href="https://openlayers.org">Openlayers</a>. Navigation från <a
-        href="https://brouter.de/">BRouter</a>.</p>
+    <p><img src="https://jole84.se/jole84.svg" height="16"> navigationsapp med <a
+        href="https://github.com/jole84/nav-app">öppen källkod</a>, baserad på <a href="https://openlayers.org">Openlayers</a>. Navigation från <a
+        href="https://brouter.de/">BRouter</a>. Karta skapad av öppna data från Lantmäteriet och Trafikverket.</p>
     <table class="table table-borderless table-sm align-middle">
-      <tr>
-        <td colspan="2">
-          <input class="form-check-input" role="switch" type="checkbox" id="enableLnt">
-          <label class="form-check-label" for="enableLnt">Extra kartor från Lantmäteriet</label>
-        </td>
-      </tr>
-      
-      <tr>
-        <td colspan="2">
-          <input class="form-check-input" type="checkbox" id="onUnload">
-          <label class="form-check-label" for="onUnload">Varna vid stängning</label>
-        </td>
-      </tr>
-
       <tr>
         <td colspan="2">
           <select class="form-select" id="selectFile">
@@ -86,6 +71,20 @@
           </select>
         </td>
       </tr>
+
+      <tr>
+        <td colspan="2">
+          <input class="form-check-input" role="switch" type="checkbox" id="enableLnt">
+          <label class="form-check-label" for="enableLnt">Extra kartor från Lantmäteriet</label>
+        </td>
+      </tr>
+      
+      <!-- <tr>
+        <td colspan="2">
+          <input class="form-check-input" type="checkbox" id="onUnload">
+          <label class="form-check-label" for="onUnload">Varna vid stängning</label>
+        </td>
+      </tr> -->
 
       <tr>
         <td>

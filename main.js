@@ -43,7 +43,6 @@ const customFileButton = document.getElementById("customFileButton");
 const enableLntDiv = document.getElementById("enableLnt");
 const infoGroup = document.getElementById("infoGroup");
 const interactionDelayDiv = document.getElementById("interactionDelay");
-const onUnloadDiv = document.getElementById("onUnload");
 const openMenuButton = document.getElementById("openMenu");
 const preferredFontSizeDiv = document.getElementById("preferredFontSize");
 const prefferedZoomDiv = document.getElementById("prefferedZoom");
@@ -144,18 +143,8 @@ if (JSON.parse(localStorage.enableLnt)) {
   layerSelector.add(option5);
 }
 
-onUnloadDiv.checked = JSON.parse(localStorage.onUnload || "false");
-onUnloadDiv.addEventListener("change", function () {
-  localStorage.onUnload = onUnloadDiv.checked;
-});
 window.onbeforeunload = function () {
   localStorage.navAppCenter = JSON.stringify(currentPosition);
-  if (
-    onUnloadDiv.checked &&
-    window.location === window.parent.location
-  ) {
-    return "";
-  }
 };
 
 closeMenuButton.onclick = function () {
@@ -357,9 +346,9 @@ const slitlagerkarta = new TileLayer({
     url: "https://jole84.se/slitlagerkarta/{z}/{x}/{y}.jpg",
     minZoom: 6,
     maxZoom: 14,
+    transition: 0,
   }),
   visible: false,
-  useInterimTilesOnError: false,
 });
 
 const slitlagerkarta_nedtonad = new TileLayer({
@@ -367,9 +356,9 @@ const slitlagerkarta_nedtonad = new TileLayer({
     url: "https://jole84.se/slitlagerkarta_nedtonad/{z}/{x}/{y}.jpg",
     minZoom: 6,
     maxZoom: 14,
+    transition: 0,
   }),
   visible: false,
-  useInterimTilesOnError: false,
 });
 
 const ortofoto = new TileLayer({
@@ -928,8 +917,8 @@ if (!!window.chrome) {
 
 // switch map logic
 function switchMap() {
-  slitlagerkarta_nedtonad.setVisible(false);
   slitlagerkarta.setVisible(false);
+  slitlagerkarta_nedtonad.setVisible(false);
   ortofoto.setVisible(false);
   topoweb.setVisible(false);
   osm.setVisible(false);
