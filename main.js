@@ -22,7 +22,7 @@ localStorage.mapMode = localStorage.mapMode || 0;
 const startTime = new Date();
 let accuracy = 100;
 let altitude = 0;
-let center = JSON.parse(localStorage.navAppCenter || "[1700000, 8500000]");
+let center = [1700000, 8500000];
 let closestAccident;
 let closestAccidentPosition;
 let currentPosition = center;
@@ -49,6 +49,11 @@ const prefferedZoomDiv = document.getElementById("prefferedZoom");
 const routeInfo = document.getElementById("routeInfo");
 const saveLogButton = document.getElementById("saveLogButton");
 const trafficWarningDiv = document.getElementById("trafficWarning");
+
+if (!!localStorage.trackLog) {
+  document.getElementById("restoreRouteButton").style.display = "unset";
+  center = fromLonLat(JSON.parse(localStorage.trackLog)[JSON.parse(localStorage.trackLog).length - 1][0]);
+}
 
 if (navigator.getBattery) {
   navigator.getBattery().then(function (battery) {
@@ -142,10 +147,6 @@ if (JSON.parse(localStorage.enableLnt)) {
   layerSelector.add(option4);
   layerSelector.add(option5);
 }
-
-window.onbeforeunload = function () {
-  localStorage.navAppCenter = JSON.stringify(currentPosition);
-};
 
 closeMenuButton.onclick = function () {
   menuDiv.style.display = "none";
@@ -617,9 +618,6 @@ geolocation.on('change:accuracyGeometry', function () {
   }
 });
 
-if (!!localStorage.trackLog) {
-  document.getElementById("restoreRouteButton").style.display = "unset";
-}
 document.getElementById("restoreRouteButton").addEventListener("click", restoreRoute);
 setTimeout(function () { document.getElementById("restoreRouteButton").style.display = "none" }, 30000);
 
