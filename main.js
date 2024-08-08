@@ -19,10 +19,22 @@ import XYZ from "ol/source/XYZ.js";
 
 localStorage.interactionDelay = localStorage.interactionDelay || 10000;
 localStorage.mapMode = localStorage.mapMode || 0;
+const center = !!localStorage.trackLog ? fromLonLat(JSON.parse(localStorage.trackLog)[JSON.parse(localStorage.trackLog).length - 1][0]) : [1700000, 8500000];
+const centerButton = document.getElementById("centerButton");
+const closeMenuButton = document.getElementById("closeMenu");
+const customFileButton = document.getElementById("customFileButton");
+const enableLntDiv = document.getElementById("enableLnt");
+const infoGroup = document.getElementById("infoGroup");
+const interactionDelayDiv = document.getElementById("interactionDelay");
+const openMenuButton = document.getElementById("openMenu");
+const preferredFontSizeDiv = document.getElementById("preferredFontSize");
+const prefferedZoomDiv = document.getElementById("prefferedZoom");
+const routeInfo = document.getElementById("routeInfo");
+const saveLogButton = document.getElementById("saveLogButton");
 const startTime = new Date();
+const trafficWarningDiv = document.getElementById("trafficWarning");
 let accuracy = 100;
 let altitude = 0;
-let center = [1700000, 8500000];
 let closestAccident;
 let closestAccidentPosition;
 let currentPosition = center;
@@ -37,22 +49,9 @@ let speed = 0;
 let speedKmh = 0;
 let timeOut;
 let trackLog = [];
-const centerButton = document.getElementById("centerButton");
-const closeMenuButton = document.getElementById("closeMenu");
-const customFileButton = document.getElementById("customFileButton");
-const enableLntDiv = document.getElementById("enableLnt");
-const infoGroup = document.getElementById("infoGroup");
-const interactionDelayDiv = document.getElementById("interactionDelay");
-const openMenuButton = document.getElementById("openMenu");
-const preferredFontSizeDiv = document.getElementById("preferredFontSize");
-const prefferedZoomDiv = document.getElementById("prefferedZoom");
-const routeInfo = document.getElementById("routeInfo");
-const saveLogButton = document.getElementById("saveLogButton");
-const trafficWarningDiv = document.getElementById("trafficWarning");
 
 if (!!localStorage.trackLog) {
   document.getElementById("restoreRouteButton").style.display = "unset";
-  center = fromLonLat(JSON.parse(localStorage.trackLog)[JSON.parse(localStorage.trackLog).length - 1][0]);
 }
 
 if (navigator.getBattery) {
