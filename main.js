@@ -632,6 +632,7 @@ function restoreRoute() {
     trackLog[i] = [oldRoute[i][0], oldRoute[i][1], new Date(oldRoute[i][2])];
     if (i == oldRoute.length - 1) {
       distanceTraveled += getDistance(lonlat, oldRoute[i][0]);
+      line.appendCoordinate(currentPosition);
     } else {
       distanceTraveled += getDistance(oldRoute[i][0], oldRoute[i + 1][0]);
     }
@@ -902,7 +903,7 @@ view.on("change:resolution", function () {
 });
 
 layerSelector.addEventListener("change", function () {
-  localStorage.setItem("mapMode", layerSelector.value);
+  localStorage.mapMode = layerSelector.value;
   switchMap();
 });
 
@@ -924,18 +925,18 @@ function switchMap() {
     "-webkit-filter: initial;filter: initial;background-color: initial;",
   );
 
-  if (localStorage.enableLnt == "true" && localStorage.getItem("mapMode") > 5) {
-    localStorage.setItem("mapMode", 0);
+  if (localStorage.enableLnt == "true" && localStorage.mapMode > 5) {
+    localStorage.mapMode = 0;
   }
   if (
     localStorage.enableLnt == "false" &&
-    localStorage.getItem("mapMode") > 3
+    localStorage.mapMode > 3
   ) {
-    localStorage.setItem("mapMode", 0);
+    localStorage.mapMode= 0;
   }
-  layerSelector.value = localStorage.getItem("mapMode");
+  layerSelector.value = localStorage.mapMode;
 
-  if (localStorage.getItem("mapMode") == 0) {
+  if (localStorage.mapMode == 0) {
     // mapMode 0: slitlagerkarta
     slitlagerkarta.setVisible(true);
     if (JSON.parse(localStorage.enableLnt)) {
@@ -943,7 +944,7 @@ function switchMap() {
       slitlagerkarta.setMaxZoom(15.5);
       ortofoto.setMinZoom(15.5);
     }
-  } else if (localStorage.getItem("mapMode") == 1) {
+  } else if (localStorage.mapMode == 1) {
     // mapMode 1: slitlagerkarta_nedtonad
     slitlagerkarta_nedtonad.setVisible(true);
     if (JSON.parse(localStorage.enableLnt)) {
@@ -954,7 +955,7 @@ function switchMap() {
       topoweb.setMaxZoom(17.5);
       ortofoto.setMinZoom(17.5);
     }
-  } else if (localStorage.getItem("mapMode") == 2) {
+  } else if (localStorage.mapMode == 2) {
     // mapMode 2: slitlagerkarta_nedtonad + night mode
     slitlagerkarta_nedtonad.setVisible(true);
     document.getElementsByTagName("body")[0].setAttribute("style", "filter: invert(1) hue-rotate(180deg);");
@@ -964,12 +965,12 @@ function switchMap() {
       topoweb.setMinZoom(15.5);
       topoweb.setMaxZoom(20);
     }
-  } else if (localStorage.getItem("mapMode") == 3) {
+  } else if (localStorage.mapMode == 3) {
     // mapMode 3: Openstreetmap
     osm.setVisible(true);
   } else if (
     JSON.parse(localStorage.enableLnt) &&
-    localStorage.getItem("mapMode") == 4
+    localStorage.mapMode == 4
   ) {
     // mapMode 4: topoweb
     topoweb.setVisible(true);
@@ -977,7 +978,7 @@ function switchMap() {
     topoweb.setMaxZoom(20);
   } else if (
     JSON.parse(localStorage.enableLnt) &&
-    localStorage.getItem("mapMode") == 5
+    localStorage.mapMode == 5
   ) {
     // mapMode 4: orto
     ortofoto.setVisible(true);
@@ -1270,10 +1271,7 @@ document.addEventListener("keydown", function (event) {
       centerFunction();
     }
     if (event.key == "v") {
-      localStorage.setItem(
-        "mapMode",
-        Number(localStorage.getItem("mapMode")) + 1,
-      );
+      localStorage.mapMode = Number(localStorage.mapMode) + 1;
       switchMap();
     }
     if (event.key == "z") {
