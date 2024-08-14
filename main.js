@@ -600,7 +600,7 @@ geolocation.once("change", function () {
   if (currentTime - lastInteraction > localStorage.interactionDelay) {
     centerFunction();
   }
-  getDeviations();
+  getClosestAccident();
 
   trackLog.push([lonlat, altitude, currentTime]);
   line.appendCoordinate(currentPosition);
@@ -795,7 +795,6 @@ function getRemainingDistance(featureCoordinates) {
 
 // alert user if geolocation fails
 geolocation.on("error", function () {
-  getDeviations();
   setExtraInfo([
     "&#128543 Aktivera platsjänster för <br>att se din position på kartan!",
   ]);
@@ -1405,6 +1404,7 @@ function getDeviations() {
     });
 }
 
+getDeviations();
 setInterval(getDeviations, 60000); // getDeviations interval
 
 function focusTrafficWarning() {
