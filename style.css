@@ -21,7 +21,8 @@ body {
 html,
 body,
 #map {
-  font-family: "B612";
+  /* font-family: "B612"; */
+  font-family: "roboto", sans-serif;
   background-color: #bfe6ff;
   overscroll-behavior-y: contain !important;
   padding: 0;
