@@ -458,7 +458,7 @@ function getFileFormat(fileExtention) {
 
 // gpx loader
 gpxSource.addEventListener("addfeature", function () {
-  if (gpxSource.getState() === "ready") {
+  if (gpxSource.getState() === "ready" && new Date() - lastInteraction > 3000) {
     const padding = 100;
     lastInteraction = new Date();
     view.setRotation(0);
