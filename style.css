@@ -142,7 +142,9 @@ table.table th {
   top: 5px;
   z-index: 10;
   max-width: 80%;
+  max-height: calc(100% - 10px);
   word-wrap: break-word;
+  overflow: auto;
 }
 
 .infoFormat {
