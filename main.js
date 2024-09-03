@@ -457,17 +457,17 @@ function getFileFormat(fileExtention) {
 }
 
 // gpx loader
-gpxSource.addEventListener("addfeature", function () {
-  if (gpxSource.getState() === "ready" && new Date() - lastInteraction > 3000) {
-    const padding = 100;
-    lastInteraction = new Date();
-    view.setRotation(0);
-    view.fit(gpxSource.getExtent(), {
-      padding: [padding, padding, padding, padding],
-      maxZoom: 15,
-    });
-  }
-});
+// gpxSource.addEventListener("addfeature", function () {
+//   if (gpxSource.getState() === "ready" && new Date() - lastInteraction > 3000) {
+//     const padding = 100;
+//     lastInteraction = new Date();
+//     view.setRotation(0);
+//     view.fit(gpxSource.getExtent(), {
+//       padding: [padding, padding, padding, padding],
+//       maxZoom: 15,
+//     });
+//   }
+// });
 
 function gpxSourceLoader(gpxFile) {
   const reader = new FileReader();
@@ -931,7 +931,7 @@ function switchMap() {
     localStorage.enableLnt == "false" &&
     localStorage.mapMode > 3
   ) {
-    localStorage.mapMode= 0;
+    localStorage.mapMode = 0;
   }
   layerSelector.value = localStorage.mapMode;
 
@@ -1117,17 +1117,13 @@ map.on("contextmenu", function (event) {
   // set start position
   destinationCoordinates[0] = lonlat;
 
-  setExtraInfo([
-    `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Streetview</a></div`,
-  ]);
-
   let clickedOnWaypoint = false;
   const clickedOnCurrentPosition =
     getDistance(lonlat, eventLonLat) < 200 ||
     getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
   const clickedOnLastDestination =
     getPixelDistance(
-      event.pixel, 
+      event.pixel,
       map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))
     ) < 40;
 
@@ -1175,7 +1171,11 @@ map.on("contextmenu", function (event) {
       destinationCoordinates.push(
         toLonLat(closestWaypoint.getGeometry().getCoordinates()),
       );
+      setExtraInfo(["Vald punkt:", closestWaypoint.get("name")]);
     } else {
+      setExtraInfo([
+        `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Streetview</a></div>`,
+      ]);
       destinationCoordinates.push(eventLonLat);
     }
   }
