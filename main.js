@@ -677,6 +677,7 @@ geolocation.on("change", function () {
     accuracy < 25 &&
     currentTime - trackLog[trackLog.length - 1][2] > 3000
   ) {
+    updateUserPosition();
     trackLog.push([lonlat, altitude, currentTime]);
     line.appendCoordinate(currentPosition);
     if (currentTime - startTime > 300000) {
@@ -1547,3 +1548,22 @@ function recalculateRoute() {
     }
   }
 }
+
+const clientPositionArray = [];
+document.getElementById("userName").value = localStorage.userName || "";
+
+function updateUserPosition() {
+  if (document.getElementById("userName").value != "") {
+    clientPositionArray["userName"] = localStorage.userName;
+    clientPositionArray["coordinates"] = currentPosition;
+    clientPositionArray["heading"] = heading;
+    clientPositionArray["speed"] = speedKmh;
+    console.log(clientPositionArray);
+  }
+}
+
+document.getElementById("userName").addEventListener("change", function () {
+  localStorage.userName = document.getElementById("userName").value;
+  clientPositionArray["userName"] = localStorage.userName;
+  updateUserPosition();
+})
