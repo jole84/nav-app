@@ -544,6 +544,10 @@ function degToRad(deg) {
   return (deg * Math.PI * 2) / 360;
 }
 
+function radToDeg(rad) {
+  return rad * (180 / Math.PI);
+}
+
 function getPixelDistance(pixel, pixel2) {
   return Math.sqrt(
     (pixel[1] - pixel2[1]) * (pixel[1] - pixel2[1]) +
@@ -1549,16 +1553,41 @@ function recalculateRoute() {
   }
 }
 
-const clientPositionArray = [];
+const clientPositionArray = {};
 document.getElementById("userName").value = localStorage.userName || "";
 
 function updateUserPosition() {
   if (document.getElementById("userName").value != "") {
+    clientPositionArray["timeStamp"] = Date.now();
     clientPositionArray["userName"] = localStorage.userName;
     clientPositionArray["coordinates"] = currentPosition;
     clientPositionArray["heading"] = heading;
     clientPositionArray["speed"] = speedKmh;
     console.log(clientPositionArray);
+    const xhttp = new XMLHttpRequest();
+    xhttp.onload = function () {
+      try {
+        const userList = JSON.parse(this.responseText);
+        for (let i = 0; i < userList.length; i++) {
+          if (userList[i]["userName"] != userName) {
+            // add other than current user
+            const coordinate = userList[i]["coordinates"];
+            const marker = new Feature({
+              geometry: new Point(coordinate),
+              name: userList[i]["userName"] + "\n"
+              + Math.round(radToDeg(userList[i]["heading"])) + "°\n"
+              + Math.round(userList[i]["speed"]) + "km/h\n",
+            });
+            gpxSource.addFeature(marker);
+            console.log(userList[i]);
+          }
+        }
+      } catch {
+        console.log(this.responseText);
+      }
+    }
+    xhttp.open("GET", "https://jole84.se/html_stuff/locationTest/location.php?q=" + JSON.stringify(clientPositionArray));
+    xhttp.send();
   }
 }
 
