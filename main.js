@@ -544,6 +544,10 @@ function degToRad(deg) {
   return (deg * Math.PI * 2) / 360;
 }
 
+function radToDeg(rad) {
+  return rad * (180 / Math.PI);
+}
+
 function getPixelDistance(pixel, pixel2) {
   return Math.sqrt(
     (pixel[1] - pixel2[1]) * (pixel[1] - pixel2[1]) +
@@ -1547,3 +1551,78 @@ function recalculateRoute() {
     }
   }
 }
+
+const clientPositionArray = {};
+document.getElementById("userName").value = localStorage.userName || "";
+document.getElementById("userName").addEventListener("change", function () {
+  if (document.getElementById("userName").value == "") {
+    locationLayer.getSource().clear();
+  }
+  localStorage.userName = clientPositionArray["userName"] = document.getElementById("userName").value;
+  updateUserPosition();
+})
+
+const locationLayer = new VectorLayer({
+  source: new VectorSource(),
+  style: function (feature) {
+    return new Style({
+      text: new Text({
+        text: feature.get("name"),
+        font: "14px B612, sans-serif",
+        textBaseline: "top",
+        textAlign: "left",
+        offsetX: 15,
+        fill: new Fill({
+          color: "black",
+        }),
+        stroke: new Stroke({
+          color: "white",
+          width: 4,
+        }),
+      }),
+      image: new Icon({
+        rotation: feature.get("rotation"),
+        anchor: [0.5, 0.67],
+        color: "red",
+        src: "https://openlayers.org/en/latest/examples/data/geolocation_marker_heading.png",
+      }),
+    });
+  },
+});
+map.addLayer(locationLayer);
+
+setInterval(updateUserPosition, 60000);
+function updateUserPosition() {
+  if (document.getElementById("userName").value != "") {
+    locationLayer.getSource().clear();
+    clientPositionArray["userName"] = localStorage.userName;
+    clientPositionArray["timeStamp"] = Date.now();
+    clientPositionArray["coords"] = currentPosition;
+    clientPositionArray["heading"] = heading;
+    clientPositionArray["speed"] = Math.round(speedKmh);
+    const xhttp = new XMLHttpRequest();
+    xhttp.onload = function () {
+      try {
+        const userList = JSON.parse(this.responseText);
+        for (let i = 0; i < userList.length; i++) {
+          if (userList[i]["userName"] != localStorage.userName) {
+            // add other than current user
+            const marker = new Feature({
+              geometry: new Point(userList[i]["coords"]),
+              rotation: userList[i]["heading"],
+              name: userList[i]["userName"] + "\n"
+              + new Date(userList[i]["timeStamp"]).toLocaleTimeString() + "\n"
+              + userList[i]["speed"] + "km/h\n",
+            });
+            locationLayer.getSource().addFeature(marker);
+          }
+        }
+      } catch {
+        console.log(this.responseText);
+      }
+    }
+    xhttp.open("GET", "https://jole84.se/html_stuff/locationTest/location.php?q=" + JSON.stringify(clientPositionArray));
+    xhttp.send();
+  }
+}
+updateUserPosition();
