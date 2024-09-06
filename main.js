@@ -19,7 +19,7 @@ import XYZ from "ol/source/XYZ.js";
 
 localStorage.interactionDelay = localStorage.interactionDelay || 10000;
 localStorage.mapMode = localStorage.mapMode || 0;
-const center = !!localStorage.trackLog ? fromLonLat(JSON.parse(localStorage.trackLog)[JSON.parse(localStorage.trackLog).length - 1][0]) : [1700000, 8500000];
+const center = JSON.parse(localStorage.lastPosition || "[1700000, 8500000]");
 const centerButton = document.getElementById("centerButton");
 const closeMenuButton = document.getElementById("closeMenu");
 const customFileButton = document.getElementById("customFileButton");
@@ -671,6 +671,7 @@ geolocation.on("change", function () {
   speed = geolocation.getSpeed() || 0;
   speedKmh = speed * 3.6;
   altitude = Math.round(geolocation.getAltitude() || 0);
+  localStorage.lastPosition = JSON.stringify(currentPosition);
   lonlat = toLonLat(currentPosition);
   const currentTime = new Date();
   positionMarkerPoint.setCoordinates(currentPosition);
@@ -1582,6 +1583,7 @@ const locationLayer = new VectorLayer({
       }),
       image: new Icon({
         rotation: feature.get("rotation"),
+        rotateWithView: true,
         anchor: [0.5, 0.67],
         color: "red",
         src: "https://openlayers.org/en/latest/examples/data/geolocation_marker_heading.png",
