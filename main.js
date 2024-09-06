@@ -1555,8 +1555,10 @@ function recalculateRoute() {
 const clientPositionArray = {};
 document.getElementById("userName").value = localStorage.userName || "";
 document.getElementById("userName").addEventListener("change", function () {
-  localStorage.userName = document.getElementById("userName").value;
-  clientPositionArray["userName"] = localStorage.userName;
+  if (document.getElementById("userName").value == "") {
+    locationLayer.getSource().clear();
+  }
+  localStorage.userName = clientPositionArray["userName"] = document.getElementById("userName").value;
   updateUserPosition();
 })
 
@@ -1581,6 +1583,7 @@ const locationLayer = new VectorLayer({
       image: new Icon({
         rotation: feature.get("rotation"),
         anchor: [0.5, 0.67],
+        color: "red",
         src: "https://openlayers.org/en/latest/examples/data/geolocation_marker_heading.png",
       }),
     });
@@ -1590,8 +1593,8 @@ map.addLayer(locationLayer);
 
 setInterval(updateUserPosition, 60000);
 function updateUserPosition() {
-  locationLayer.getSource().clear();
   if (document.getElementById("userName").value != "") {
+    locationLayer.getSource().clear();
     clientPositionArray["userName"] = localStorage.userName;
     clientPositionArray["timeStamp"] = Date.now();
     clientPositionArray["coords"] = currentPosition;
