@@ -681,7 +681,6 @@ geolocation.on("change", function () {
     accuracy < 25 &&
     currentTime - trackLog[trackLog.length - 1][2] > 3000
   ) {
-    updateUserPosition();
     trackLog.push([lonlat, altitude, currentTime]);
     line.appendCoordinate(currentPosition);
     if (currentTime - startTime > 300000) {
@@ -1556,30 +1555,59 @@ function recalculateRoute() {
 const clientPositionArray = {};
 document.getElementById("userName").value = localStorage.userName || "";
 
+const locationLayer = new VectorLayer({
+  source: new VectorSource(),
+  style: function (feature) {
+    return new Style({
+      text: new Text({
+        text: feature.get("name"),
+        font: "14px B612, sans-serif",
+        textBaseline: "top",
+        textAlign: "left",
+        offsetX: 15,
+        fill: new Fill({
+          color: "black",
+        }),
+        stroke: new Stroke({
+          color: "white",
+          width: 4,
+        }),
+      }),
+      image: new Icon({
+        rotation: feature.get("rotation"),
+        anchor: [0.5, 0.67],
+        src: "https://openlayers.org/en/latest/examples/data/geolocation_marker_heading.png",
+      }),
+    });
+  },
+});
+
+map.addLayer(locationLayer);
+
+setInterval(updateUserPosition, 60000);
 function updateUserPosition() {
+  locationLayer.getSource().clear();
   if (document.getElementById("userName").value != "") {
-    clientPositionArray["timeStamp"] = Date.now();
     clientPositionArray["userName"] = localStorage.userName;
-    clientPositionArray["coordinates"] = currentPosition;
+    clientPositionArray["timeStamp"] = Date.now();
+    clientPositionArray["coords"] = currentPosition;
     clientPositionArray["heading"] = heading;
-    clientPositionArray["speed"] = speedKmh;
-    console.log(clientPositionArray);
+    clientPositionArray["speed"] = Math.round(speedKmh);
     const xhttp = new XMLHttpRequest();
     xhttp.onload = function () {
       try {
         const userList = JSON.parse(this.responseText);
         for (let i = 0; i < userList.length; i++) {
-          if (userList[i]["userName"] != userName) {
+          if (userList[i]["userName"] != localStorage.userName) {
             // add other than current user
-            const coordinate = userList[i]["coordinates"];
             const marker = new Feature({
-              geometry: new Point(coordinate),
+              geometry: new Point(userList[i]["coords"]),
+              rotation: userList[i]["heading"],
               name: userList[i]["userName"] + "\n"
-              + Math.round(radToDeg(userList[i]["heading"])) + "°\n"
-              + Math.round(userList[i]["speed"]) + "km/h\n",
+              + new Date(userList[i]["timeStamp"]).toLocaleTimeString() + "\n"
+              + userList[i]["speed"] + "km/h\n",
             });
-            gpxSource.addFeature(marker);
-            console.log(userList[i]);
+            locationLayer.getSource().addFeature(marker);
           }
         }
       } catch {
@@ -1590,6 +1618,7 @@ function updateUserPosition() {
     xhttp.send();
   }
 }
+updateUserPosition();
 
 document.getElementById("userName").addEventListener("change", function () {
   localStorage.userName = document.getElementById("userName").value;
