@@ -1554,6 +1554,11 @@ function recalculateRoute() {
 
 const clientPositionArray = {};
 document.getElementById("userName").value = localStorage.userName || "";
+document.getElementById("userName").addEventListener("change", function () {
+  localStorage.userName = document.getElementById("userName").value;
+  clientPositionArray["userName"] = localStorage.userName;
+  updateUserPosition();
+})
 
 const locationLayer = new VectorLayer({
   source: new VectorSource(),
@@ -1581,7 +1586,6 @@ const locationLayer = new VectorLayer({
     });
   },
 });
-
 map.addLayer(locationLayer);
 
 setInterval(updateUserPosition, 60000);
@@ -1619,9 +1623,3 @@ function updateUserPosition() {
   }
 }
 updateUserPosition();
-
-document.getElementById("userName").addEventListener("change", function () {
-  localStorage.userName = document.getElementById("userName").value;
-  clientPositionArray["userName"] = localStorage.userName;
-  updateUserPosition();
-})
