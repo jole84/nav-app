@@ -33,7 +33,7 @@ const routeInfo = document.getElementById("routeInfo");
 const saveLogButton = document.getElementById("saveLogButton");
 const startTime = new Date();
 const trafficWarningDiv = document.getElementById("trafficWarning");
-let accuracy = 100;
+let accuracy = 5000;
 let altitude = 0;
 let closestAccident;
 let closestAccidentPosition;
@@ -1599,6 +1599,7 @@ function updateUserPosition() {
     clientPositionArray["timeStamp"] = Date.now();
     clientPositionArray["coords"] = currentPosition;
     clientPositionArray["heading"] = heading;
+    clientPositionArray["accuracy"] = Math.round(accuracy);
     clientPositionArray["speed"] = Math.round(speedKmh);
     const xhttp = new XMLHttpRequest();
     xhttp.onload = function () {
@@ -1610,7 +1611,7 @@ function updateUserPosition() {
             const marker = new Feature({
               geometry: new Point(userList[i]["coords"]),
               rotation: userList[i]["heading"],
-              name: userList[i]["userName"] + "\n"
+              name: (userList[i]["accuracy"] > 1000 ? "*" : "") + userList[i]["userName"] + "\n"
               + new Date(userList[i]["timeStamp"]).toLocaleTimeString() + "\n"
               + userList[i]["speed"] + "km/h\n",
             });
