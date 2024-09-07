@@ -196,7 +196,7 @@ function gpxStyleText(feature) {
     return new Style({
       text: new Text({
         text: feature.get("name"),
-        font: "14px Roboto,monospace",
+        font: "14px B612, sans-serif",
         placement: "line",
         textAlign: "left",
         offsetX: 10,
@@ -243,7 +243,7 @@ function gpxStyle(feature) {
       }),
       text: new Text({
         text: feature.get("name"),
-        font: "14px Roboto,monospace",
+        font: "14px B612, sans-serif",
         overflow: true,
         fill: new Fill({
           color: "#b41412",
@@ -285,7 +285,7 @@ const trafficWarningTextStyleFunction = function (feature) {
     new Style({
       text: new Text({
         text: feature.get("name"),
-        font: "bold 14px Roboto,monospace",
+        font: "bold 14px B612, sans-serif",
         textAlign: "center",
         textBaseline: "top",
         offsetY: 24,
@@ -393,6 +393,35 @@ const gpxLayerLabels = new VectorLayer({
   declutter: true,
 });
 
+const locationLayer = new VectorLayer({
+  source: new VectorSource(),
+  style: function (feature) {
+    return new Style({
+      text: new Text({
+        text: feature.get("name"),
+        font: "14px B612, sans-serif",
+        textBaseline: "top",
+        textAlign: "left",
+        offsetX: 15,
+        fill: new Fill({
+          color: "black",
+        }),
+        stroke: new Stroke({
+          color: "white",
+          width: 4,
+        }),
+      }),
+      image: new Icon({
+        rotation: feature.get("rotation"),
+        rotateWithView: true,
+        anchor: [0.5, 0.67],
+        color: "red",
+        src: "https://openlayers.org/en/latest/examples/data/geolocation_marker_heading.png",
+      }),
+    });
+  },
+});
+
 const trackLayer = new VectorLayer({
   source: new VectorSource({
     features: [trackLine],
@@ -436,6 +465,7 @@ const map = new Map({
     topoweb,
     gpxLayer,
     gpxLayerLabels,
+    locationLayer,
     routeLayer,
     trackLayer,
     trafficWarningIconLayer,
@@ -1562,36 +1592,6 @@ document.getElementById("userName").addEventListener("change", function () {
   localStorage.userName = clientPositionArray["userName"] = document.getElementById("userName").value;
   updateUserPosition();
 })
-
-const locationLayer = new VectorLayer({
-  source: new VectorSource(),
-  style: function (feature) {
-    return new Style({
-      text: new Text({
-        text: feature.get("name"),
-        font: "14px B612, sans-serif",
-        textBaseline: "top",
-        textAlign: "left",
-        offsetX: 15,
-        fill: new Fill({
-          color: "black",
-        }),
-        stroke: new Stroke({
-          color: "white",
-          width: 4,
-        }),
-      }),
-      image: new Icon({
-        rotation: feature.get("rotation"),
-        rotateWithView: true,
-        anchor: [0.5, 0.67],
-        color: "red",
-        src: "https://openlayers.org/en/latest/examples/data/geolocation_marker_heading.png",
-      }),
-    });
-  },
-});
-map.addLayer(locationLayer);
 
 function msToTime(milliseconds) {
   return Math.round(milliseconds / 1000 / 60) + " min sedan";
