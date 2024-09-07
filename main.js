@@ -1593,6 +1593,10 @@ const locationLayer = new VectorLayer({
 });
 map.addLayer(locationLayer);
 
+function msToTime(milliseconds) {
+  return Math.round(milliseconds / 1000 / 60) + " min sedan";
+}
+
 setInterval(updateUserPosition, 60000);
 function updateUserPosition() {
   if (document.getElementById("userName").value != "") {
@@ -1614,8 +1618,8 @@ function updateUserPosition() {
               geometry: new Point(userList[i]["coords"]),
               rotation: userList[i]["heading"],
               name: (userList[i]["accuracy"] > 1000 ? "*" : "") + userList[i]["userName"] + "\n"
-              + new Date(userList[i]["timeStamp"]).toLocaleTimeString() + "\n"
-              + userList[i]["speed"] + "km/h\n",
+                + msToTime(Date.now() - userList[i]["timeStamp"]) + "\n"
+                + userList[i]["speed"] + "km/h\n",
             });
             locationLayer.getSource().addFeature(marker);
           }
