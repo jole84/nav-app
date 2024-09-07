@@ -1630,7 +1630,7 @@ function updateUserPosition() {
         console.log(this.responseText);
       }
     }
-    xhttp.open("POST", "https://jole84.se/html_stuff/locationTest/location.php");
+    xhttp.open("POST", "https://jole84.se/html_stuff/locationHandler/location.php");
     xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhttp.send("q=" + JSON.stringify(clientPositionArray));
   }
