@@ -130,8 +130,7 @@ if (
   menuDiv.style.display = "none";
 }
 
-enableLntDiv.checked = localStorage.enableLnt =
-  localStorage.enableLnt == "true";
+enableLntDiv.checked = JSON.parse(localStorage.enableLnt);
 enableLntDiv.addEventListener("change", function () {
   localStorage.enableLnt = enableLntDiv.checked;
   location.reload();
@@ -959,15 +958,10 @@ function switchMap() {
     "-webkit-filter: initial;filter: initial;background-color: initial;",
   );
 
-  if (localStorage.enableLnt == "true" && localStorage.mapMode > 5) {
+  if (localStorage.mapMode > 5) {
     localStorage.mapMode = 0;
   }
-  if (
-    localStorage.enableLnt == "false" &&
-    localStorage.mapMode > 3
-  ) {
-    localStorage.mapMode = 0;
-  }
+
   layerSelector.value = localStorage.mapMode;
 
   if (localStorage.mapMode == 0) {
@@ -1002,18 +996,12 @@ function switchMap() {
   } else if (localStorage.mapMode == 3) {
     // mapMode 3: Openstreetmap
     osm.setVisible(true);
-  } else if (
-    JSON.parse(localStorage.enableLnt) &&
-    localStorage.mapMode == 4
-  ) {
+  } else if (localStorage.mapMode == 4) {
     // mapMode 4: topoweb
     topoweb.setVisible(true);
     topoweb.setMinZoom(0);
     topoweb.setMaxZoom(20);
-  } else if (
-    JSON.parse(localStorage.enableLnt) &&
-    localStorage.mapMode == 5
-  ) {
+  } else if (localStorage.mapMode == 5) {
     // mapMode 4: orto
     ortofoto.setVisible(true);
     ortofoto.setMinZoom(0);
@@ -1027,6 +1015,7 @@ function saveLogButtonFunction() {
     saveLog();
   } else {
     console.log(trackLog);
+    console.log(localStorage);
   }
 }
 
