@@ -1606,7 +1606,7 @@ function updateUserPosition() {
             const marker = new Feature({
               geometry: new Point(userList[i]["coords"]),
               rotation: userList[i]["heading"],
-              name: (userList[i]["accuracy"] > 1000 ? "*" : "") + userList[i]["userName"] + "\n"
+              name: (userList[i]["accuracy"] > 50 ? "*".repeat(String(userList[i]["accuracy"]).length) : "") + userList[i]["userName"] + "\n"
                 + msToTime(Date.now() - userList[i]["timeStamp"]) + "\n"
                 + userList[i]["speed"] + "km/h\n",
             });
