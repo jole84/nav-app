@@ -628,17 +628,15 @@ const geolocation = new Geolocation({
 geolocation.once("change", function () {
   currentPosition = geolocation.getPosition();
   altitude = Math.round(geolocation.getAltitude() || 0);
-  lonlat = toLonLat(currentPosition);
+  prevLonlat = lonlat = toLonLat(currentPosition);
   const currentTime = new Date();
   if (currentTime - lastInteraction > localStorage.interactionDelay) {
     centerFunction();
   }
-  getClosestAccident();
-
   trackLog.push([lonlat, altitude, currentTime]);
   line.appendCoordinate(currentPosition);
-
-  prevLonlat = lonlat;
+  getClosestAccident();
+  updateUserPosition();
 });
 
 const accuracyFeature = new Feature();
@@ -1624,4 +1622,3 @@ function updateUserPosition() {
     xhttp.send("q=" + JSON.stringify(clientPositionArray));
   }
 }
-updateUserPosition();
