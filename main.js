@@ -626,6 +626,7 @@ const geolocation = new Geolocation({
 
 // run once to get things going
 geolocation.once("change", function () {
+  accuracy = geolocation.getAccuracy();
   currentPosition = geolocation.getPosition();
   altitude = Math.round(geolocation.getAltitude() || 0);
   prevLonlat = lonlat = toLonLat(currentPosition);
