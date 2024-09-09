@@ -417,6 +417,11 @@ const locationLayer = new VectorLayer({
         color: "red",
         src: "https://openlayers.org/en/latest/examples/data/geolocation_marker_heading.png",
       }),
+      stroke: new Stroke({
+        color: [255, 0, 0, 0.6],
+        lineDash: [20],
+        width: 6,
+      }),
     });
   },
 });
@@ -1597,6 +1602,9 @@ function updateUserPosition() {
     clientPositionArray["heading"] = heading;
     clientPositionArray["accuracy"] = Math.round(accuracy);
     clientPositionArray["speed"] = Math.round(speedKmh);
+    if (!!destinationCoordinates[destinationCoordinates.length - 1]) {
+      clientPositionArray["destination"] = fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]);
+    }
     const xhttp = new XMLHttpRequest();
     xhttp.onload = function () {
       try {
@@ -1612,6 +1620,15 @@ function updateUserPosition() {
                 + userList[i]["speed"] + "km/h\n",
             });
             locationLayer.getSource().addFeature(marker);
+
+            if (!!userList[i]["destination"]) {
+              const route = new LineString([(userList[i]["coords"]), (userList[i]["destination"])]);
+              const routeLineFeature = new Feature({
+                geometry: route,
+              });
+              locationLayer.getSource().addFeature(routeLineFeature);
+            }
+
           }
         }
       } catch {
