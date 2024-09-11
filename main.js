@@ -284,26 +284,26 @@ const trafficWarningTextStyleFunction = function (feature) {
     new Style({
       text: new Text({
         text: feature.get("name"),
-        font: "bold 14px B612, sans-serif",
-        textAlign: "center",
+        font: "13px B612, sans-serif",
+        textAlign: "left",
         textBaseline: "top",
-        offsetY: 24,
+        offsetX: 20,
         fill: new Fill({
-          color: "yellow",
-        }),
-        stroke: new Stroke({
-          // color: [238, 210, 2],
           color: "black",
-          width: 4,
         }),
-        // backgroundFill: new Fill({
-        //   color: [252, 208, 30, 0.6],
+        // stroke: new Stroke({
+        //   // color: [238, 210, 2],
+        //   color: "black",
+        //   width: 4,
         // }),
-        // backgroundStroke: new Stroke({
-        //   color: [238, 41, 61, 0.6],
-        //   width: 3,
-        // }),
-        // padding: [2, 2, 2, 2],
+        backgroundFill: new Fill({
+          color: [252, 208, 30, 0.9],
+        }),
+        backgroundStroke: new Stroke({
+          color: [238, 41, 61, 0.9],
+          width: 2,
+        }),
+        padding: [2, 2, 2, 2],
       }),
     }),
   ];
@@ -398,10 +398,11 @@ const locationLayer = new VectorLayer({
     return new Style({
       text: new Text({
         text: feature.get("name"),
-        font: "14px B612, sans-serif",
-        textBaseline: "top",
+        font: "12px B612, sans-serif",
         textAlign: "left",
-        offsetX: 15,
+        textBaseline: "top",
+        offsetX: 17,
+        offsetY: 5,
         fill: new Fill({
           color: "black",
         }),
@@ -409,6 +410,14 @@ const locationLayer = new VectorLayer({
           color: "white",
           width: 4,
         }),
+        backgroundFill: new Fill({
+          color: [255, 255, 255, 0.9],
+        }),
+        backgroundStroke: new Stroke({
+          color: [0, 0, 0, 0.9],
+          width: 1.5,
+        }),
+        padding: [0, 0, 0, 1],
       }),
       image: new Icon({
         rotation: feature.get("rotation"),
@@ -1609,7 +1618,7 @@ function updateUserPosition() {
               rotation: userList[i]["heading"],
               name: (userList[i]["accuracy"] > 50 ? "*".repeat(String(userList[i]["accuracy"]).length) : "") + userList[i]["userName"] + "\n"
                 + msToTime(Date.now() - userList[i]["timeStamp"]) + "\n"
-                + userList[i]["speed"] + "km/h\n",
+                + userList[i]["speed"] + "km/h",
             });
             locationLayer.getSource().addFeature(marker);
           }
