@@ -130,7 +130,7 @@ if (
   menuDiv.style.display = "none";
 }
 
-enableLntDiv.checked = JSON.parse(localStorage.enableLnt);
+localStorage.enableLnt = enableLntDiv.checked = JSON.parse(localStorage.enableLnt || "true");
 enableLntDiv.addEventListener("change", function () {
   localStorage.enableLnt = enableLntDiv.checked;
   location.reload();
@@ -195,17 +195,26 @@ function gpxStyleText(feature) {
     return new Style({
       text: new Text({
         text: feature.get("name"),
-        font: "14px B612, sans-serif",
+        font: "13px B612, sans-serif",
         placement: "line",
         textAlign: "left",
-        offsetX: 10,
+        textBaseline: "bottom",
+        offsetX: 15,
         fill: new Fill({
           color: "#b41412",
         }),
-        stroke: new Stroke({
-          color: "white",
-          width: 4,
+        // stroke: new Stroke({
+        //   color: "white",
+        //   width: 4,
+        // }),
+        backgroundFill: new Fill({
+          color: [255, 255, 255, 0.9],
         }),
+        backgroundStroke: new Stroke({
+          color: [0, 0, 0, 0.9],
+          width: 1.5,
+        }),
+        padding: [0, 0, 0, 1],
       }),
     });
   }
@@ -242,7 +251,7 @@ function gpxStyle(feature) {
       }),
       text: new Text({
         text: feature.get("name"),
-        font: "14px B612, sans-serif",
+        font: "13px B612, sans-serif",
         overflow: true,
         fill: new Fill({
           color: "#b41412",
