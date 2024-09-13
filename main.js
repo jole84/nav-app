@@ -176,7 +176,7 @@ interactionDelayDiv.addEventListener("change", function () {
 });
 
 localStorage.preferredFontSize = preferredFontSizeDiv.value =
-  localStorage.preferredFontSize || "20px";
+  localStorage.preferredFontSize || "25px";
 preferredFontSizeDiv.addEventListener("change", function () {
   localStorage.preferredFontSize = preferredFontSizeDiv.value;
   infoGroup.style.fontSize = localStorage.preferredFontSize;
