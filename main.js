@@ -469,7 +469,7 @@ const trafficWarningTextLayer = new VectorLayer({
   source: trafficWarningSource,
   style: trafficWarningTextStyleFunction,
   declutter: true,
-  minZoom: 12,
+  minZoom: 10,
 });
 
 // creating the map
@@ -1450,10 +1450,8 @@ setInterval(getDeviations, 60000); // getDeviations interval
 
 function focusTrafficWarning() {
   lastInteraction = new Date();
-  let zoomTarget = 10.5;
   if (closestAccident != undefined) {
     closestAccidentPosition = closestAccident.getGeometry().getCoordinates();
-    zoomTarget = 12.1;
   } else {
     closestAccidentPosition = currentPosition;
   }
@@ -1463,7 +1461,7 @@ function focusTrafficWarning() {
     duration: duration,
   });
   view.animate({
-    zoom: zoomTarget,
+    zoom: 10.5,
     duration: duration,
   });
   view.animate({
