@@ -1602,7 +1602,7 @@ document.getElementById("userName").addEventListener("change", function () {
 })
 
 function msToTime(milliseconds) {
-  return Math.round(milliseconds / 1000 / 60) + " min sedan";
+  return Math.ceil(milliseconds / 1000 / 60) + " min sedan";
 }
 
 setInterval(updateUserPosition, 60000);
