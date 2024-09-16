@@ -1293,20 +1293,37 @@ for (let i = 0; i < urlParams.length; i++) {
   }
 }
 switchMap();
+let keyDownTime;
+function longPress() {
+  return Date.now() - keyDownTime > 500
+}
+
+document.addEventListener("keyup", function (event) {
+  if (event.key == "Enter"){
+    event.preventDefault();
+    if (longPress()) {
+      focusTrafficWarning();
+    } else {
+      centerFunction();
+    }
+  }
+})
 
 // add keyboard controls
 document.addEventListener("keydown", function (event) {
   if (menuDiv.style.display == "none") {
     const zoomStep = 0.5;
+    if (!event.repeat) {
+      keyDownTime = Date.now();
+    }
     if (event.key != "a" && event.key != "Escape" && event.key != "§") {
       // store time of last interaction
       lastInteraction = new Date();
     }
-    if (event.key == "Enter" && new Date() - startTime < 30000 && !!localStorage.trackLog) {
+    if (event.key == "Enter") {
       event.preventDefault();
-      restoreRoute();
     }
-    if (event.key == "c" || event.key == "Enter") {
+    if (event.key == "c") {
       event.preventDefault();
       centerFunction();
     }
