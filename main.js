@@ -41,7 +41,7 @@ let currentPosition = center;
 let destinationCoordinates = [];
 let distanceTraveled = 0;
 let heading = 0;
-let lastInteraction = new Date() - localStorage.interactionDelay;
+let lastInteraction = Date.now() - localStorage.interactionDelay;
 let lonlat = toLonLat(currentPosition);
 let maxSpeed = 0;
 let prevLonlat;
@@ -505,9 +505,9 @@ function getFileFormat(fileExtention) {
 
 // gpx loader
 // gpxSource.addEventListener("addfeature", function () {
-//   if (gpxSource.getState() === "ready" && new Date() - lastInteraction > 3000) {
+//   if (gpxSource.getState() === "ready" && Date.now() - lastInteraction > 3000) {
 //     const padding = 100;
-//     lastInteraction = new Date();
+//     lastInteraction = Date.now();
 //     view.setRotation(0);
 //     view.fit(gpxSource.getExtent(), {
 //       padding: [padding, padding, padding, padding],
@@ -905,7 +905,7 @@ function centerFunction() {
   const duration = 500;
   const padding = 50;
   if (speed > 1) {
-    lastInteraction = new Date() - localStorage.interactionDelay;
+    lastInteraction = Date.now() - localStorage.interactionDelay;
     if (!!accuracyFeature.getGeometry()) {
       view.fit(accuracyFeature.getGeometry().getExtent(), {
         padding: [padding, padding, padding, padding],
@@ -1151,7 +1151,7 @@ map.on("singleclick", function (evt) {
 
 // right click/long press to route
 map.on("contextmenu", function (event) {
-  lastInteraction = new Date();
+  lastInteraction = Date.now();
   const eventLonLat = toLonLat(event.coordinate);
   let closestWaypoint;
 
@@ -1230,7 +1230,7 @@ map.on("contextmenu", function (event) {
 // store time of last interaction
 map.on("pointerdrag", function () {
   resetRotation();
-  lastInteraction = new Date();
+  lastInteraction = Date.now();
 });
 
 // checks url parameters and loads gpx file from url:
@@ -1293,35 +1293,24 @@ for (let i = 0; i < urlParams.length; i++) {
   }
 }
 switchMap();
-let keyDownTime;
-function longPress() {
-  return Date.now() - keyDownTime > 500
-}
-
-document.addEventListener("keyup", function (event) {
-  if (event.key == "Enter"){
-    event.preventDefault();
-    if (longPress()) {
-      focusTrafficWarning();
-    } else {
-      centerFunction();
-    }
-  }
-})
 
 // add keyboard controls
 document.addEventListener("keydown", function (event) {
   if (menuDiv.style.display == "none") {
     const zoomStep = 0.5;
-    if (!event.repeat) {
-      keyDownTime = Date.now();
-    }
-    if (event.key != "a" && event.key != "Escape" && event.key != "§") {
+    if (event.key != "a" && event.key != "Escape" && event.key != "§" && event.key != "Enter") {
       // store time of last interaction
-      lastInteraction = new Date();
+      lastInteraction = Date.now();
     }
     if (event.key == "Enter") {
       event.preventDefault();
+      if (Date.now() - lastInteraction > localStorage.interactionDelay) {
+        lastInteraction = Date.now();
+        focusTrafficWarning();
+      } else {
+        centerFunction();
+        lastInteraction = Date.now() - localStorage.interactionDelay;
+      }
     }
     if (event.key == "c") {
       event.preventDefault();
@@ -1466,7 +1455,7 @@ getDeviations();
 setInterval(getDeviations, 60000); // getDeviations interval
 
 function focusTrafficWarning() {
-  lastInteraction = new Date();
+  lastInteraction = Date.now();
   if (closestAccident != undefined) {
     closestAccidentPosition = closestAccident.getGeometry().getCoordinates();
   } else {
@@ -1489,7 +1478,7 @@ function focusTrafficWarning() {
 
 function focusDestination() {
   if (destinationCoordinates.length > 1) {
-    lastInteraction = new Date();
+    lastInteraction = Date.now();
     const coordinates = fromLonLat(
       destinationCoordinates[destinationCoordinates.length - 1],
     );
