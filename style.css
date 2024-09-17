@@ -33,6 +33,10 @@ body,
   display: none;
 }
 
+#batteryDiv:has(#batteryLevel:empty) {
+  display: none;
+}
+
 #trafficWarning {
   text-align: center;
   color: black;
