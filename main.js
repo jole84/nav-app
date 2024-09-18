@@ -74,8 +74,8 @@ if (navigator.getBattery) {
         : "-";
       setExtraInfo([
         battery.charging
-          ? '<div style="color:green;">laddar</div>'
-          : '<div style="color:red;">laddar inte</div>',
+          ? '<div style="color:green;text-align: center;">+++ laddar batteri +++</div>'
+          : '<div style="color:red;text-align: center;">⚠ laddare urkopplad ⚠</div>',
       ]);
     };
   });
