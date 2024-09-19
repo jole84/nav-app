@@ -72,7 +72,7 @@ body,
 #restoreRouteButton {
   display: none;
   width: 100%;
-  margin-bottom:5px;
+  margin-bottom: 5px;
 }
 
 #map .ol-rotate {
@@ -84,10 +84,10 @@ body,
 }
 
 #menuDiv {
-  background-image: linear-gradient(rgba(255,255,255,0.95), rgba(255,255,255,0.95)),url("https://jole84.se/84.svg");
+  background-image: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95)), url("https://jole84.se/84.svg");
   background-repeat: no-repeat;
   background-attachment: fixed;
-  background-position: center; 
+  background-position: center;
   background-size: 90%;
   position: absolute;
   max-height: 98%;
@@ -116,10 +116,68 @@ body,
   filter: saturate(2);
 }
 
-#preferredFontSize,
-#prefferedZoom,
-#interactionDelay {
+.form-select {
+  padding: .375rem 2.25rem .375rem .75rem;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.6;
+  color: #4f4f4f;
+  background-color: #fff;
+}
+
+.form-control {
+  padding: 4.5px 12px 3.68px;
+  border-radius: .25rem;
+  border: 1px solid #bdbdbd;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.6;
+  color: #4f4f4f;
+  background-color: #fff;
   display: inline-block;
+}
+
+code {
+  color: #e91e63;
+}
+
+kbd {
+  padding: .1875rem .375rem;
+  font-size: .875em;
+  color: #fff;
+  background-color: #4f4f4f;
+  border-radius: .25rem;
+}
+
+.btn {
+  padding: 11px;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  color: white;
+  border-radius: 5px;
+  text-transform: uppercase;
+  font-family: "roboto", sans-serif;
+  cursor: pointer;
+  border-width: 0;
+  font-weight: 500;
+  font-size: 0.75rem;
+}
+
+.btn-danger {
+  background-color: #dc4c64;
+}
+
+.btn-primary {
+  background-color: #3b71ca;
+}
+
+.btn-info {
+  background-color: #54b4d3;
+}
+
+.btn-success {
+  background-color: #14a44d;
 }
 
 table.table td,
@@ -130,7 +188,7 @@ table.table th {
 }
 
 .infoGroup {
-  text-shadow: 0 0 1px rgb(32, 32, 32);
+  /* text-shadow: 0 0 1px rgb(32, 32, 32); */
   font-family: "B612";
   font-weight: 400;
   backdrop-filter: blur(5px);
@@ -177,11 +235,6 @@ table.table th {
   align-items: end;
   justify-content: space-between;
   display: flex;
-}
-
-#layerSelector {
-  max-width: fit-content;
-  height: 36px;
 }
 
 .btn {
