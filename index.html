@@ -28,7 +28,7 @@
 
 <body oncontextmenu="return false;">
   <div id="map"></div>
-  <div class="infoGroup" id="infoGroup">
+  <div class="infoGroup shadowed" id="infoGroup">
     <div id="coordinatesDiv"></div>
     <div class="equalSpace">
       <div><span id="distanceTraveledDiv">0.00</span><span class="infoFormat">KM</span></div>
@@ -46,10 +46,10 @@
     <button class="btn btn-danger btn-lg" id="restoreRouteButton">Återställ rutt</button>
   </div>
   <div id="optionButtons">
-    <button class="btn btn-danger" id="centerButton">Center</button>
-    <button class="btn btn-primary" id="saveLogButton">Spara spår</button>
-    <button class="btn btn-info" id="clickFileButton">Ladda GPX</button>
-    <select class="form-select" id="layerSelector">
+    <button class="btn btn-danger shadowed" id="centerButton">Center</button>
+    <button class="btn btn-primary shadowed" id="saveLogButton">Spara spår</button>
+    <button class="btn btn-info shadowed" id="clickFileButton">Ladda GPX</button>
+    <select class="form-select shadowed" id="layerSelector">
       <option value="0">Jole84 Terrängkarta</option>
       <option value="1">Jole84 Vägkarta</option>
       <option value="2">Jole84 Nattläge</option>
@@ -57,9 +57,9 @@
       <!-- <option value="4">Lantmäteriet Topo</option>
       <option value="5">Lantmäteriet Orto</option> -->
     </select>
-    <button class="btn btn-success" id="openMenu">Meny</button>
+    <button class="btn btn-success shadowed" id="openMenu">Meny</button>
   </div>
-  <div id="menuDiv">
+  <div class="shadowed" id="menuDiv">
     <p><img src="https://jole84.se/jole84.svg" height="16"> navigationsapp med <a
         href="https://github.com/jole84/nav-app">öppen källkod</a>, baserad på <a href="https://openlayers.org">Openlayers</a>. Navigation från <a
         href="https://brouter.de/">BRouter</a>. Karta skapad av öppna data från Lantmäteriet och Trafikverket.</p>
