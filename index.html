@@ -25,6 +25,7 @@
 
 <body oncontextmenu="return false;">
   <div id="map"></div>
+
   <div class="infoGroup shadowed" id="infoGroup">
     <div id="coordinatesDiv"></div>
     <div class="equalSpace">
@@ -42,6 +43,7 @@
     <div id="trafficWarning"></div>
     <button class="btn btn-danger btn-lg" id="restoreRouteButton">Återställ rutt</button>
   </div>
+
   <div id="optionButtons">
     <button class="btn btn-danger shadowed" id="centerButton">Center</button>
     <button class="btn btn-primary shadowed" id="saveLogButton">Spara spår</button>
@@ -56,10 +58,11 @@
     </select>
     <button class="btn btn-success shadowed" id="openMenu">Meny</button>
   </div>
-  <div class="shadowed" id="menuDiv">
-    <p><img src="https://jole84.se/jole84.svg" height="16"> navigationsapp med <a
+
+  <div id="menuDiv" class="shadowed">
+    <img src="https://jole84.se/jole84.svg" height="16"> navigationsapp med <a
         href="https://github.com/jole84/nav-app">öppen källkod</a>, baserad på <a href="https://openlayers.org">Openlayers</a>. Navigation från <a
-        href="https://brouter.de/">BRouter</a>. Karta skapad av öppna data från Lantmäteriet och Trafikverket.</p>
+        href="https://brouter.de/">BRouter</a>. Karta skapad av öppna data från Lantmäteriet och Trafikverket.
     <table class="table table-borderless table-sm align-middle">
       <tr>
         <td colspan="2">
