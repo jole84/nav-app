@@ -1277,7 +1277,7 @@ for (let i = 0; i < urlParams.length; i++) {
     }
   }
 
-  if (urlParams[i].includes(".gpx")) {
+  if (urlParams[i].includes(".gpx") || urlParams[i].includes(".kml") || urlParams[i].includes(".geojson")) {
     if (!urlParams[i].includes("http")) {
       urlParams[i] = "https://jole84.se/rutter/" + urlParams[i];
     }
