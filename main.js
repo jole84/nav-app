@@ -1759,11 +1759,6 @@ function changeGeolocationPosition(longitude, latitude) {
   geolocation.changed();
 }
 
-// Converts from radians to degrees.
-function radToDeg(radians) {
-  return radians * 180 / Math.PI;
-}
-
 function getBearing([lon1, lat1], [lon2, lat2]) {
   lat1 = degToRad(lat1);
   lon1 = degToRad(lon1);
