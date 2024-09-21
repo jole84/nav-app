@@ -41,7 +41,7 @@ let currentPosition = center;
 let destinationCoordinates = [];
 let distanceTraveled = 0;
 let heading = 0;
-let lastInteraction = new Date() - localStorage.interactionDelay;
+let lastInteraction = Date.now() - localStorage.interactionDelay;
 let lonlat = toLonLat(currentPosition);
 let maxSpeed = 0;
 let prevLonlat;
@@ -74,8 +74,8 @@ if (navigator.getBattery) {
         : "-";
       setExtraInfo([
         battery.charging
-          ? '<div style="color:green;">laddar</div>'
-          : '<div style="color:red;">laddar inte</div>',
+          ? '<div style="color:green;text-align: center;">+++ laddar batteri +++</div>'
+          : '<div style="color:red;text-align: center;">⚠ laddare urkopplad ⚠</div>',
       ]);
     };
   });
@@ -130,7 +130,7 @@ if (
   menuDiv.style.display = "none";
 }
 
-enableLntDiv.checked = JSON.parse(localStorage.enableLnt);
+localStorage.enableLnt = enableLntDiv.checked = JSON.parse(localStorage.enableLnt || "true");
 enableLntDiv.addEventListener("change", function () {
   localStorage.enableLnt = enableLntDiv.checked;
   location.reload();
@@ -176,7 +176,7 @@ interactionDelayDiv.addEventListener("change", function () {
 });
 
 localStorage.preferredFontSize = preferredFontSizeDiv.value =
-  localStorage.preferredFontSize || "20px";
+  localStorage.preferredFontSize || "25px";
 preferredFontSizeDiv.addEventListener("change", function () {
   localStorage.preferredFontSize = preferredFontSizeDiv.value;
   infoGroup.style.fontSize = localStorage.preferredFontSize;
@@ -195,17 +195,26 @@ function gpxStyleText(feature) {
     return new Style({
       text: new Text({
         text: feature.get("name"),
-        font: "14px B612, sans-serif",
+        font: "13px B612, sans-serif",
         placement: "line",
         textAlign: "left",
-        offsetX: 10,
+        textBaseline: "bottom",
+        offsetX: 15,
         fill: new Fill({
           color: "#b41412",
         }),
-        stroke: new Stroke({
-          color: "white",
-          width: 4,
+        // stroke: new Stroke({
+        //   color: "white",
+        //   width: 4,
+        // }),
+        backgroundFill: new Fill({
+          color: [255, 255, 255, 0.9],
         }),
+        backgroundStroke: new Stroke({
+          color: [0, 0, 0, 0.9],
+          width: 1.5,
+        }),
+        padding: [0, 0, 0, 1],
       }),
     });
   }
@@ -242,7 +251,7 @@ function gpxStyle(feature) {
       }),
       text: new Text({
         text: feature.get("name"),
-        font: "14px B612, sans-serif",
+        font: "13px B612, sans-serif",
         overflow: true,
         fill: new Fill({
           color: "#b41412",
@@ -284,26 +293,26 @@ const trafficWarningTextStyleFunction = function (feature) {
     new Style({
       text: new Text({
         text: feature.get("name"),
-        font: "bold 14px B612, sans-serif",
-        textAlign: "center",
+        font: "13px B612, sans-serif",
+        textAlign: "left",
         textBaseline: "top",
-        offsetY: 24,
+        offsetX: 20,
         fill: new Fill({
-          color: "yellow",
-        }),
-        stroke: new Stroke({
-          // color: [238, 210, 2],
           color: "black",
-          width: 4,
         }),
-        // backgroundFill: new Fill({
-        //   color: [252, 208, 30, 0.6],
+        // stroke: new Stroke({
+        //   // color: [238, 210, 2],
+        //   color: "black",
+        //   width: 4,
         // }),
-        // backgroundStroke: new Stroke({
-        //   color: [238, 41, 61, 0.6],
-        //   width: 3,
-        // }),
-        // padding: [2, 2, 2, 2],
+        backgroundFill: new Fill({
+          color: [252, 208, 30, 0.9],
+        }),
+        backgroundStroke: new Stroke({
+          color: [238, 41, 61, 0.9],
+          width: 2,
+        }),
+        padding: [2, 2, 2, 2],
       }),
     }),
   ];
@@ -398,10 +407,11 @@ const locationLayer = new VectorLayer({
     return new Style({
       text: new Text({
         text: feature.get("name"),
-        font: "14px B612, sans-serif",
-        textBaseline: "top",
+        font: "12px B612, sans-serif",
         textAlign: "left",
-        offsetX: 15,
+        textBaseline: "top",
+        offsetX: 17,
+        offsetY: 5,
         fill: new Fill({
           color: "black",
         }),
@@ -409,6 +419,14 @@ const locationLayer = new VectorLayer({
           color: "white",
           width: 4,
         }),
+        backgroundFill: new Fill({
+          color: [255, 255, 255, 0.9],
+        }),
+        backgroundStroke: new Stroke({
+          color: [0, 0, 0, 0.9],
+          width: 1.5,
+        }),
+        padding: [0, 0, 0, 1],
       }),
       image: new Icon({
         rotation: feature.get("rotation"),
@@ -456,7 +474,7 @@ const trafficWarningTextLayer = new VectorLayer({
   source: trafficWarningSource,
   style: trafficWarningTextStyleFunction,
   declutter: true,
-  minZoom: 12,
+  minZoom: 10,
 });
 
 // creating the map
@@ -467,11 +485,11 @@ const map = new Map({
     osm,
     ortofoto,
     topoweb,
+    routeLayer,
     gpxLayer,
+    trackLayer,
     gpxLayerLabels,
     locationLayer,
-    routeLayer,
-    trackLayer,
     trafficWarningIconLayer,
     trafficWarningTextLayer,
   ],
@@ -492,9 +510,9 @@ function getFileFormat(fileExtention) {
 
 // gpx loader
 // gpxSource.addEventListener("addfeature", function () {
-//   if (gpxSource.getState() === "ready" && new Date() - lastInteraction > 3000) {
+//   if (gpxSource.getState() === "ready" && Date.now() - lastInteraction > 3000) {
 //     const padding = 100;
-//     lastInteraction = new Date();
+//     lastInteraction = Date.now();
 //     view.setRotation(0);
 //     view.fit(gpxSource.getExtent(), {
 //       padding: [padding, padding, padding, padding],
@@ -892,7 +910,7 @@ function centerFunction() {
   const duration = 500;
   const padding = 50;
   if (speed > 1) {
-    lastInteraction = new Date() - localStorage.interactionDelay;
+    lastInteraction = Date.now() - localStorage.interactionDelay;
     if (!!accuracyFeature.getGeometry()) {
       view.fit(accuracyFeature.getGeometry().getExtent(), {
         padding: [padding, padding, padding, padding],
@@ -1138,7 +1156,7 @@ map.on("singleclick", function (evt) {
 
 // right click/long press to route
 map.on("contextmenu", function (event) {
-  lastInteraction = new Date();
+  lastInteraction = Date.now();
   const eventLonLat = toLonLat(event.coordinate);
   let closestWaypoint;
 
@@ -1217,7 +1235,7 @@ map.on("contextmenu", function (event) {
 // store time of last interaction
 map.on("pointerdrag", function () {
   resetRotation();
-  lastInteraction = new Date();
+  lastInteraction = Date.now();
 });
 
 // checks url parameters and loads gpx file from url:
@@ -1264,13 +1282,13 @@ for (let i = 0; i < urlParams.length; i++) {
     }
   }
 
-  if (urlParams[i].includes(".gpx")) {
+  if (urlParams[i].includes(".gpx") || urlParams[i].includes(".kml") || urlParams[i].includes(".geojson")) {
     if (!urlParams[i].includes("http")) {
       urlParams[i] = "https://jole84.se/rutter/" + urlParams[i];
     }
     const titleString = decodeURIComponent(urlParams[i].split("/").pop());
     setExtraInfo([titleString]);
-    fetch(urlParams[i], { mode: "cors" })
+    fetch("https://jole84.se/html_stuff/phpReadFile.php?url=" + urlParams[i], { mode: "cors" })
       .then((response) => {
         return response.text();
       })
@@ -1285,15 +1303,21 @@ switchMap();
 document.addEventListener("keydown", function (event) {
   if (menuDiv.style.display == "none") {
     const zoomStep = 0.5;
-    if (event.key != "a" && event.key != "Escape" && event.key != "§") {
+    if (event.key != "a" && event.key != "Escape" && event.key != "§" && event.key != "Enter") {
       // store time of last interaction
-      lastInteraction = new Date();
+      lastInteraction = Date.now();
     }
-    if (event.key == "Enter" && new Date() - startTime < 30000 && !!localStorage.trackLog) {
+    if (event.key == "Enter") {
       event.preventDefault();
-      restoreRoute();
+      if (Date.now() - lastInteraction > localStorage.interactionDelay) {
+        lastInteraction = Date.now();
+        focusTrafficWarning();
+      } else {
+        centerFunction();
+        lastInteraction = Date.now() - localStorage.interactionDelay;
+      }
     }
-    if (event.key == "c" || event.key == "Enter") {
+    if (event.key == "c") {
       event.preventDefault();
       centerFunction();
     }
@@ -1436,11 +1460,9 @@ getDeviations();
 setInterval(getDeviations, 60000); // getDeviations interval
 
 function focusTrafficWarning() {
-  lastInteraction = new Date();
-  let zoomTarget = 10.5;
+  lastInteraction = Date.now();
   if (closestAccident != undefined) {
     closestAccidentPosition = closestAccident.getGeometry().getCoordinates();
-    zoomTarget = 12.1;
   } else {
     closestAccidentPosition = currentPosition;
   }
@@ -1450,7 +1472,7 @@ function focusTrafficWarning() {
     duration: duration,
   });
   view.animate({
-    zoom: zoomTarget,
+    zoom: 10.5,
     duration: duration,
   });
   view.animate({
@@ -1461,7 +1483,7 @@ function focusTrafficWarning() {
 
 function focusDestination() {
   if (destinationCoordinates.length > 1) {
-    lastInteraction = new Date();
+    lastInteraction = Date.now();
     const coordinates = fromLonLat(
       destinationCoordinates[destinationCoordinates.length - 1],
     );
@@ -1589,7 +1611,7 @@ document.getElementById("userName").addEventListener("change", function () {
 })
 
 function msToTime(milliseconds) {
-  return Math.round(milliseconds / 1000 / 60) + " min sedan";
+  return Math.ceil(milliseconds / 1000 / 60) + " min sedan";
 }
 
 setInterval(updateUserPosition, 60000);
@@ -1617,7 +1639,7 @@ function updateUserPosition() {
               rotation: userList[i]["heading"],
               name: (userList[i]["accuracy"] > 50 ? "*".repeat(String(userList[i]["accuracy"]).length) : "") + userList[i]["userName"] + "\n"
                 + msToTime(Date.now() - userList[i]["timeStamp"]) + "\n"
-                + userList[i]["speed"] + "km/h\n",
+                + (userList[i]["speed"] < 100 ? userList[i]["speed"] : "??") + "km/h",
             });
             locationLayer.getSource().addFeature(marker);
 
