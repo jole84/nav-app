@@ -19,17 +19,29 @@ import XYZ from "ol/source/XYZ.js";
 
 localStorage.interactionDelay = localStorage.interactionDelay || 10000;
 localStorage.mapMode = localStorage.mapMode || 0;
+const center = JSON.parse(localStorage.lastPosition || "[1700000, 8500000]");
+const centerButton = document.getElementById("centerButton");
+const closeMenuButton = document.getElementById("closeMenu");
+const customFileButton = document.getElementById("customFileButton");
+const enableLntDiv = document.getElementById("enableLnt");
+const infoGroup = document.getElementById("infoGroup");
+const interactionDelayDiv = document.getElementById("interactionDelay");
+const openMenuButton = document.getElementById("openMenu");
+const preferredFontSizeDiv = document.getElementById("preferredFontSize");
+const prefferedZoomDiv = document.getElementById("prefferedZoom");
+const routeInfo = document.getElementById("routeInfo");
+const saveLogButton = document.getElementById("saveLogButton");
 const startTime = new Date();
-let accuracy = 100;
+const trafficWarningDiv = document.getElementById("trafficWarning");
+let accuracy = 5000;
 let altitude = 0;
-let center = JSON.parse(localStorage.navAppCenter || "[1700000, 8500000]");
 let closestAccident;
 let closestAccidentPosition;
 let currentPosition = center;
 let destinationCoordinates = [];
 let distanceTraveled = 0;
 let heading = 0;
-let lastInteraction = new Date() - localStorage.interactionDelay;
+let lastInteraction = Date.now() - localStorage.interactionDelay;
 let lonlat = toLonLat(currentPosition);
 let maxSpeed = 0;
 let prevLonlat;
@@ -37,19 +49,10 @@ let speed = 0;
 let speedKmh = 0;
 let timeOut;
 let trackLog = [];
-const centerButton = document.getElementById("centerButton");
-const closeMenuButton = document.getElementById("closeMenu");
-const customFileButton = document.getElementById("customFileButton");
-const enableLntDiv = document.getElementById("enableLnt");
-const infoGroup = document.getElementById("infoGroup");
-const interactionDelayDiv = document.getElementById("interactionDelay");
-const onUnloadDiv = document.getElementById("onUnload");
-const openMenuButton = document.getElementById("openMenu");
-const preferredFontSizeDiv = document.getElementById("preferredFontSize");
-const prefferedZoomDiv = document.getElementById("prefferedZoom");
-const routeInfo = document.getElementById("routeInfo");
-const saveLogButton = document.getElementById("saveLogButton");
-const trafficWarningDiv = document.getElementById("trafficWarning");
+
+if (!!localStorage.trackLog) {
+  document.getElementById("restoreRouteButton").style.display = "unset";
+}
 
 if (navigator.getBattery) {
   navigator.getBattery().then(function (battery) {
@@ -71,8 +74,8 @@ if (navigator.getBattery) {
         : "-";
       setExtraInfo([
         battery.charging
-          ? '<div style="color:green;">laddar</div>'
-          : '<div style="color:red;">laddar inte</div>',
+          ? '<div style="color:green;text-align: center;">+++ laddar batteri +++</div>'
+          : '<div style="color:red;text-align: center;">⚠ laddare urkopplad ⚠</div>',
       ]);
     };
   });
@@ -103,6 +106,7 @@ customFileButton.addEventListener("change", handleFileSelect, false);
 trafficWarningDiv.addEventListener("click", focusTrafficWarning);
 saveLogButton.onclick = saveLogButtonFunction;
 document.getElementById("clickFileButton").onclick = function () {
+  gpxSource.clear();
   customFileButton.click();
 };
 
@@ -126,8 +130,7 @@ if (
   menuDiv.style.display = "none";
 }
 
-enableLntDiv.checked = localStorage.enableLnt =
-  localStorage.enableLnt == "true";
+localStorage.enableLnt = enableLntDiv.checked = JSON.parse(localStorage.enableLnt || "true");
 enableLntDiv.addEventListener("change", function () {
   localStorage.enableLnt = enableLntDiv.checked;
   location.reload();
@@ -142,20 +145,6 @@ if (JSON.parse(localStorage.enableLnt)) {
   layerSelector.add(option4);
   layerSelector.add(option5);
 }
-
-onUnloadDiv.checked = JSON.parse(localStorage.onUnload || "false");
-onUnloadDiv.addEventListener("change", function () {
-  localStorage.onUnload = onUnloadDiv.checked;
-});
-window.onbeforeunload = function () {
-  localStorage.navAppCenter = JSON.stringify(currentPosition);
-  if (
-    onUnloadDiv.checked &&
-    window.location === window.parent.location
-  ) {
-    return "";
-  }
-};
 
 closeMenuButton.onclick = function () {
   menuDiv.style.display = "none";
@@ -187,7 +176,7 @@ interactionDelayDiv.addEventListener("change", function () {
 });
 
 localStorage.preferredFontSize = preferredFontSizeDiv.value =
-  localStorage.preferredFontSize || "20px";
+  localStorage.preferredFontSize || "25px";
 preferredFontSizeDiv.addEventListener("change", function () {
   localStorage.preferredFontSize = preferredFontSizeDiv.value;
   infoGroup.style.fontSize = localStorage.preferredFontSize;
@@ -206,17 +195,26 @@ function gpxStyleText(feature) {
     return new Style({
       text: new Text({
         text: feature.get("name"),
-        font: "14px Roboto,monospace",
+        font: "13px B612, sans-serif",
         placement: "line",
         textAlign: "left",
-        offsetX: 10,
+        textBaseline: "bottom",
+        offsetX: 15,
         fill: new Fill({
           color: "#b41412",
         }),
-        stroke: new Stroke({
-          color: "white",
-          width: 4,
+        // stroke: new Stroke({
+        //   color: "white",
+        //   width: 4,
+        // }),
+        backgroundFill: new Fill({
+          color: [255, 255, 255, 0.9],
         }),
+        backgroundStroke: new Stroke({
+          color: [0, 0, 0, 0.9],
+          width: 1.5,
+        }),
+        padding: [0, 0, 0, 1],
       }),
     });
   }
@@ -253,7 +251,7 @@ function gpxStyle(feature) {
       }),
       text: new Text({
         text: feature.get("name"),
-        font: "14px Roboto,monospace",
+        font: "13px B612, sans-serif",
         overflow: true,
         fill: new Fill({
           color: "#b41412",
@@ -295,26 +293,26 @@ const trafficWarningTextStyleFunction = function (feature) {
     new Style({
       text: new Text({
         text: feature.get("name"),
-        font: "bold 14px Roboto,monospace",
-        textAlign: "center",
+        font: "13px B612, sans-serif",
+        textAlign: "left",
         textBaseline: "top",
-        offsetY: 24,
+        offsetX: 20,
         fill: new Fill({
-          color: "yellow",
-        }),
-        stroke: new Stroke({
-          // color: [238, 210, 2],
           color: "black",
-          width: 4,
         }),
-        // backgroundFill: new Fill({
-        //   color: [252, 208, 30, 0.6],
+        // stroke: new Stroke({
+        //   // color: [238, 210, 2],
+        //   color: "black",
+        //   width: 4,
         // }),
-        // backgroundStroke: new Stroke({
-        //   color: [238, 41, 61, 0.6],
-        //   width: 3,
-        // }),
-        // padding: [2, 2, 2, 2],
+        backgroundFill: new Fill({
+          color: [252, 208, 30, 0.9],
+        }),
+        backgroundStroke: new Stroke({
+          color: [238, 41, 61, 0.9],
+          width: 2,
+        }),
+        padding: [2, 2, 2, 2],
       }),
     }),
   ];
@@ -356,9 +354,9 @@ const slitlagerkarta = new TileLayer({
     url: "https://jole84.se/slitlagerkarta/{z}/{x}/{y}.jpg",
     minZoom: 6,
     maxZoom: 14,
+    transition: 0,
   }),
   visible: false,
-  useInterimTilesOnError: false,
 });
 
 const slitlagerkarta_nedtonad = new TileLayer({
@@ -366,9 +364,9 @@ const slitlagerkarta_nedtonad = new TileLayer({
     url: "https://jole84.se/slitlagerkarta_nedtonad/{z}/{x}/{y}.jpg",
     minZoom: 6,
     maxZoom: 14,
+    transition: 0,
   }),
   visible: false,
-  useInterimTilesOnError: false,
 });
 
 const ortofoto = new TileLayer({
@@ -401,6 +399,44 @@ const gpxLayerLabels = new VectorLayer({
   source: gpxSource,
   style: gpxStyleText,
   declutter: true,
+});
+
+const locationLayer = new VectorLayer({
+  source: new VectorSource(),
+  style: function (feature) {
+    return new Style({
+      text: new Text({
+        text: feature.get("name"),
+        font: "12px B612, sans-serif",
+        textAlign: "left",
+        textBaseline: "top",
+        offsetX: 17,
+        offsetY: 5,
+        fill: new Fill({
+          color: "black",
+        }),
+        stroke: new Stroke({
+          color: "white",
+          width: 4,
+        }),
+        backgroundFill: new Fill({
+          color: [255, 255, 255, 0.9],
+        }),
+        backgroundStroke: new Stroke({
+          color: [0, 0, 0, 0.9],
+          width: 1.5,
+        }),
+        padding: [0, 0, 0, 1],
+      }),
+      image: new Icon({
+        rotation: feature.get("rotation"),
+        rotateWithView: true,
+        anchor: [0.5, 0.67],
+        color: "red",
+        src: "https://openlayers.org/en/latest/examples/data/geolocation_marker_heading.png",
+      }),
+    });
+  },
 });
 
 const trackLayer = new VectorLayer({
@@ -444,10 +480,11 @@ const map = new Map({
     osm,
     ortofoto,
     topoweb,
-    gpxLayer,
-    gpxLayerLabels,
     routeLayer,
+    gpxLayer,
     trackLayer,
+    gpxLayerLabels,
+    locationLayer,
     trafficWarningIconLayer,
     trafficWarningTextLayer,
   ],
@@ -467,17 +504,17 @@ function getFileFormat(fileExtention) {
 }
 
 // gpx loader
-gpxSource.addEventListener("addfeature", function () {
-  if (gpxSource.getState() === "ready") {
-    const padding = 100;
-    lastInteraction = new Date();
-    view.setRotation(0);
-    view.fit(gpxSource.getExtent(), {
-      padding: [padding, padding, padding, padding],
-      maxZoom: 15,
-    });
-  }
-});
+// gpxSource.addEventListener("addfeature", function () {
+//   if (gpxSource.getState() === "ready" && Date.now() - lastInteraction > 3000) {
+//     const padding = 100;
+//     lastInteraction = Date.now();
+//     view.setRotation(0);
+//     view.fit(gpxSource.getExtent(), {
+//       padding: [padding, padding, padding, padding],
+//       maxZoom: 15,
+//     });
+//   }
+// });
 
 function gpxSourceLoader(gpxFile) {
   const reader = new FileReader();
@@ -523,8 +560,6 @@ selectFile.addEventListener("change", function () {
 });
 
 function handleFileSelect(evt) {
-  gpxSource.clear();
-
   customFileButton.blur();
   const files = evt.target.files; // FileList object
   const fileNames = [];
@@ -554,6 +589,10 @@ if ("launchQueue" in window) {
 // convert degrees to radians
 function degToRad(deg) {
   return (deg * Math.PI * 2) / 360;
+}
+
+function radToDeg(rad) {
+  return rad * (180 / Math.PI);
 }
 
 function getPixelDistance(pixel, pixel2) {
@@ -605,19 +644,18 @@ const geolocation = new Geolocation({
 
 // run once to get things going
 geolocation.once("change", function () {
+  accuracy = geolocation.getAccuracy();
   currentPosition = geolocation.getPosition();
   altitude = Math.round(geolocation.getAltitude() || 0);
-  lonlat = toLonLat(currentPosition);
+  prevLonlat = lonlat = toLonLat(currentPosition);
   const currentTime = new Date();
   if (currentTime - lastInteraction > localStorage.interactionDelay) {
     centerFunction();
   }
-  getDeviations();
-
   trackLog.push([lonlat, altitude, currentTime]);
   line.appendCoordinate(currentPosition);
-
-  prevLonlat = lonlat;
+  getClosestAccident();
+  updateUserPosition();
 });
 
 const accuracyFeature = new Feature();
@@ -629,9 +667,6 @@ geolocation.on('change:accuracyGeometry', function () {
   }
 });
 
-if (!!localStorage.trackLog) {
-  document.getElementById("restoreRouteButton").style.display = "unset";
-}
 document.getElementById("restoreRouteButton").addEventListener("click", restoreRoute);
 setTimeout(function () { document.getElementById("restoreRouteButton").style.display = "none" }, 30000);
 
@@ -647,6 +682,7 @@ function restoreRoute() {
     trackLog[i] = [oldRoute[i][0], oldRoute[i][1], new Date(oldRoute[i][2])];
     if (i == oldRoute.length - 1) {
       distanceTraveled += getDistance(lonlat, oldRoute[i][0]);
+      line.appendCoordinate(currentPosition);
     } else {
       distanceTraveled += getDistance(oldRoute[i][0], oldRoute[i + 1][0]);
     }
@@ -681,6 +717,7 @@ geolocation.on("change", function () {
   speed = geolocation.getSpeed() || 0;
   speedKmh = speed * 3.6;
   altitude = Math.round(geolocation.getAltitude() || 0);
+  localStorage.lastPosition = JSON.stringify(currentPosition);
   lonlat = toLonLat(currentPosition);
   const currentTime = new Date();
   positionMarkerPoint.setCoordinates(currentPosition);
@@ -809,7 +846,6 @@ function getRemainingDistance(featureCoordinates) {
 
 // alert user if geolocation fails
 geolocation.on("error", function () {
-  getDeviations();
   setExtraInfo([
     "&#128543 Aktivera platsjänster för <br>att se din position på kartan!",
   ]);
@@ -869,7 +905,7 @@ function centerFunction() {
   const duration = 500;
   const padding = 50;
   if (speed > 1) {
-    lastInteraction = new Date() - localStorage.interactionDelay;
+    lastInteraction = Date.now() - localStorage.interactionDelay;
     if (!!accuracyFeature.getGeometry()) {
       view.fit(accuracyFeature.getGeometry().getExtent(), {
         padding: [padding, padding, padding, padding],
@@ -917,7 +953,7 @@ view.on("change:resolution", function () {
 });
 
 layerSelector.addEventListener("change", function () {
-  localStorage.setItem("mapMode", layerSelector.value);
+  localStorage.mapMode = layerSelector.value;
   switchMap();
 });
 
@@ -929,8 +965,8 @@ if (!!window.chrome) {
 
 // switch map logic
 function switchMap() {
-  slitlagerkarta_nedtonad.setVisible(false);
   slitlagerkarta.setVisible(false);
+  slitlagerkarta_nedtonad.setVisible(false);
   ortofoto.setVisible(false);
   topoweb.setVisible(false);
   osm.setVisible(false);
@@ -939,18 +975,13 @@ function switchMap() {
     "-webkit-filter: initial;filter: initial;background-color: initial;",
   );
 
-  if (localStorage.enableLnt == "true" && localStorage.getItem("mapMode") > 5) {
-    localStorage.setItem("mapMode", 0);
+  if (localStorage.mapMode > 5) {
+    localStorage.mapMode = 0;
   }
-  if (
-    localStorage.enableLnt == "false" &&
-    localStorage.getItem("mapMode") > 3
-  ) {
-    localStorage.setItem("mapMode", 0);
-  }
-  layerSelector.value = localStorage.getItem("mapMode");
 
-  if (localStorage.getItem("mapMode") == 0) {
+  layerSelector.value = localStorage.mapMode;
+
+  if (localStorage.mapMode == 0) {
     // mapMode 0: slitlagerkarta
     slitlagerkarta.setVisible(true);
     if (JSON.parse(localStorage.enableLnt)) {
@@ -958,7 +989,7 @@ function switchMap() {
       slitlagerkarta.setMaxZoom(15.5);
       ortofoto.setMinZoom(15.5);
     }
-  } else if (localStorage.getItem("mapMode") == 1) {
+  } else if (localStorage.mapMode == 1) {
     // mapMode 1: slitlagerkarta_nedtonad
     slitlagerkarta_nedtonad.setVisible(true);
     if (JSON.parse(localStorage.enableLnt)) {
@@ -969,7 +1000,7 @@ function switchMap() {
       topoweb.setMaxZoom(17.5);
       ortofoto.setMinZoom(17.5);
     }
-  } else if (localStorage.getItem("mapMode") == 2) {
+  } else if (localStorage.mapMode == 2) {
     // mapMode 2: slitlagerkarta_nedtonad + night mode
     slitlagerkarta_nedtonad.setVisible(true);
     document.getElementsByTagName("body")[0].setAttribute("style", "filter: invert(1) hue-rotate(180deg);");
@@ -979,21 +1010,15 @@ function switchMap() {
       topoweb.setMinZoom(15.5);
       topoweb.setMaxZoom(20);
     }
-  } else if (localStorage.getItem("mapMode") == 3) {
+  } else if (localStorage.mapMode == 3) {
     // mapMode 3: Openstreetmap
     osm.setVisible(true);
-  } else if (
-    JSON.parse(localStorage.enableLnt) &&
-    localStorage.getItem("mapMode") == 4
-  ) {
+  } else if (localStorage.mapMode == 4) {
     // mapMode 4: topoweb
     topoweb.setVisible(true);
     topoweb.setMinZoom(0);
     topoweb.setMaxZoom(20);
-  } else if (
-    JSON.parse(localStorage.enableLnt) &&
-    localStorage.getItem("mapMode") == 5
-  ) {
+  } else if (localStorage.mapMode == 5) {
     // mapMode 4: orto
     ortofoto.setVisible(true);
     ortofoto.setMinZoom(0);
@@ -1007,6 +1032,7 @@ function saveLogButtonFunction() {
     saveLog();
   } else {
     console.log(trackLog);
+    console.log(localStorage);
   }
 }
 
@@ -1085,8 +1111,7 @@ function routeMe() {
         .readFeature(result.features[0], {
           dataProjection: "EPSG:4326",
           featureProjection: "EPSG:3857",
-        })
-        .getGeometry();
+        }).getGeometry();
 
       const totalLength = result.features[0].properties["track-length"] / 1000; // track-length in km
       const totalTime = result.features[0].properties["total-time"];
@@ -1126,28 +1151,21 @@ map.on("singleclick", function (evt) {
 
 // right click/long press to route
 map.on("contextmenu", function (event) {
-  lastInteraction = new Date();
+  lastInteraction = Date.now();
   const eventLonLat = toLonLat(event.coordinate);
   let closestWaypoint;
 
   // set start position
   destinationCoordinates[0] = lonlat;
 
-  setExtraInfo([
-    `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Streetview</a></div`,
-  ]);
-
   let clickedOnWaypoint = false;
   const clickedOnCurrentPosition =
     getDistance(lonlat, eventLonLat) < 200 ||
-    getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) <
-    50;
+    getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
   const clickedOnLastDestination =
     getPixelDistance(
       event.pixel,
-      map.getPixelFromCoordinate(
-        fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]),
-      ),
+      map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))
     ) < 40;
 
   // check if clicked on a waypoint
@@ -1194,7 +1212,11 @@ map.on("contextmenu", function (event) {
       destinationCoordinates.push(
         toLonLat(closestWaypoint.getGeometry().getCoordinates()),
       );
+      setExtraInfo(["Vald punkt:", closestWaypoint.get("name")]);
     } else {
+      setExtraInfo([
+        `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Streetview</a></div>`,
+      ]);
       destinationCoordinates.push(eventLonLat);
     }
   }
@@ -1208,7 +1230,7 @@ map.on("contextmenu", function (event) {
 // store time of last interaction
 map.on("pointerdrag", function () {
   resetRotation();
-  lastInteraction = new Date();
+  lastInteraction = Date.now();
 });
 
 // checks url parameters and loads gpx file from url:
@@ -1255,13 +1277,13 @@ for (let i = 0; i < urlParams.length; i++) {
     }
   }
 
-  if (urlParams[i].includes(".gpx")) {
+  if (urlParams[i].includes(".gpx") || urlParams[i].includes(".kml") || urlParams[i].includes(".geojson")) {
     if (!urlParams[i].includes("http")) {
       urlParams[i] = "https://jole84.se/rutter/" + urlParams[i];
     }
     const titleString = decodeURIComponent(urlParams[i].split("/").pop());
     setExtraInfo([titleString]);
-    fetch(urlParams[i], { mode: "cors" })
+    fetch("https://jole84.se/html_stuff/phpReadFile.php?url=" + urlParams[i], { mode: "cors" })
       .then((response) => {
         return response.text();
       })
@@ -1276,23 +1298,26 @@ switchMap();
 document.addEventListener("keydown", function (event) {
   if (menuDiv.style.display == "none") {
     const zoomStep = 0.5;
-    if (event.key != "a" && event.key != "Escape" && event.key != "§") {
+    if (event.key != "a" && event.key != "Escape" && event.key != "§" && event.key != "Enter") {
       // store time of last interaction
-      lastInteraction = new Date();
+      lastInteraction = Date.now();
     }
-    if (event.key == "Enter" && new Date() - startTime < 30000 && !!localStorage.trackLog) {
+    if (event.key == "Enter") {
       event.preventDefault();
-      restoreRoute();
+      if (Date.now() - lastInteraction > localStorage.interactionDelay) {
+        lastInteraction = Date.now();
+        focusTrafficWarning();
+      } else {
+        centerFunction();
+        lastInteraction = Date.now() - localStorage.interactionDelay;
+      }
     }
-    if (event.key == "c" || event.key == "Enter") {
+    if (event.key == "c") {
       event.preventDefault();
       centerFunction();
     }
     if (event.key == "v") {
-      localStorage.setItem(
-        "mapMode",
-        Number(localStorage.getItem("mapMode")) + 1,
-      );
+      localStorage.mapMode = Number(localStorage.mapMode) + 1;
       switchMap();
     }
     if (event.key == "z") {
@@ -1426,10 +1451,11 @@ function getDeviations() {
     });
 }
 
+getDeviations();
 setInterval(getDeviations, 60000); // getDeviations interval
 
 function focusTrafficWarning() {
-  lastInteraction = new Date();
+  lastInteraction = Date.now();
   if (closestAccident != undefined) {
     closestAccidentPosition = closestAccident.getGeometry().getCoordinates();
   } else {
@@ -1452,7 +1478,7 @@ function focusTrafficWarning() {
 
 function focusDestination() {
   if (destinationCoordinates.length > 1) {
-    lastInteraction = new Date();
+    lastInteraction = Date.now();
     const coordinates = fromLonLat(
       destinationCoordinates[destinationCoordinates.length - 1],
     );
@@ -1566,6 +1592,57 @@ function recalculateRoute() {
       ];
       routeMe();
     }
+  }
+}
+
+const clientPositionArray = {};
+document.getElementById("userName").value = localStorage.userName || "";
+document.getElementById("userName").addEventListener("change", function () {
+  if (document.getElementById("userName").value == "") {
+    locationLayer.getSource().clear();
+  }
+  localStorage.userName = clientPositionArray["userName"] = document.getElementById("userName").value;
+  updateUserPosition();
+})
+
+function msToTime(milliseconds) {
+  return Math.ceil(milliseconds / 1000 / 60) + " min sedan";
+}
+
+setInterval(updateUserPosition, 60000);
+function updateUserPosition() {
+  if (document.getElementById("userName").value != "") {
+    locationLayer.getSource().clear();
+    clientPositionArray["userName"] = localStorage.userName;
+    clientPositionArray["timeStamp"] = Date.now();
+    clientPositionArray["coords"] = currentPosition;
+    clientPositionArray["heading"] = heading;
+    clientPositionArray["accuracy"] = Math.round(accuracy);
+    clientPositionArray["speed"] = Math.round(speedKmh);
+    const xhttp = new XMLHttpRequest();
+    xhttp.onload = function () {
+      try {
+        const userList = JSON.parse(this.responseText);
+        for (let i = 0; i < userList.length; i++) {
+          if (userList[i]["userName"] != localStorage.userName) {
+            // add other than current user
+            const marker = new Feature({
+              geometry: new Point(userList[i]["coords"]),
+              rotation: userList[i]["heading"],
+              name: (userList[i]["accuracy"] > 50 ? "*".repeat(String(userList[i]["accuracy"]).length) : "") + userList[i]["userName"] + "\n"
+                + msToTime(Date.now() - userList[i]["timeStamp"]) + "\n"
+                + (userList[i]["speed"] < 100 ? userList[i]["speed"] : "??") + "km/h",
+            });
+            locationLayer.getSource().addFeature(marker);
+          }
+        }
+      } catch {
+        console.log(this.responseText);
+      }
+    }
+    xhttp.open("POST", "https://jole84.se/locationHandler/locationHandler.php");
+    xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhttp.send("q=" + JSON.stringify(clientPositionArray));
   }
 }
 
