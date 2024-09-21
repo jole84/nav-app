@@ -12,9 +12,6 @@
   <link
     href="https://fonts.googleapis.com/css2?family=B612:ital,wght@0,400;0,700;1,400;1,700&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
     rel="stylesheet">
-  <!-- MDB -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.css" rel="stylesheet" />
-
   <!-- web app meta -->
   <link rel="icon" type="image/svg" href="https://jole84.se/nav-app.svg" />
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -28,11 +25,12 @@
 
 <body oncontextmenu="return false;">
   <div id="map"></div>
-  <div class="infoGroup" id="infoGroup">
+
+  <div class="infoGroup shadowed" id="infoGroup">
     <div id="coordinatesDiv"></div>
     <div class="equalSpace">
       <div><span id="distanceTraveledDiv">0.00</span><span class="infoFormat">KM</span></div>
-      <div><span id="batteryCharging"></span><span id="batteryLevel">-</span><span class="infoFormat">%</span></div>
+      <div id="batteryDiv"><span id="batteryCharging"></span><span id="batteryLevel"></span><span class="infoFormat">%</span></div>
     </div>
     <div class="equalSpace">
       <div>
@@ -45,11 +43,12 @@
     <div id="trafficWarning"></div>
     <button class="btn btn-danger btn-lg" id="restoreRouteButton">Återställ rutt</button>
   </div>
+
   <div id="optionButtons">
-    <button class="btn btn-danger" id="centerButton">Center</button>
-    <button class="btn btn-primary" id="saveLogButton">Spara spår</button>
-    <button class="btn btn-info" id="clickFileButton">Ladda GPX</button>
-    <select class="form-select" id="layerSelector">
+    <button class="btn btn-danger shadowed" id="centerButton">Center</button>
+    <button class="btn btn-primary shadowed" id="saveLogButton">Spara spår</button>
+    <button class="btn btn-info shadowed" id="clickFileButton">Ladda GPX</button>
+    <select class="form-select shadowed" id="layerSelector">
       <option value="0">Jole84 Terrängkarta</option>
       <option value="1">Jole84 Vägkarta</option>
       <option value="2">Jole84 Nattläge</option>
@@ -57,28 +56,14 @@
       <!-- <option value="4">Lantmäteriet Topo</option>
       <option value="5">Lantmäteriet Orto</option> -->
     </select>
-    <button class="btn btn-success" id="openMenu">Meny</button>
+    <button class="btn btn-success shadowed" id="openMenu">Meny</button>
   </div>
-  <div id="menuDiv">
-    <p><img src="https://jole84.se/84.svg" height="30"> Jole84 navigationsapp med <a
-        href="https://github.com/jole84/nav-app">öppen källkod</a>, karta skapad av öppna data från Lantmäteriet och
-      Trafikverket. Baserad på <a href="https://openlayers.org">Openlayers</a>. Navigation från <a
-        href="https://brouter.de/">BRouter</a>.</p>
-    <table class="table table-borderless table-sm align-middle">
-      <tr>
-        <td colspan="2">
-          <input class="form-check-input" role="switch" type="checkbox" id="enableLnt">
-          <label class="form-check-label" for="enableLnt">Extra kartor från Lantmäteriet</label>
-        </td>
-      </tr>
-      
-      <tr>
-        <td colspan="2">
-          <input class="form-check-input" type="checkbox" id="onUnload">
-          <label class="form-check-label" for="onUnload">Varna vid stängning</label>
-        </td>
-      </tr>
 
+  <div id="menuDiv" class="shadowed">
+    <img src="https://jole84.se/jole84.svg" height="16"> navigationsapp med <a
+        href="https://github.com/jole84/nav-app">öppen källkod</a>, baserad på <a href="https://openlayers.org">Openlayers</a>. Navigation från <a
+        href="https://brouter.de/">BRouter</a>. Karta skapad av öppna data från Lantmäteriet och Trafikverket.
+    <table class="table table-borderless table-sm align-middle">
       <tr>
         <td colspan="2">
           <select class="form-select" id="selectFile">
@@ -87,6 +72,22 @@
         </td>
       </tr>
 
+      <tr>
+        <td colspan="2">
+          <input class="form-check-input" role="switch" type="checkbox" id="enableLnt">
+          <label class="form-check-label" for="enableLnt">Extra kartor från Lantmäteriet</label>
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Användarnamn (för Glympse-liknande funktion, blankt avaktiverar):
+        </td>
+        <td>
+          <input class="form-control" type="text" id="userName"><br>
+        </td>
+      </tr>
+      
       <tr>
         <td>
           Zoom:
@@ -120,9 +121,9 @@
         </td>
         <td>
           <select class="form-select" id="preferredFontSize">
-            <option value="20px">normal</option>
-            <option value="25px">större</option>
-            <option value="30px">störst</option>
+            <option value="20px">mindre</option>
+            <option value="25px">normal</option>
+            <option value="30px">större</option>
           </select>
         </td>
       </tr>
@@ -143,12 +144,10 @@
         <td><kbd>R</kbd> räkna om rutt</td>
         <td><kbd>högerklick/långtryck</kbd> navigera till punkt</td>
       </tr>
-      <tr>
-        <td colspan="2">
-          <button style="width: 100%;" class="btn btn-danger" id="clearRouteButton">Nollställ rutt</button>
-        </td>
-      </tr>
     </table>
+    <div style="margin-top: 5px; margin-bottom: 10px;">
+      <button style="width: 100%;" class="btn btn-danger" id="clearRouteButton">Nollställ rutt</button>
+    </div>
     <div>
       <button class="btn btn-danger" id="clearSettings">Återställ inställningar</button>
       <button class="btn btn-success" id="closeMenu">Stäng</button>

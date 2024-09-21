@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "file-saver": ">1",
-    "ol": ">9.2.0",
+    "ol": "9.2.0",
     "ol-mapbox-style": "^12.3.4"
   }
 }
