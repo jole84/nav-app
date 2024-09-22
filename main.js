@@ -1360,7 +1360,7 @@ function breakSentence(sentence) {
   let returnSentence = "";
   let x = 0;
   for (let i = 0; i < sentence.length; i++) {
-    if (x > 30 && sentence[i] == " " && sentence.length - i > 15) {
+    if (x > 25 && sentence[i] == " " && sentence.length - i > 15) {
       x = 0;
       returnSentence += "\n";
     } else {
