@@ -534,13 +534,19 @@ function gpxSourceLoader(gpxFile) {
 
 // add selectFile options
 var selectFile = document.getElementById("selectFile");
-for (var i = 0; i < filesList.length; i++) {
-  var opt = filesList[i];
-  var el = document.createElement("option");
-  el.textContent = opt;
-  el.value = opt;
-  selectFile.appendChild(el);
-}
+fetch("https://jole84.se/filesList.json")
+  .then((response) => response.json())
+  .then((filesList) => {
+    for (var i = 0; i < filesList.length; i++) {
+      var opt = filesList[i];
+      var el = document.createElement("option");
+      el.textContent = opt;
+      el.value = opt;
+      selectFile.appendChild(el);
+    }
+  }).catch(function (err) {
+    console.log('error: ' + err);
+  });
 
 // selectFile in menu
 selectFile.addEventListener("change", function () {
