@@ -268,7 +268,7 @@ function gpxStyle(feature) {
 const trackStyle = {
   LineString: new Style({
     stroke: new Stroke({
-      color: [255, 0, 0, 0.8],
+      color: [255, 0, 0, 0.9],
       width: 4,
     }),
   }),
@@ -1473,7 +1473,7 @@ function focusTrafficWarning() {
     duration: duration,
   });
   view.animate({
-    zoom: 10.5,
+    zoom: 11,
     duration: duration,
   });
   view.animate({
