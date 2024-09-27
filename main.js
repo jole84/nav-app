@@ -1612,10 +1612,10 @@ document.getElementById("userName").addEventListener("change", function () {
 })
 
 function msToTime(milliseconds) {
-  return Math.ceil(milliseconds / 1000 / 60) + " min sedan";
+  return milliseconds < 120000 ? "alldeles nyss" : (Math.ceil(milliseconds / 1000 / 60) + " min sedan");
 }
 
-setInterval(updateUserPosition, 60000);
+setInterval(updateUserPosition, 30000);
 function updateUserPosition() {
   if (document.getElementById("userName").value != "") {
     locationLayer.getSource().clear();
@@ -1646,7 +1646,7 @@ function updateUserPosition() {
         console.log(this.responseText);
       }
     }
-    xhttp.open("POST", "https://jole84.se/locationHandler/locationHandler.php");
+    xhttp.open("POST", "https://jole84.se/locationHandler/sql-location-handler.php");
     xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhttp.send("q=" + JSON.stringify(clientPositionArray));
   }
