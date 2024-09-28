@@ -103,6 +103,11 @@ body,
   z-index: 10;
 }
 
+#selectFile {
+  width: 100%;
+  background-color: #ebebeb;
+}
+
 #closeMenu {
   float: right;
 }
