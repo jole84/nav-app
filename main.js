@@ -1618,7 +1618,6 @@ function msToTime(milliseconds) {
 setInterval(updateUserPosition, 30000);
 function updateUserPosition() {
   if (document.getElementById("userName").value != "") {
-    locationLayer.getSource().clear();
     clientPositionArray["userName"] = localStorage.userName;
     clientPositionArray["timeStamp"] = Date.now();
     clientPositionArray["coords"] = currentPosition;
@@ -1629,6 +1628,7 @@ function updateUserPosition() {
     xhttp.onload = function () {
       try {
         const userList = JSON.parse(this.responseText);
+        locationLayer.getSource().clear();
         for (let i = 0; i < userList.length; i++) {
           if (userList[i]["userName"] != localStorage.userName) {
             // add other than current user
