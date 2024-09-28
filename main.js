@@ -1612,7 +1612,7 @@ document.getElementById("userName").addEventListener("change", function () {
 })
 
 function msToTime(milliseconds) {
-  return milliseconds < 120000 ? "alldeles nyss" : (Math.ceil(milliseconds / 1000 / 60) + " min sedan");
+  return milliseconds > 120000 ? (Math.ceil(milliseconds / 1000 / 60) + " min sedan\n") : "";
 }
 
 setInterval(updateUserPosition, 30000);
@@ -1635,8 +1635,9 @@ function updateUserPosition() {
             const marker = new Feature({
               geometry: new Point(userList[i]["coords"]),
               rotation: userList[i]["heading"],
-              name: (userList[i]["accuracy"] > 50 ? "*".repeat(String(userList[i]["accuracy"]).length) : "") + userList[i]["userName"] + "\n"
-                + msToTime(Date.now() - userList[i]["timeStamp"]) + "\n"
+              name: userList[i]["userName"]
+                + (userList[i]["accuracy"] > 50 ? " (≈" + userList[i]["accuracy"] + "m)" : "") + "\n"
+                + msToTime(Date.now() - userList[i]["timeStamp"])
                 + (userList[i]["speed"] < 100 ? userList[i]["speed"] : "??") + "km/h",
             });
             locationLayer.getSource().addFeature(marker);
