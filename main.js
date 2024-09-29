@@ -274,8 +274,9 @@ const trackStyle = {
   }),
   route: new Style({
     stroke: new Stroke({
+      color: [0, 0, 255, 0.5],
       width: 10,
-      color: [255, 0, 255, 0.6],
+      // color: [255, 0, 255, 0.6],
     }),
   }),
   icon: new Style({
@@ -480,8 +481,8 @@ const map = new Map({
     osm,
     ortofoto,
     topoweb,
-    routeLayer,
     gpxLayer,
+    routeLayer,
     trackLayer,
     gpxLayerLabels,
     locationLayer,
