@@ -17,7 +17,6 @@ import VectorSource from "ol/source/Vector.js";
 import WKT from "ol/format/WKT.js";
 import XYZ from "ol/source/XYZ.js";
 
-localStorage.interactionDelay = localStorage.interactionDelay || 10000;
 localStorage.mapMode = localStorage.mapMode || 0;
 const center = JSON.parse(localStorage.lastPosition || "[1700000, 8500000]");
 const centerButton = document.getElementById("centerButton");
@@ -25,7 +24,7 @@ const closeMenuButton = document.getElementById("closeMenu");
 const customFileButton = document.getElementById("customFileButton");
 const enableLntDiv = document.getElementById("enableLnt");
 const infoGroup = document.getElementById("infoGroup");
-const interactionDelayDiv = document.getElementById("interactionDelay");
+const interactionDelay = 10000;
 const openMenuButton = document.getElementById("openMenu");
 const preferredFontSizeDiv = document.getElementById("preferredFontSize");
 const prefferedZoomDiv = document.getElementById("prefferedZoom");
@@ -41,7 +40,7 @@ let currentPosition = center;
 let destinationCoordinates = [];
 let distanceTraveled = 0;
 let heading = 0;
-let lastInteraction = Date.now() - localStorage.interactionDelay;
+let lastInteraction = Date.now() - interactionDelay;
 let lonlat = toLonLat(currentPosition);
 let maxSpeed = 0;
 let prevLonlat;
@@ -168,11 +167,6 @@ localStorage.defaultZoom = prefferedZoomDiv.value =
 prefferedZoomDiv.addEventListener("change", function () {
   localStorage.defaultZoom = prefferedZoomDiv.value;
   centerFunction();
-});
-
-interactionDelayDiv.value = localStorage.interactionDelay / 1000;
-interactionDelayDiv.addEventListener("change", function () {
-  localStorage.interactionDelay = interactionDelayDiv.value * 1000;
 });
 
 localStorage.preferredFontSize = preferredFontSizeDiv.value =
@@ -656,7 +650,7 @@ geolocation.once("change", function () {
   altitude = Math.round(geolocation.getAltitude() || 0);
   prevLonlat = lonlat = toLonLat(currentPosition);
   const currentTime = new Date();
-  if (currentTime - lastInteraction > localStorage.interactionDelay) {
+  if (currentTime - lastInteraction > interactionDelay) {
     centerFunction();
   }
   trackLog.push([lonlat, altitude, currentTime]);
@@ -762,7 +756,7 @@ geolocation.on("change", function () {
     positionMarkerHeading.getStyle().getImage().setOpacity(1);
 
     // change view if no interaction occurred last 10 seconds
-    if (currentTime - lastInteraction > localStorage.interactionDelay) {
+    if (currentTime - lastInteraction > interactionDelay) {
       updateView();
     }
     distanceTraveled += getDistance(lonlat, prevLonlat);
@@ -912,7 +906,7 @@ function centerFunction() {
   const duration = 500;
   const padding = 50;
   if (speed > 1) {
-    lastInteraction = Date.now() - localStorage.interactionDelay;
+    lastInteraction = Date.now() - interactionDelay;
     if (!!accuracyFeature.getGeometry()) {
       view.fit(accuracyFeature.getGeometry().getExtent(), {
         padding: [padding, padding, padding, padding],
@@ -1311,12 +1305,12 @@ document.addEventListener("keydown", function (event) {
     }
     if (event.key == "Enter") {
       event.preventDefault();
-      if (Date.now() - lastInteraction > localStorage.interactionDelay) {
+      if (Date.now() - lastInteraction > interactionDelay) {
         lastInteraction = Date.now();
         focusTrafficWarning();
       } else {
         centerFunction();
-        lastInteraction = Date.now() - localStorage.interactionDelay;
+        lastInteraction = Date.now() - interactionDelay;
       }
     }
     if (event.key == "c") {
