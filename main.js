@@ -50,7 +50,7 @@ let timeOut;
 let trackLog = [];
 
 if (!!localStorage.trackLog) {
-  document.getElementById("restoreRouteButton").style.display = "unset";
+  document.getElementById("restoreTripButton").style.display = "unset";
 }
 
 if (navigator.getBattery) {
@@ -668,10 +668,10 @@ geolocation.on('change:accuracyGeometry', function () {
   }
 });
 
-document.getElementById("restoreRouteButton").addEventListener("click", restoreRoute);
-setTimeout(function () { document.getElementById("restoreRouteButton").style.display = "none" }, 30000);
+document.getElementById("restoreTripButton").addEventListener("click", restoreTrip);
+setTimeout(function () { document.getElementById("restoreTripButton").style.display = "none" }, 30000);
 
-function restoreRoute() {
+function restoreTrip() {
   // read old route from localStorage
   const oldRoute = JSON.parse(localStorage.trackLog);
   distanceTraveled = 0;
@@ -693,19 +693,19 @@ function restoreRoute() {
     distanceTraveled / 1000
   ).toFixed(2);
 
-  document.getElementById("restoreRouteButton").style.display = "none";
-  setExtraInfo(["Rutt återställd!"]);
+  document.getElementById("restoreTripButton").style.display = "none";
+  setExtraInfo(["Tripp återställd!"]);
 }
 
-document.getElementById("clearRouteButton").addEventListener("click", clearRoute);
-function clearRoute() {
+document.getElementById("clearTripButton").addEventListener("click", clearTrip);
+function clearTrip() {
   distanceTraveled = 0;
   document.getElementById("distanceTraveledDiv").innerHTML = "0.00";
   line.setCoordinates([]);
   maxSpeed = 0;
   menuDiv.style.display = "none";
-  document.getElementById("restoreRouteButton").style.display = "none";
-  setExtraInfo(["Rutt nollställd!"]);
+  document.getElementById("restoreTripButton").style.display = "none";
+  setExtraInfo(["Tripp nollställd!"]);
   trackLog = [[lonlat, altitude, new Date()]];
   localStorage.removeItem("trackLog");
 }
