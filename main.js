@@ -1377,6 +1377,7 @@ const apiUrl = "https://api.trafikinfo.trafikverket.se/v2/data.json";
 function resetRotation() {
   if (view.getRotation() != 0 && view.getZoom() < 11) {
     view.setRotation(0);
+    lastInteraction = Date.now();
   }
 }
 
