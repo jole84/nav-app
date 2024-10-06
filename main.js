@@ -237,11 +237,11 @@ function gpxStyle(feature) {
   if (featureType == "Polygon" || featureType == "MultiPolygon") {
     return new Style({
       stroke: new Stroke({
-        color: [255, 0, 0, 1],
+        color: [0, 175, 0, 1],
         width: 5,
       }),
       fill: new Fill({
-        color: [255, 0, 0, 0.2],
+        color: [0, 175, 0, 0.2],
       }),
       text: new Text({
         text: feature.get("name"),
