@@ -1615,7 +1615,7 @@ function msToTime(milliseconds) {
 
 setInterval(updateUserPosition, 30000);
 function updateUserPosition() {
-  if (document.getElementById("userName").value.trim() != "") {
+  if (localStorage.userName.trim() != "") {
     clientPositionArray["userName"] = localStorage.userName;
     clientPositionArray["timeStamp"] = Date.now();
     clientPositionArray["coords"] = currentPosition;
