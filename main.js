@@ -1605,7 +1605,7 @@ document.getElementById("userName").addEventListener("change", function () {
   if (document.getElementById("userName").value == "") {
     locationLayer.getSource().clear();
   }
-  localStorage.userName = clientPositionArray["userName"] = document.getElementById("userName").value;
+  localStorage.userName = clientPositionArray["userName"] = document.getElementById("userName").value.trim();
   updateUserPosition();
 })
 
