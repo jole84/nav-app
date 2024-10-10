@@ -1605,7 +1605,7 @@ document.getElementById("userName").addEventListener("change", function () {
   if (document.getElementById("userName").value == "") {
     locationLayer.getSource().clear();
   }
-  localStorage.userName = clientPositionArray["userName"] = document.getElementById("userName").value.trim();
+  localStorage.userName = document.getElementById("userName").value.trim();
   updateUserPosition();
 })
 
@@ -1615,7 +1615,7 @@ function msToTime(milliseconds) {
 
 setInterval(updateUserPosition, 30000);
 function updateUserPosition() {
-  if (localStorage.userName.trim() != "") {
+  if (!!localStorage.userName) {
     clientPositionArray["userName"] = localStorage.userName;
     clientPositionArray["timeStamp"] = Date.now();
     clientPositionArray["coords"] = currentPosition;
