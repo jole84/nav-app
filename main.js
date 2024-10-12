@@ -1618,10 +1618,11 @@ function updateUserPosition() {
   if (!!localStorage.userName) {
     clientPositionArray["userName"] = localStorage.userName;
     clientPositionArray["timeStamp"] = Date.now();
-    clientPositionArray["coords"] = currentPosition;
+    clientPositionArray["coords"] = JSON.stringify(currentPosition);
     clientPositionArray["heading"] = heading;
     clientPositionArray["accuracy"] = Math.round(accuracy);
     clientPositionArray["speed"] = Math.round(speedKmh);
+    const clientPositionString = Object.keys(clientPositionArray).map(b => `${b}=${clientPositionArray[b]}`).join('&');
     const xhttp = new XMLHttpRequest();
     xhttp.onload = function () {
       try {
@@ -1631,7 +1632,7 @@ function updateUserPosition() {
           if (userList[i]["userName"] != localStorage.userName) {
             // add other than current user
             const marker = new Feature({
-              geometry: new Point(userList[i]["coords"]),
+              geometry: new Point(JSON.parse(userList[i]["coords"])),
               rotation: userList[i]["heading"],
               name: userList[i]["userName"]
                 + (userList[i]["accuracy"] > 50 ? " (≈" + userList[i]["accuracy"] + "m)" : "") + "\n"
@@ -1647,6 +1648,6 @@ function updateUserPosition() {
     }
     xhttp.open("POST", "https://jole84.se/locationHandler/sql-location-handler.php");
     xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    xhttp.send("q=" + JSON.stringify(clientPositionArray));
+    xhttp.send(clientPositionString);
   }
 }
