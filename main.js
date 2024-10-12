@@ -1635,8 +1635,8 @@ function updateUserPosition() {
               geometry: new Point(JSON.parse(userList[i]["coords"])),
               rotation: userList[i]["heading"],
               name: userList[i]["userName"]
-                + (userList[i]["accuracy"] > 50 ? " (≈" + userList[i]["accuracy"] + "m)" : "") + "\n"
-                + msToTime(Date.now() - userList[i]["timeStamp"])
+                + (userList[i]["accuracy"] > 50 ? "\nosäker pos. ≈" + userList[i]["accuracy"] + "m" : "")
+                + "\n" + msToTime(Date.now() - userList[i]["timeStamp"])
                 + (userList[i]["speed"] < 100 ? userList[i]["speed"] : "??") + "km/h",
             });
             locationLayer.getSource().addFeature(marker);
