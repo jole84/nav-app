@@ -1298,6 +1298,12 @@ switchMap();
 // add keyboard controls
 document.addEventListener("keydown", function (event) {
   if (menuDiv.style.display == "none") {
+    for (let i = 1; i < 7; i++){
+      if (event.key == i) {
+        localStorage.mapMode = i - 1;
+        switchMap();
+      }
+    }
     const zoomStep = 0.5;
     if (event.key != "a" && event.key != "Escape" && event.key != "§" && event.key != "Enter") {
       // store time of last interaction
