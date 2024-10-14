@@ -1627,7 +1627,7 @@ function updateUserPosition() {
     clientPositionArray["coords"] = JSON.stringify(currentPosition);
     clientPositionArray["heading"] = heading;
     clientPositionArray["accuracy"] = Math.round(accuracy);
-    clientPositionArray["speed"] = Math.round(speedKmh);
+    clientPositionArray["speed"] = Math.floor(speedKmh);
     const clientPositionString = Object.keys(clientPositionArray).map(b => `${b}=${clientPositionArray[b]}`).join('&');
     const xhttp = new XMLHttpRequest();
     xhttp.onload = function () {
