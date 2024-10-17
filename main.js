@@ -17,7 +17,6 @@ import VectorSource from "ol/source/Vector.js";
 import WKT from "ol/format/WKT.js";
 import XYZ from "ol/source/XYZ.js";
 
-localStorage.interactionDelay = localStorage.interactionDelay || 10000;
 localStorage.mapMode = localStorage.mapMode || 0;
 const center = JSON.parse(localStorage.lastPosition || "[1700000, 8500000]");
 const centerButton = document.getElementById("centerButton");
@@ -25,7 +24,7 @@ const closeMenuButton = document.getElementById("closeMenu");
 const customFileButton = document.getElementById("customFileButton");
 const enableLntDiv = document.getElementById("enableLnt");
 const infoGroup = document.getElementById("infoGroup");
-const interactionDelayDiv = document.getElementById("interactionDelay");
+const interactionDelay = 10000;
 const openMenuButton = document.getElementById("openMenu");
 const preferredFontSizeDiv = document.getElementById("preferredFontSize");
 const prefferedZoomDiv = document.getElementById("prefferedZoom");
@@ -41,7 +40,7 @@ let currentPosition = center;
 let destinationCoordinates = [];
 let distanceTraveled = 0;
 let heading = 0;
-let lastInteraction = Date.now() - localStorage.interactionDelay;
+let lastInteraction = Date.now() - interactionDelay;
 let lonlat = toLonLat(currentPosition);
 let maxSpeed = 0;
 let prevLonlat;
@@ -51,7 +50,7 @@ let timeOut;
 let trackLog = [];
 
 if (!!localStorage.trackLog) {
-  document.getElementById("restoreRouteButton").style.display = "unset";
+  document.getElementById("restoreTripButton").style.display = "unset";
 }
 
 if (navigator.getBattery) {
@@ -170,11 +169,6 @@ prefferedZoomDiv.addEventListener("change", function () {
   centerFunction();
 });
 
-interactionDelayDiv.value = localStorage.interactionDelay / 1000;
-interactionDelayDiv.addEventListener("change", function () {
-  localStorage.interactionDelay = interactionDelayDiv.value * 1000;
-});
-
 localStorage.preferredFontSize = preferredFontSizeDiv.value =
   localStorage.preferredFontSize || "25px";
 preferredFontSizeDiv.addEventListener("change", function () {
@@ -243,11 +237,11 @@ function gpxStyle(feature) {
   if (featureType == "Polygon" || featureType == "MultiPolygon") {
     return new Style({
       stroke: new Stroke({
-        color: [255, 0, 0, 1],
+        color: [255, 0, 255, 1],
         width: 5,
       }),
       fill: new Fill({
-        color: [255, 0, 0, 0.2],
+        color: [255, 0, 255, 0.2],
       }),
       text: new Text({
         text: feature.get("name"),
@@ -268,14 +262,15 @@ function gpxStyle(feature) {
 const trackStyle = {
   LineString: new Style({
     stroke: new Stroke({
-      color: [255, 0, 0, 0.8],
+      color: [255, 0, 0, 0.9],
       width: 4,
     }),
   }),
   route: new Style({
     stroke: new Stroke({
+      color: [0, 0, 255, 0.5],
       width: 10,
-      color: [255, 0, 255, 0.6],
+      // color: [255, 0, 255, 0.6],
     }),
   }),
   icon: new Style({
@@ -473,8 +468,8 @@ const map = new Map({
     osm,
     ortofoto,
     topoweb,
-    routeLayer,
     gpxLayer,
+    routeLayer,
     trackLayer,
     gpxLayerLabels,
     locationLayer,
@@ -527,13 +522,19 @@ function gpxSourceLoader(gpxFile) {
 
 // add selectFile options
 var selectFile = document.getElementById("selectFile");
-for (var i = 0; i < filesList.length; i++) {
-  var opt = filesList[i];
-  var el = document.createElement("option");
-  el.textContent = opt;
-  el.value = opt;
-  selectFile.appendChild(el);
-}
+fetch("https://jole84.se/filesList.json")
+  .then((response) => response.json())
+  .then((filesList) => {
+    for (var i = 0; i < filesList.length; i++) {
+      var opt = filesList[i];
+      var el = document.createElement("option");
+      el.textContent = opt;
+      el.value = opt;
+      selectFile.appendChild(el);
+    }
+  }).catch(function (err) {
+    console.log('error: ' + err);
+  });
 
 // selectFile in menu
 selectFile.addEventListener("change", function () {
@@ -642,7 +643,7 @@ geolocation.once("change", function () {
   altitude = Math.round(geolocation.getAltitude() || 0);
   prevLonlat = lonlat = toLonLat(currentPosition);
   const currentTime = new Date();
-  if (currentTime - lastInteraction > localStorage.interactionDelay) {
+  if (currentTime - lastInteraction > interactionDelay) {
     centerFunction();
   }
   trackLog.push([lonlat, altitude, currentTime]);
@@ -660,10 +661,10 @@ geolocation.on('change:accuracyGeometry', function () {
   }
 });
 
-document.getElementById("restoreRouteButton").addEventListener("click", restoreRoute);
-setTimeout(function () { document.getElementById("restoreRouteButton").style.display = "none" }, 30000);
+document.getElementById("restoreTripButton").addEventListener("click", restoreTrip);
+setTimeout(function () { document.getElementById("restoreTripButton").style.display = "none" }, 30000);
 
-function restoreRoute() {
+function restoreTrip() {
   // read old route from localStorage
   const oldRoute = JSON.parse(localStorage.trackLog);
   distanceTraveled = 0;
@@ -685,19 +686,19 @@ function restoreRoute() {
     distanceTraveled / 1000
   ).toFixed(2);
 
-  document.getElementById("restoreRouteButton").style.display = "none";
-  setExtraInfo(["Rutt återställd!"]);
+  document.getElementById("restoreTripButton").style.display = "none";
+  setExtraInfo(["Tripp återställd!"]);
 }
 
-document.getElementById("clearRouteButton").addEventListener("click", clearRoute);
-function clearRoute() {
+document.getElementById("clearTripButton").addEventListener("click", clearTrip);
+function clearTrip() {
   distanceTraveled = 0;
   document.getElementById("distanceTraveledDiv").innerHTML = "0.00";
   line.setCoordinates([]);
   maxSpeed = 0;
   menuDiv.style.display = "none";
-  document.getElementById("restoreRouteButton").style.display = "none";
-  setExtraInfo(["Rutt nollställd!"]);
+  document.getElementById("restoreTripButton").style.display = "none";
+  setExtraInfo(["Tripp nollställd!"]);
   trackLog = [[lonlat, altitude, new Date()]];
   localStorage.removeItem("trackLog");
 }
@@ -748,7 +749,7 @@ geolocation.on("change", function () {
     positionMarkerHeading.getStyle().getImage().setOpacity(1);
 
     // change view if no interaction occurred last 10 seconds
-    if (currentTime - lastInteraction > localStorage.interactionDelay) {
+    if (currentTime - lastInteraction > interactionDelay) {
       updateView();
     }
     distanceTraveled += getDistance(lonlat, prevLonlat);
@@ -898,7 +899,7 @@ function centerFunction() {
   const duration = 500;
   const padding = 50;
   if (speed > 1) {
-    lastInteraction = Date.now() - localStorage.interactionDelay;
+    lastInteraction = Date.now() - interactionDelay;
     if (!!accuracyFeature.getGeometry()) {
       view.fit(accuracyFeature.getGeometry().getExtent(), {
         padding: [padding, padding, padding, padding],
@@ -1290,6 +1291,12 @@ switchMap();
 // add keyboard controls
 document.addEventListener("keydown", function (event) {
   if (menuDiv.style.display == "none") {
+    for (let i = 1; i < 7; i++){
+      if (event.key == i) {
+        localStorage.mapMode = i - 1;
+        switchMap();
+      }
+    }
     const zoomStep = 0.5;
     if (event.key != "a" && event.key != "Escape" && event.key != "§" && event.key != "Enter") {
       // store time of last interaction
@@ -1297,12 +1304,12 @@ document.addEventListener("keydown", function (event) {
     }
     if (event.key == "Enter") {
       event.preventDefault();
-      if (Date.now() - lastInteraction > localStorage.interactionDelay) {
+      if (Date.now() - lastInteraction > interactionDelay) {
         lastInteraction = Date.now();
         focusTrafficWarning();
       } else {
         centerFunction();
-        lastInteraction = Date.now() - localStorage.interactionDelay;
+        lastInteraction = Date.now() - interactionDelay;
       }
     }
     if (event.key == "c") {
@@ -1353,7 +1360,7 @@ function breakSentence(sentence) {
   let returnSentence = "";
   let x = 0;
   for (let i = 0; i < sentence.length; i++) {
-    if (x > 30 && sentence[i] == " " && sentence.length - i > 15) {
+    if (x > 25 && sentence[i] == " " && sentence.length - i > 15) {
       x = 0;
       returnSentence += "\n";
     } else {
@@ -1367,8 +1374,11 @@ function breakSentence(sentence) {
 const apiUrl = "https://api.trafikinfo.trafikverket.se/v2/data.json";
 
 function resetRotation() {
-  if (view.getRotation() != 0 && view.getZoom() < 11) {
-    view.setRotation(0);
+  if (view.getZoom() < 11) {
+    lastInteraction = Date.now();
+    if (view.getRotation() != 0) {
+      view.setRotation(0);
+    }
   }
 }
 
@@ -1460,7 +1470,7 @@ function focusTrafficWarning() {
     duration: duration,
   });
   view.animate({
-    zoom: 10.5,
+    zoom: 11,
     duration: duration,
   });
   view.animate({
@@ -1594,36 +1604,38 @@ document.getElementById("userName").addEventListener("change", function () {
   if (document.getElementById("userName").value == "") {
     locationLayer.getSource().clear();
   }
-  localStorage.userName = clientPositionArray["userName"] = document.getElementById("userName").value;
+  localStorage.userName = document.getElementById("userName").value.trim();
   updateUserPosition();
 })
 
 function msToTime(milliseconds) {
-  return Math.ceil(milliseconds / 1000 / 60) + " min sedan";
+  return milliseconds > 120000 ? (Math.ceil(milliseconds / 1000 / 60) + " min sedan\n") : "";
 }
 
-setInterval(updateUserPosition, 60000);
+setInterval(updateUserPosition, 30000);
 function updateUserPosition() {
-  if (document.getElementById("userName").value != "") {
-    locationLayer.getSource().clear();
+  if (!!localStorage.userName) {
     clientPositionArray["userName"] = localStorage.userName;
     clientPositionArray["timeStamp"] = Date.now();
-    clientPositionArray["coords"] = currentPosition;
+    clientPositionArray["coords"] = JSON.stringify(currentPosition);
     clientPositionArray["heading"] = heading;
     clientPositionArray["accuracy"] = Math.round(accuracy);
-    clientPositionArray["speed"] = Math.round(speedKmh);
+    clientPositionArray["speed"] = Math.floor(speedKmh);
+    const clientPositionString = Object.keys(clientPositionArray).map(b => `${b}=${clientPositionArray[b]}`).join('&');
     const xhttp = new XMLHttpRequest();
     xhttp.onload = function () {
       try {
         const userList = JSON.parse(this.responseText);
+        locationLayer.getSource().clear();
         for (let i = 0; i < userList.length; i++) {
           if (userList[i]["userName"] != localStorage.userName) {
             // add other than current user
             const marker = new Feature({
-              geometry: new Point(userList[i]["coords"]),
+              geometry: new Point(JSON.parse(userList[i]["coords"])),
               rotation: userList[i]["heading"],
-              name: (userList[i]["accuracy"] > 50 ? "*".repeat(String(userList[i]["accuracy"]).length) : "") + userList[i]["userName"] + "\n"
-                + msToTime(Date.now() - userList[i]["timeStamp"]) + "\n"
+              name: userList[i]["userName"]
+                + (userList[i]["accuracy"] > 50 ? "\nosäker pos. ≈" + userList[i]["accuracy"] + "m" : "")
+                + "\n" + msToTime(Date.now() - userList[i]["timeStamp"])
                 + (userList[i]["speed"] < 100 ? userList[i]["speed"] : "??") + "km/h",
             });
             locationLayer.getSource().addFeature(marker);
@@ -1633,8 +1645,8 @@ function updateUserPosition() {
         console.log(this.responseText);
       }
     }
-    xhttp.open("POST", "https://jole84.se/locationHandler/locationHandler.php");
+    xhttp.open("POST", "https://jole84.se/locationHandler/sql-location-handler.php");
     xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    xhttp.send("q=" + JSON.stringify(clientPositionArray));
+    xhttp.send(clientPositionString);
   }
 }
