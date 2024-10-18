@@ -335,7 +335,9 @@ const trackLine = new Feature({
 
 const osm = new TileLayer({
   className: "saturated",
-  source: new OSM(),
+  source: new OSM({
+    zDirection: 1,
+  }),
   visible: false,
 });
 
@@ -345,6 +347,7 @@ const slitlagerkarta = new MapboxVectorLayer({
   styleUrl: "mapbox://styles/tryckluft/clqmovmf100pb01o9g1li1hxb",
   accessToken: accessToken,
   visible: false,
+  useInterimTilesOnError: false,
 });
 
 const slitlagerkarta_nedtonad = new TileLayer({
@@ -372,6 +375,7 @@ const topoweb = new TileLayer({
   source: new XYZ({
     url: "https://minkarta.lantmateriet.se/map/topowebbcache/?layer=topowebb&style=default&tilematrixset=3857&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix={z}&TileCol={x}&TileRow={y}",
     maxZoom: 17,
+    zDirection: 1,
   }),
   visible: false,
 });
