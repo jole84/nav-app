@@ -1372,7 +1372,7 @@ function breakSentence(sentence) {
   let returnSentence = "";
   let x = 0;
   for (let i = 0; i < sentence.length; i++) {
-    if (x > 25 && sentence[i] == " " && sentence.length - i > 15) {
+    if (x > 20 && sentence[i] == " " && sentence.length - i > 10) {
       x = 0;
       returnSentence += "\n";
     } else {
@@ -1418,7 +1418,7 @@ function getDeviations() {
         <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
         <INCLUDE>Deviation.RoadNumber</INCLUDE>
         <INCLUDE>Deviation.EndTime</INCLUDE>
-        <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
+        <INCLUDE>Deviation.MessageCode</INCLUDE>
       </QUERY>
     </REQUEST>
   `;
@@ -1444,18 +1444,16 @@ function getDeviations() {
             name:
               breakSentence(
                 (
-                  item.Deviation[0].LocationDescriptor ||
                   item.Deviation[0].RoadNumber ||
                   "Väg"
                 ).trim() +
                 ": " +
-                (item.Deviation[0].Message || "-"),
+                (item.Deviation[0].Message || item.Deviation[0].MessageCode || "?"),
               ) +
-              "\n" +
-              new Date(item.Deviation[0].EndTime).toLocaleString().slice(0, -3),
+              "\nSluttid: " +
+              new Date(item.Deviation[0].EndTime).toLocaleString("sv-SE", {year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric"}),
             roadNumber: item.Deviation[0].RoadNumber || "väg",
             iconId: item.Deviation[0].IconId,
-            locationDescriptor: item.Deviation[0].LocationDescriptor,
           });
           trafficWarningSource.addFeature(feature);
         });
