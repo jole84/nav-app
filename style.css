@@ -255,9 +255,10 @@ kbd {
   }
 }
 
-/* @media (min-width: 550px) {
-  #optionButtons:hover {
-    filter: opacity(1);
-    transition: all 0.2s;
-  }
-} */
+html:fullscreen .fullscreenHide {
+  display: none;
+}
+
+html:fullscreen #centerButton {
+  filter: opacity(0.6);
+}
