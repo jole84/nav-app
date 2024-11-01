@@ -1303,7 +1303,7 @@ switchMap();
 // add keyboard controls
 document.addEventListener("keydown", function (event) {
   if (menuDiv.style.display == "none") {
-    for (let i = 1; i < 7; i++){
+    for (let i = 1; i < 7; i++) {
       if (event.key == i) {
         localStorage.mapMode = i - 1;
         switchMap();
@@ -1451,7 +1451,7 @@ function getDeviations() {
                 (item.Deviation[0].Message || item.Deviation[0].MessageCode || "?"),
               ) +
               "\nSluttid: " +
-              new Date(item.Deviation[0].EndTime).toLocaleString("sv-SE", {year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric"}),
+              new Date(item.Deviation[0].EndTime).toLocaleString("sv-SE", { year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric" }),
             roadNumber: item.Deviation[0].RoadNumber || "väg",
             iconId: item.Deviation[0].IconId,
           });
@@ -1660,3 +1660,34 @@ function updateUserPosition() {
     xhttp.send(clientPositionString);
   }
 }
+
+// save position marker
+const savedPositionMarker = new Point(JSON.parse(localStorage.savedPositionMarker || "[]"));
+const savedPositionFeature = new Feature({
+  geometry: savedPositionMarker,
+  name: "Sparad position",
+});
+gpxSource.addFeature(savedPositionFeature);
+
+import Modify from 'ol/interaction/Modify.js';
+import Collection from 'ol/Collection.js';
+const modify = new Modify({
+  features: new Collection([savedPositionFeature]),
+  pixelTolerance: 20,
+});
+modify.addEventListener("modifyend", function() {
+  localStorage.savedPositionMarker = JSON.stringify(savedPositionMarker.getCoordinates());
+});
+map.addInteraction(modify);
+
+document.getElementById("savePosition").addEventListener("click", function () {
+  localStorage.savedPositionMarker = JSON.stringify(currentPosition);
+  savedPositionMarker.setCoordinates(currentPosition);
+  menuDiv.style.display = "none";
+});
+
+document.getElementById("removePosition").addEventListener("click", function () {
+  localStorage.removeItem("savedPositionMarker");
+  savedPositionMarker.setCoordinates([]);
+  menuDiv.style.display = "none";
+});
