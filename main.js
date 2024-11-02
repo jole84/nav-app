@@ -238,7 +238,7 @@ function gpxStyle(feature) {
     return new Style({
       stroke: new Stroke({
         color: [255, 0, 255, 1],
-        width: 5,
+        width: 2,
       }),
       fill: new Fill({
         color: [255, 0, 255, 0.2],
