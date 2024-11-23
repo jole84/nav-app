@@ -623,18 +623,17 @@ function toRemainingString(remainingDistance, secondsInt) {
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   const ETA = new Date(new Date().getTime() + secondsInt * 1000);
-  const ETAString =
-    '<div style="text-align:right;">' +
-    ETA.getHours() +
-    ":" +
-    ETA.getMinutes().toString().padStart(2, "0") +
-    '<font class="infoFormat">ETA</font></div>';
+
+  // first row
   let returnString = `<div class="equalSpace"><div><font class="infoFormat">-></font> ${Number(remainingDistance).toFixed(1)}<font class="infoFormat">KM</font></div><div>`;
   if (hours > 0) {
     returnString += `${hours}<font class="infoFormat">H</font> `;
   }
-  return (returnString +=
-    `${minutes}<font class="infoFormat">MIN</font></div></div>` + ETAString);
+  returnString += `${minutes}<font class="infoFormat">MIN</font></div></div>`
+
+  // second row
+  returnString += `<div class="equalSpace"> <div></div> <div>${ETA.getHours()}:${ETA.getMinutes().toString().padStart(2, "0")}<font class="infoFormat">ETA</font></div></div>`;
+  return returnString;
 }
 
 // start geolocation
@@ -809,12 +808,10 @@ geolocation.on("change", function () {
   }
 
   prevLonlat = lonlat;
+
   // send text to info box
-  document.getElementById("coordinatesDiv").innerHTML =
-    lonlat[1].toFixed(5) + ", " + lonlat[0].toFixed(5);
-  document.getElementById("distanceTraveledDiv").innerHTML = (
-    distanceTraveled / 1000
-  ).toFixed(2);
+  document.getElementById("coordinatesDiv").innerHTML = lonlat[1].toFixed(5) + ", " + lonlat[0].toFixed(5);
+  document.getElementById("distanceTraveledDiv").innerHTML = (distanceTraveled / 1000).toFixed(2);
   document.getElementById("accuracyDiv").innerHTML = Math.round(accuracy);
   document.getElementById("speedDiv").innerHTML = Math.floor(speedKmh);
   document.getElementById("maxSpeedDiv").innerHTML = Math.floor(maxSpeed);
@@ -824,26 +821,24 @@ function getRemainingDistance(featureCoordinates) {
   const newMultiPoint = new MultiPoint(featureCoordinates.reverse());
   let remainingDistance = 0;
   const closestPoint = newMultiPoint.getClosestPoint(currentPosition);
-  const distanceToClosestPoint = getDistance(toLonLat(closestPoint), lonlat);
+  const closeToRoute = getDistance(toLonLat(closestPoint), lonlat) < 500;
 
-  if (distanceToClosestPoint > 500) {
-    return;
-  } else {
+  if (closeToRoute) {
     for (let i = 0; i < featureCoordinates.length - 1; i++) {
       if (
-        featureCoordinates[i + 1].toString() !== closestPoint.toString() &&
-        featureCoordinates[0].toString() !== closestPoint.toString()
+        featureCoordinates[0].toString() === closestPoint.toString() ||
+        featureCoordinates[i + 1].toString() === closestPoint.toString()
       ) {
-        remainingDistance += getDistance(
-          toLonLat(featureCoordinates[i]),
-          toLonLat(featureCoordinates[i + 1]),
-        );
-      } else {
         remainingDistance += getDistance(
           toLonLat(featureCoordinates[i]),
           lonlat,
         );
         break;
+      } else {
+        remainingDistance += getDistance(
+          toLonLat(featureCoordinates[i]),
+          toLonLat(featureCoordinates[i + 1]),
+        );
       }
     }
     return remainingDistance / 1000;
