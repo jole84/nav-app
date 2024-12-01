@@ -998,8 +998,8 @@ function switchMap() {
       ortofoto.setVisible(true);
       slitlagerkarta_nedtonad.setMaxZoom(15.5);
       topoweb.setMinZoom(15.5);
-      topoweb.setMaxZoom(17.5);
-      ortofoto.setMinZoom(17.5);
+      topoweb.setMaxZoom(18);
+      ortofoto.setMinZoom(18);
     }
   } else if (localStorage.mapMode == 2) {
     // mapMode 2: slitlagerkarta_nedtonad + night mode
