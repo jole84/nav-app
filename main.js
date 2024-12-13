@@ -775,7 +775,7 @@ geolocation.on("change", function () {
         if (gpxRemainingDistance != undefined) {
           routeInfo.innerHTML += toRemainingString(
             gpxRemainingDistance,
-            gpxRemainingDistance / (speedKmh / 60 / 60),
+            gpxRemainingDistance / ((speedKmh < 30 ? 75 : speedKmh) / 60 / 60),
           );
         }
       }
@@ -792,7 +792,7 @@ geolocation.on("change", function () {
       if (routeRemainingDistance != undefined) {
         routeInfo.innerHTML += toRemainingString(
           routeRemainingDistance,
-          routeRemainingDistance / (speedKmh / 60 / 60),
+          routeRemainingDistance / ((speedKmh < 30 ? 75 : speedKmh) / 60 / 60),
         );
       }
     }
@@ -1393,7 +1393,7 @@ function getDeviations() {
   let xmlRequest = `
     <REQUEST>
       <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
-      <QUERY objecttype='Situation' schemaversion='1.2'>
+      <QUERY objecttype='Situation' schemaversion='1.5'>
         <FILTER>
           <OR>
             <ELEMENTMATCH>
@@ -1410,7 +1410,7 @@ function getDeviations() {
         </FILTER>
         <INCLUDE>Deviation.Message</INCLUDE>
         <INCLUDE>Deviation.IconId</INCLUDE>
-        <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
+        <INCLUDE>Deviation.Geometry.Point.WGS84</INCLUDE>
         <INCLUDE>Deviation.RoadNumber</INCLUDE>
         <INCLUDE>Deviation.EndTime</INCLUDE>
         <INCLUDE>Deviation.MessageCode</INCLUDE>
@@ -1432,23 +1432,20 @@ function getDeviations() {
         resultRoadSituation.forEach(function (item) {
           const format = new WKT();
           const position = format
-            .readGeometry(item.Deviation[0].Geometry.WGS84)
+            .readGeometry(item.Deviation[0].Geometry.Point.WGS84)
             .transform("EPSG:4326", "EPSG:3857");
           const feature = new Feature({
             geometry: position,
             name:
               breakSentence(
-                (
-                  item.Deviation[0].RoadNumber ||
-                  "Väg"
-                ).trim() +
-                ": " +
+                (item.Deviation[0].RoadNumber ? item.Deviation[0].RoadNumber + ": " : "") +
                 (item.Deviation[0].Message || item.Deviation[0].MessageCode || "?"),
               ) +
               "\nSluttid: " +
               new Date(item.Deviation[0].EndTime).toLocaleString("sv-SE", { year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric" }),
             roadNumber: item.Deviation[0].RoadNumber || "väg",
             iconId: item.Deviation[0].IconId,
+            messageCode: item.Deviation[0].MessageCode || "Tillbud",
           });
           trafficWarningSource.addFeature(feature);
         });
@@ -1505,36 +1502,21 @@ function focusDestination() {
 
 function getClosestAccident() {
   if (trafficWarningSource.getFeatures().length >= 1) {
-    closestAccident = trafficWarningSource.getClosestFeatureToCoordinate(
-      currentPosition,
-      function (feature) {
-        return feature.get("iconId") === "roadAccident";
-      },
-    );
-  }
-
-  if (closestAccident != undefined) {
     // check route for accidents
     let routeHasAccident = false;
     const routeIsActive = routeLayer.getSource().getFeatureById(0) != undefined;
     if (routeIsActive) {
-      const featureCoordinates = routeLayer
-        .getSource()
-        .getFeatureById(0)
-        .getGeometry()
-        .getCoordinates();
+      const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
       const newMultiPoint = new MultiPoint(featureCoordinates.reverse());
-
-      const newLineStringclosestPoint =
-        newMultiPoint.getClosestPoint(currentPosition);
+      const newMultiPointCurrentPosition = newMultiPoint.getClosestPoint(currentPosition);
 
       for (let i = 0; i < featureCoordinates.length; i++) {
         const closestLineStringPoint =
           trafficWarningSource.getClosestFeatureToCoordinate(
             featureCoordinates[i],
-            function (feature) {
-              return feature.get("iconId") === "roadAccident";
-            },
+            // function (feature) {
+            //   return feature.get("iconId") === "roadAccident";
+            // },
           );
         const closestLineStringPointDistance = getDistance(
           toLonLat(closestLineStringPoint.getGeometry().getCoordinates()),
@@ -1544,34 +1526,34 @@ function getClosestAccident() {
           routeHasAccident = true;
           closestAccident = closestLineStringPoint;
         }
-        if (
-          featureCoordinates[i].toString() ===
-          newLineStringclosestPoint.toString()
-        ) {
+        if (featureCoordinates[i].toString() === newMultiPointCurrentPosition.toString()) {
           break;
         }
       }
+    } else {
+      // if no route is active check closest accident
+      closestAccident = trafficWarningSource.getClosestFeatureToCoordinate(
+        currentPosition,
+        // function (feature) {
+        //   return feature.get("iconId") === "roadAccident";
+        // },
+      );
     }
 
+    // check accident information
     const closestAccidentRoadNumber = closestAccident.get("roadNumber");
-    const closestAccidentCoords = closestAccident
-      .getGeometry()
-      .getCoordinates();
+    const messageCode = closestAccident.get("messageCode");
+    const closestAccidentCoords = closestAccident.getGeometry().getCoordinates();
     const closestAccidentDistance = getDistance(
       toLonLat(closestAccidentCoords),
       lonlat,
     );
 
-    if (
-      (closestAccidentDistance < 30000 && !routeIsActive) ||
-      routeHasAccident
-    ) {
+    if ((closestAccidentDistance < 30000 && !routeIsActive) || routeHasAccident) {
       trafficWarningDiv.innerHTML =
-        "Olycka " +
+        messageCode + ", " +
         closestAccidentRoadNumber.replace(/^V/, "v") +
-        " (" +
-        Math.round(closestAccidentDistance / 1000) +
-        "km)";
+        " (" + Math.round(closestAccidentDistance / 1000) + "km)";
     } else {
       closestAccident = null;
       trafficWarningDiv.innerHTML = "";
