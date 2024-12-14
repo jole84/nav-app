@@ -237,11 +237,11 @@ function gpxStyle(feature) {
   if (featureType == "Polygon" || featureType == "MultiPolygon") {
     return new Style({
       stroke: new Stroke({
-        color: [255, 0, 255, 1],
-        width: 5,
+        color: [255, 0, 0, 1],
+        width: 2,
       }),
       fill: new Fill({
-        color: [255, 0, 255, 0.2],
+        color: [255, 0, 0, 0.2],
       }),
       text: new Text({
         text: feature.get("name"),
@@ -623,18 +623,17 @@ function toRemainingString(remainingDistance, secondsInt) {
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   const ETA = new Date(new Date().getTime() + secondsInt * 1000);
-  const ETAString =
-    '<div style="text-align:right;">' +
-    ETA.getHours() +
-    ":" +
-    ETA.getMinutes().toString().padStart(2, "0") +
-    '<font class="infoFormat">ETA</font></div>';
+
+  // first row
   let returnString = `<div class="equalSpace"><div><font class="infoFormat">-></font> ${Number(remainingDistance).toFixed(1)}<font class="infoFormat">KM</font></div><div>`;
   if (hours > 0) {
     returnString += `${hours}<font class="infoFormat">H</font> `;
   }
-  return (returnString +=
-    `${minutes}<font class="infoFormat">MIN</font></div></div>` + ETAString);
+  returnString += `${minutes}<font class="infoFormat">MIN</font></div></div>`
+
+  // second row
+  returnString += `<div class="equalSpace"> <div></div> <div>${ETA.getHours()}:${ETA.getMinutes().toString().padStart(2, "0")}<font class="infoFormat">ETA</font></div></div>`;
+  return returnString;
 }
 
 // start geolocation
@@ -776,7 +775,7 @@ geolocation.on("change", function () {
         if (gpxRemainingDistance != undefined) {
           routeInfo.innerHTML += toRemainingString(
             gpxRemainingDistance,
-            gpxRemainingDistance / (speedKmh / 60 / 60),
+            gpxRemainingDistance / ((speedKmh < 30 ? 75 : speedKmh) / 60 / 60),
           );
         }
       }
@@ -793,7 +792,7 @@ geolocation.on("change", function () {
       if (routeRemainingDistance != undefined) {
         routeInfo.innerHTML += toRemainingString(
           routeRemainingDistance,
-          routeRemainingDistance / (speedKmh / 60 / 60),
+          routeRemainingDistance / ((speedKmh < 30 ? 75 : speedKmh) / 60 / 60),
         );
       }
     }
@@ -809,12 +808,10 @@ geolocation.on("change", function () {
   }
 
   prevLonlat = lonlat;
+
   // send text to info box
-  document.getElementById("coordinatesDiv").innerHTML =
-    lonlat[1].toFixed(5) + ", " + lonlat[0].toFixed(5);
-  document.getElementById("distanceTraveledDiv").innerHTML = (
-    distanceTraveled / 1000
-  ).toFixed(2);
+  document.getElementById("coordinatesDiv").innerHTML = lonlat[1].toFixed(5) + ", " + lonlat[0].toFixed(5);
+  document.getElementById("distanceTraveledDiv").innerHTML = (distanceTraveled / 1000).toFixed(2);
   document.getElementById("accuracyDiv").innerHTML = Math.round(accuracy);
   document.getElementById("speedDiv").innerHTML = Math.floor(speedKmh);
   document.getElementById("maxSpeedDiv").innerHTML = Math.floor(maxSpeed);
@@ -824,26 +821,24 @@ function getRemainingDistance(featureCoordinates) {
   const newMultiPoint = new MultiPoint(featureCoordinates.reverse());
   let remainingDistance = 0;
   const closestPoint = newMultiPoint.getClosestPoint(currentPosition);
-  const distanceToClosestPoint = getDistance(toLonLat(closestPoint), lonlat);
+  const closeToRoute = getDistance(toLonLat(closestPoint), lonlat) < 500;
 
-  if (distanceToClosestPoint > 500) {
-    return;
-  } else {
+  if (closeToRoute) {
     for (let i = 0; i < featureCoordinates.length - 1; i++) {
       if (
-        featureCoordinates[i + 1].toString() !== closestPoint.toString() &&
-        featureCoordinates[0].toString() !== closestPoint.toString()
+        featureCoordinates[0].toString() === closestPoint.toString() ||
+        featureCoordinates[i + 1].toString() === closestPoint.toString()
       ) {
-        remainingDistance += getDistance(
-          toLonLat(featureCoordinates[i]),
-          toLonLat(featureCoordinates[i + 1]),
-        );
-      } else {
         remainingDistance += getDistance(
           toLonLat(featureCoordinates[i]),
           lonlat,
         );
         break;
+      } else {
+        remainingDistance += getDistance(
+          toLonLat(featureCoordinates[i]),
+          toLonLat(featureCoordinates[i + 1]),
+        );
       }
     }
     return remainingDistance / 1000;
@@ -1003,8 +998,8 @@ function switchMap() {
       ortofoto.setVisible(true);
       slitlagerkarta_nedtonad.setMaxZoom(15.5);
       topoweb.setMinZoom(15.5);
-      topoweb.setMaxZoom(17.5);
-      ortofoto.setMinZoom(17.5);
+      topoweb.setMaxZoom(18);
+      ortofoto.setMinZoom(18);
     }
   } else if (localStorage.mapMode == 2) {
     // mapMode 2: slitlagerkarta_nedtonad + night mode
@@ -1303,7 +1298,7 @@ switchMap();
 // add keyboard controls
 document.addEventListener("keydown", function (event) {
   if (menuDiv.style.display == "none") {
-    for (let i = 1; i < 7; i++){
+    for (let i = 1; i < 7; i++) {
       if (event.key == i) {
         localStorage.mapMode = i - 1;
         switchMap();
@@ -1372,7 +1367,7 @@ function breakSentence(sentence) {
   let returnSentence = "";
   let x = 0;
   for (let i = 0; i < sentence.length; i++) {
-    if (x > 25 && sentence[i] == " " && sentence.length - i > 15) {
+    if (x > 20 && sentence[i] == " " && sentence.length - i > 10) {
       x = 0;
       returnSentence += "\n";
     } else {
@@ -1398,7 +1393,7 @@ function getDeviations() {
   let xmlRequest = `
     <REQUEST>
       <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
-      <QUERY objecttype='Situation' schemaversion='1.2'>
+      <QUERY objecttype='Situation' schemaversion='1.5'>
         <FILTER>
           <OR>
             <ELEMENTMATCH>
@@ -1415,10 +1410,10 @@ function getDeviations() {
         </FILTER>
         <INCLUDE>Deviation.Message</INCLUDE>
         <INCLUDE>Deviation.IconId</INCLUDE>
-        <INCLUDE>Deviation.Geometry.WGS84</INCLUDE>
+        <INCLUDE>Deviation.Geometry.Point.WGS84</INCLUDE>
         <INCLUDE>Deviation.RoadNumber</INCLUDE>
         <INCLUDE>Deviation.EndTime</INCLUDE>
-        <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
+        <INCLUDE>Deviation.MessageCode</INCLUDE>
       </QUERY>
     </REQUEST>
   `;
@@ -1437,25 +1432,20 @@ function getDeviations() {
         resultRoadSituation.forEach(function (item) {
           const format = new WKT();
           const position = format
-            .readGeometry(item.Deviation[0].Geometry.WGS84)
+            .readGeometry(item.Deviation[0].Geometry.Point.WGS84)
             .transform("EPSG:4326", "EPSG:3857");
           const feature = new Feature({
             geometry: position,
             name:
               breakSentence(
-                (
-                  item.Deviation[0].LocationDescriptor ||
-                  item.Deviation[0].RoadNumber ||
-                  "Väg"
-                ).trim() +
-                ": " +
-                (item.Deviation[0].Message || "-"),
+                (item.Deviation[0].RoadNumber ? item.Deviation[0].RoadNumber + ": " : "") +
+                (item.Deviation[0].Message || item.Deviation[0].MessageCode || "?"),
               ) +
-              "\n" +
-              new Date(item.Deviation[0].EndTime).toLocaleString().slice(0, -3),
+              "\nSluttid: " +
+              new Date(item.Deviation[0].EndTime).toLocaleString("sv-SE", { year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric" }),
             roadNumber: item.Deviation[0].RoadNumber || "väg",
             iconId: item.Deviation[0].IconId,
-            locationDescriptor: item.Deviation[0].LocationDescriptor,
+            messageCode: item.Deviation[0].MessageCode || "Tillbud",
           });
           trafficWarningSource.addFeature(feature);
         });
@@ -1512,36 +1502,21 @@ function focusDestination() {
 
 function getClosestAccident() {
   if (trafficWarningSource.getFeatures().length >= 1) {
-    closestAccident = trafficWarningSource.getClosestFeatureToCoordinate(
-      currentPosition,
-      function (feature) {
-        return feature.get("iconId") === "roadAccident";
-      },
-    );
-  }
-
-  if (closestAccident != undefined) {
     // check route for accidents
     let routeHasAccident = false;
     const routeIsActive = routeLayer.getSource().getFeatureById(0) != undefined;
     if (routeIsActive) {
-      const featureCoordinates = routeLayer
-        .getSource()
-        .getFeatureById(0)
-        .getGeometry()
-        .getCoordinates();
+      const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
       const newMultiPoint = new MultiPoint(featureCoordinates.reverse());
-
-      const newLineStringclosestPoint =
-        newMultiPoint.getClosestPoint(currentPosition);
+      const newMultiPointCurrentPosition = newMultiPoint.getClosestPoint(currentPosition);
 
       for (let i = 0; i < featureCoordinates.length; i++) {
         const closestLineStringPoint =
           trafficWarningSource.getClosestFeatureToCoordinate(
             featureCoordinates[i],
-            function (feature) {
-              return feature.get("iconId") === "roadAccident";
-            },
+            // function (feature) {
+            //   return feature.get("iconId") === "roadAccident";
+            // },
           );
         const closestLineStringPointDistance = getDistance(
           toLonLat(closestLineStringPoint.getGeometry().getCoordinates()),
@@ -1551,34 +1526,34 @@ function getClosestAccident() {
           routeHasAccident = true;
           closestAccident = closestLineStringPoint;
         }
-        if (
-          featureCoordinates[i].toString() ===
-          newLineStringclosestPoint.toString()
-        ) {
+        if (featureCoordinates[i].toString() === newMultiPointCurrentPosition.toString()) {
           break;
         }
       }
+    } else {
+      // if no route is active check closest accident
+      closestAccident = trafficWarningSource.getClosestFeatureToCoordinate(
+        currentPosition,
+        // function (feature) {
+        //   return feature.get("iconId") === "roadAccident";
+        // },
+      );
     }
 
+    // check accident information
     const closestAccidentRoadNumber = closestAccident.get("roadNumber");
-    const closestAccidentCoords = closestAccident
-      .getGeometry()
-      .getCoordinates();
+    const messageCode = closestAccident.get("messageCode");
+    const closestAccidentCoords = closestAccident.getGeometry().getCoordinates();
     const closestAccidentDistance = getDistance(
       toLonLat(closestAccidentCoords),
       lonlat,
     );
 
-    if (
-      (closestAccidentDistance < 30000 && !routeIsActive) ||
-      routeHasAccident
-    ) {
+    if ((closestAccidentDistance < 30000 && !routeIsActive) || routeHasAccident) {
       trafficWarningDiv.innerHTML =
-        "Olycka " +
+        messageCode + ", " +
         closestAccidentRoadNumber.replace(/^V/, "v") +
-        " (" +
-        Math.round(closestAccidentDistance / 1000) +
-        "km)";
+        " (" + Math.round(closestAccidentDistance / 1000) + "km)";
     } else {
       closestAccident = null;
       trafficWarningDiv.innerHTML = "";
