@@ -1637,3 +1637,24 @@ function updateUserPosition() {
     xhttp.send(clientPositionString);
   }
 }
+
+document.getElementById("tripPointButton").addEventListener("click", function () {
+  trackPointLayer.getSource().clear();
+  for (let i = 1; i < trackLog.length; i++) {
+    const distanceToNext = getDistance(trackLog[i - 1][0], trackLog[i][0]);
+    const segmentTimeS = (new Date(trackLog[i][2]) / 1000) - (new Date(trackLog[i - 1][2]) / 1000);
+    const speedKmh = (distanceToNext / segmentTimeS) * 3.6;
+    const marker = new Feature({
+      geometry: new Point(fromLonLat(trackLog[i][0])),
+      name: String(new Date(trackLog[i][2]).toLocaleTimeString() + " " + Math.round(speedKmh) + "km/h"),
+    });
+    trackPointLayer.getSource().addFeature(marker);
+  }
+});
+
+const trackPointLayer = new VectorLayer({
+  source: new VectorSource(),
+  style: gpxStyleText,
+  declutter: true,
+});
+map.addLayer(trackPointLayer);
