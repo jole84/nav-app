@@ -30,7 +30,7 @@ const preferredFontSizeDiv = document.getElementById("preferredFontSize");
 const prefferedZoomDiv = document.getElementById("prefferedZoom");
 const routeInfo = document.getElementById("routeInfo");
 const saveLogButton = document.getElementById("saveLogButton");
-const startTime = new Date();
+const startTime = Date.now();
 const trafficWarningDiv = document.getElementById("trafficWarning");
 let accuracy = 5000;
 let altitude = 0;
@@ -472,6 +472,12 @@ const trafficWarningTextLayer = new VectorLayer({
   minZoom: 10,
 });
 
+const trackPointLayer = new VectorLayer({
+  source: new VectorSource(),
+  style: gpxStyleText,
+  declutter: true,
+});
+
 // creating the map
 const map = new Map({
   layers: [
@@ -484,6 +490,7 @@ const map = new Map({
     routeLayer,
     trackLayer,
     gpxLayerLabels,
+    trackPointLayer,
     locationLayer,
     trafficWarningIconLayer,
     trafficWarningTextLayer,
@@ -623,7 +630,7 @@ function toRemainingString(remainingDistance, secondsInt) {
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   const ETA = new Date(new Date().getTime() + secondsInt * 1000);
-
+  
   // first row
   let returnString = `<div class="equalSpace"><div><font class="infoFormat">-></font> ${Number(remainingDistance).toFixed(1)}<font class="infoFormat">KM</font></div><div>`;
   if (hours > 0) {
@@ -653,7 +660,7 @@ geolocation.once("change", function () {
   currentPosition = geolocation.getPosition();
   altitude = Math.round(geolocation.getAltitude() || 0);
   prevLonlat = lonlat = toLonLat(currentPosition);
-  const currentTime = new Date();
+  const currentTime = Date.now();
   if (currentTime - lastInteraction > interactionDelay) {
     centerFunction();
   }
@@ -698,7 +705,7 @@ function restoreTrip() {
   ).toFixed(2);
 
   document.getElementById("restoreTripButton").style.display = "none";
-  setExtraInfo(["Tripp återställd!"]);
+  setExtraInfo(["Tripp återställd"]);
 }
 
 document.getElementById("clearTripButton").addEventListener("click", clearTrip);
@@ -709,9 +716,10 @@ function clearTrip() {
   maxSpeed = 0;
   menuDiv.style.display = "none";
   document.getElementById("restoreTripButton").style.display = "none";
-  setExtraInfo(["Tripp nollställd!"]);
-  trackLog = [[lonlat, altitude, new Date()]];
+  setExtraInfo(["Tripp nollställd"]);
+  trackLog = [[lonlat, altitude, Date.now()]];
   localStorage.removeItem("trackLog");
+  trackPointLayer.getSource().clear();
 }
 
 // runs when position changes
@@ -724,7 +732,7 @@ geolocation.on("change", function () {
   altitude = Math.round(geolocation.getAltitude() || 0);
   localStorage.lastPosition = JSON.stringify(currentPosition);
   lonlat = toLonLat(currentPosition);
-  const currentTime = new Date();
+  const currentTime = Date.now();
   positionMarkerPoint.setCoordinates(currentPosition);
 
   // measure distance and push log if position change > 5 meters and accuracy is good and more than 3 seconds
@@ -1043,10 +1051,10 @@ async function saveLog() {
 <gpx version="1.1" creator="Jole84 Nav-app">
 <metadata>
   <desc>GPX log created by Jole84 Nav-app</desc>
-  <time>${trackLog[0][2].toISOString()}</time>
+  <time>${(new Date(trackLog[0][2])).toISOString()}</time>
 </metadata>
 <trk>
-  <name>${trackLog[0][2].toLocaleString()}, max ${Math.floor(maxSpeed)} km/h, ${(
+  <name>${new Date(trackLog[0][2]).toLocaleString()}, max ${Math.floor(maxSpeed)} km/h, ${(
       distanceTraveled / 1000
     ).toFixed(2)} km, ${toHHMMSS(trackLog[trackLog.length - 1][2] - trackLog[0][2])}</name>
   <trkseg>`;
@@ -1055,7 +1063,7 @@ async function saveLog() {
     const lon = trackLog[i][0][0].toFixed(6);
     const lat = trackLog[i][0][1].toFixed(6);
     const ele = trackLog[i][1].toFixed(2);
-    const isoTime = trackLog[i][2].toISOString();
+    const isoTime = new Date(trackLog[i][2]).toISOString();
     const trkpt = `
     <trkpt lat="${lat}" lon="${lon}"><ele>${ele}</ele><time>${isoTime}</time></trkpt>`;
     gpxFile += trkpt;
@@ -1067,7 +1075,7 @@ async function saveLog() {
 </gpx>`;
 
   const filename =
-    trackLog[0][2].toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + "_" + (distanceTraveled / 1000).toFixed(2) + "km.gpx";
+    new Date(trackLog[0][2]).toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + "_" + (distanceTraveled / 1000).toFixed(2) + "km.gpx";
   setExtraInfo(["Sparar fil:", filename]);
 
   let file = new Blob([gpxFile], { type: "application/gpx+xml" });
@@ -1638,23 +1646,23 @@ function updateUserPosition() {
   }
 }
 
+let showTripPoints = false;
 document.getElementById("tripPointButton").addEventListener("click", function () {
-  trackPointLayer.getSource().clear();
-  for (let i = 1; i < trackLog.length; i++) {
-    const distanceToNext = getDistance(trackLog[i - 1][0], trackLog[i][0]);
-    const segmentTimeS = (new Date(trackLog[i][2]) / 1000) - (new Date(trackLog[i - 1][2]) / 1000);
-    const speedKmh = (distanceToNext / segmentTimeS) * 3.6;
-    const marker = new Feature({
-      geometry: new Point(fromLonLat(trackLog[i][0])),
-      name: String(new Date(trackLog[i][2]).toLocaleTimeString() + " " + Math.round(speedKmh) + "km/h"),
-    });
-    trackPointLayer.getSource().addFeature(marker);
+  showTripPoints = !showTripPoints;
+  if (showTripPoints) {
+    this.innerHTML = "Dölj spårpunktsdata";
+    for (let i = 1; i < trackLog.length; i++) {
+      const distanceToNext = getDistance(trackLog[i - 1][0], trackLog[i][0]);
+      const segmentTimeMS = new Date(trackLog[i][2]) - new Date(trackLog[i - 1][2]);
+      const speedKmh = (distanceToNext / segmentTimeMS) * 3600;
+      const marker = new Feature({
+        geometry: new Point(fromLonLat(trackLog[i][0])),
+        name: String(new Date(trackLog[i][2]).toLocaleTimeString() + " " + Math.round(speedKmh) + "km/h"),
+      });
+      trackPointLayer.getSource().addFeature(marker);
+    }
+  } else {
+    this.innerHTML = "Visa spårpunktsdata";
+    trackPointLayer.getSource().clear();
   }
 });
-
-const trackPointLayer = new VectorLayer({
-  source: new VectorSource(),
-  style: gpxStyleText,
-  declutter: true,
-});
-map.addLayer(trackPointLayer);
