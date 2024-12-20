@@ -691,7 +691,7 @@ function restoreTrip() {
   // restore line geometry
   for (let i = 0; i < oldRoute.length; i++) {
     line.appendCoordinate(fromLonLat(oldRoute[i][0]));
-    trackLog[i] = [oldRoute[i][0], oldRoute[i][1], new Date(oldRoute[i][2])];
+    trackLog[i] = [oldRoute[i][0], oldRoute[i][1], oldRoute[i][2]];
     if (i == oldRoute.length - 1) {
       distanceTraveled += getDistance(lonlat, oldRoute[i][0]);
       line.appendCoordinate(currentPosition);
@@ -1651,13 +1651,17 @@ document.getElementById("tripPointButton").addEventListener("click", function ()
   showTripPoints = !showTripPoints;
   if (showTripPoints) {
     this.innerHTML = "Dölj spårpunktsdata";
+    let totalDistance = 0;
     for (let i = 1; i < trackLog.length; i++) {
-      const distanceToNext = getDistance(trackLog[i - 1][0], trackLog[i][0]);
+      const segmentDistanceM = getDistance(trackLog[i - 1][0], trackLog[i][0]);
       const segmentTimeMS = new Date(trackLog[i][2]) - new Date(trackLog[i - 1][2]);
-      const speedKmh = (distanceToNext / segmentTimeMS) * 3600;
+      const speedKmh = (segmentDistanceM / segmentTimeMS) * 3600;
+      totalDistance += segmentDistanceM;
       const marker = new Feature({
         geometry: new Point(fromLonLat(trackLog[i][0])),
-        name: String(new Date(trackLog[i][2]).toLocaleTimeString() + " " + Math.round(speedKmh) + "km/h"),
+        name: String(
+          new Date(trackLog[i][2]).toLocaleTimeString() + " " + Math.round(speedKmh) + "km/h\n" + 
+          (totalDistance / 1000).toFixed(1) + "km"),
       });
       trackPointLayer.getSource().addFeature(marker);
     }
@@ -1665,4 +1669,5 @@ document.getElementById("tripPointButton").addEventListener("click", function ()
     this.innerHTML = "Visa spårpunktsdata";
     trackPointLayer.getSource().clear();
   }
+  menuDiv.style.display = "none";
 });
