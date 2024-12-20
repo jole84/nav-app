@@ -1396,7 +1396,7 @@ function resetRotation() {
     }
   }
 }
-
+// <GTE name="Deviation.SeverityCode" value="2" /> 
 function getDeviations() {
   let xmlRequest = `
     <REQUEST>
@@ -1412,7 +1412,7 @@ function getDeviations() {
             <ELEMENTMATCH>
               <EQ name='Deviation.ManagedCause' value='true'/>
               <IN name='Deviation.MessageType' value='Trafikmeddelande,Traffic information'/>
-              <GTE name="Deviation.SeverityCode" value="2" />
+              <GTE name='Deviation.EndTime' value='$now'/>
             </ELEMENTMATCH>
           </OR>
         </FILTER>
