@@ -30,7 +30,6 @@ const preferredFontSizeDiv = document.getElementById("preferredFontSize");
 const prefferedZoomDiv = document.getElementById("prefferedZoom");
 const routeInfo = document.getElementById("routeInfo");
 const saveLogButton = document.getElementById("saveLogButton");
-const startTime = Date.now();
 const trafficWarningDiv = document.getElementById("trafficWarning");
 let accuracy = 5000;
 let altitude = 0;
@@ -46,6 +45,7 @@ let maxSpeed = 0;
 let prevLonlat;
 let speed = 0;
 let speedKmh = 0;
+let startTime = Date.now();
 let timeOut;
 let trackLog = [];
 
@@ -687,6 +687,7 @@ function restoreTrip() {
   const oldRoute = JSON.parse(localStorage.trackLog);
   distanceTraveled = 0;
   line.setCoordinates([]);
+  startTime = oldRoute[0][2];
 
   // restore line geometry
   for (let i = 0; i < oldRoute.length; i++) {
@@ -712,13 +713,13 @@ document.getElementById("clearTripButton").addEventListener("click", clearTrip);
 function clearTrip() {
   distanceTraveled = 0;
   document.getElementById("distanceTraveledDiv").innerHTML = "0.00";
+  document.getElementById("restoreTripButton").style.display = "none";
   line.setCoordinates([]);
+  localStorage.removeItem("trackLog");
   maxSpeed = 0;
   menuDiv.style.display = "none";
-  document.getElementById("restoreTripButton").style.display = "none";
   setExtraInfo(["Tripp nollställd"]);
   trackLog = [[lonlat, altitude, Date.now()]];
-  localStorage.removeItem("trackLog");
   trackPointLayer.getSource().clear();
 }
 
@@ -1040,7 +1041,7 @@ function saveLogButtonFunction() {
   if (trackLog.length > 5) {
     saveLog();
   } else {
-    console.log(trackLog);
+    console.log(JSON.stringify(trackLog));
     console.log(localStorage);
   }
 }
