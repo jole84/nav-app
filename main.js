@@ -119,15 +119,6 @@ infoGroup.addEventListener("dblclick", function () {
 
 // menu stuff
 const menuDiv = document.getElementById("menuDiv");
-if (
-  localStorage.firstRun == undefined &&
-  window.location === window.parent.location
-) {
-  menuDiv.style.display = "unset";
-  localStorage.firstRun = false;
-} else {
-  menuDiv.style.display = "none";
-}
 
 localStorage.enableLnt = enableLntDiv.checked = JSON.parse(localStorage.enableLnt || "true");
 enableLntDiv.addEventListener("change", function () {
@@ -150,10 +141,10 @@ closeMenuButton.onclick = function () {
 };
 
 openMenuButton.onclick = function () {
-  if (menuDiv.style.display == "none") {
-    menuDiv.style.display = "unset";
-  } else {
+  if (menuDiv.checkVisibility()) {
     menuDiv.style.display = "none";
+  } else {
+    menuDiv.style.display = "unset";
   }
 };
 
