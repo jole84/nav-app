@@ -30,6 +30,7 @@ const preferredFontSizeDiv = document.getElementById("preferredFontSize");
 const prefferedZoomDiv = document.getElementById("prefferedZoom");
 const routeInfo = document.getElementById("routeInfo");
 const saveLogButton = document.getElementById("saveLogButton");
+const startTime = Date.now();
 const trafficWarningDiv = document.getElementById("trafficWarning");
 let accuracy = 5000;
 let altitude = 0;
@@ -45,7 +46,6 @@ let maxSpeed = 0;
 let prevLonlat;
 let speed = 0;
 let speedKmh = 0;
-let startTime = Date.now();
 let timeOut;
 let trackLog = [];
 
@@ -687,7 +687,6 @@ function restoreTrip() {
   const oldRoute = JSON.parse(localStorage.trackLog);
   distanceTraveled = 0;
   line.setCoordinates([]);
-  startTime = oldRoute[0][2];
 
   // restore line geometry
   for (let i = 0; i < oldRoute.length; i++) {
