@@ -611,7 +611,7 @@ function toRemainingString(remainingDistance, secondsInt) {
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   const ETA = new Date(new Date().getTime() + secondsInt * 1000);
-  
+
   // first row
   let returnString = `<div class="equalSpace"><div><font class="infoFormat">-></font> ${Number(remainingDistance).toFixed(1)}<font class="infoFormat">KM</font></div><div>`;
   if (hours > 0) {
@@ -1282,7 +1282,11 @@ switchMap();
 
 // add keyboard controls
 document.addEventListener("keydown", function (event) {
-  if (menuDiv.style.display == "none") {
+  if (menuDiv.checkVisibility()) {
+    if (event.key == "Escape" || event.key == "§") {
+      closeMenuButton.click();
+    }
+  } else {
     for (let i = 1; i < 7; i++) {
       if (event.key == i) {
         localStorage.mapMode = i - 1;
@@ -1340,10 +1344,6 @@ document.addEventListener("keydown", function (event) {
       recalculateRoute();
     }
     resetRotation();
-  } else {
-    if (event.key == "Escape" || event.key == "§") {
-      closeMenuButton.click();
-    }
   }
 });
 
@@ -1637,7 +1637,7 @@ document.getElementById("tripPointButton").addEventListener("click", function ()
       const marker = new Feature({
         geometry: new Point(fromLonLat(trackLog[i][0])),
         name: String(
-          new Date(trackLog[i][2]).toLocaleTimeString() + " " + Math.round(speedKmh) + "km/h\n" + 
+          new Date(trackLog[i][2]).toLocaleTimeString() + " " + Math.round(speedKmh) + "km/h\n" +
           (totalDistance / 1000).toFixed(1) + "km"),
       });
       trackPointLayer.getSource().addFeature(marker);
