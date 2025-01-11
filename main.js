@@ -208,6 +208,7 @@ function gpxStyle(feature) {
       image: new Icon({
         anchor: [0.5, 1],
         src: "https://jole84.se/poi-marker.svg",
+        opacity: 0.9,
       }),
     });
   }
@@ -380,6 +381,7 @@ const gpxLayerLabels = new VectorLayer({
   source: gpxSource,
   style: gpxStyleText,
   declutter: true,
+  minZoom: 9,
 });
 
 const userLocationLayer = new VectorLayer({
