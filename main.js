@@ -958,10 +958,7 @@ function switchMap() {
   ortofoto.setVisible(false);
   topoweb.setVisible(false);
   osm.setVisible(false);
-  document.getElementsByTagName("body")[0].setAttribute(
-    "style",
-    "-webkit-filter: initial;filter: initial;background-color: initial;",
-  );
+  document.body.classList.remove("darkmode");
 
   if (localStorage.mapMode > 5) {
     localStorage.mapMode = 0;
@@ -991,7 +988,7 @@ function switchMap() {
   } else if (localStorage.mapMode == 2) {
     // mapMode 2: slitlagerkarta_nedtonad + night mode
     slitlagerkarta_nedtonad.setVisible(true);
-    document.getElementsByTagName("body")[0].setAttribute("style", "filter: invert(1) hue-rotate(180deg);");
+    document.body.classList.add("darkmode");
     if (JSON.parse(localStorage.enableLnt)) {
       topoweb.setVisible(true);
       slitlagerkarta_nedtonad.setMaxZoom(15.5);

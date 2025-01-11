@@ -122,6 +122,10 @@ table.table th {
   filter: saturate(2);
 }
 
+.darkmode {
+  filter: invert(1) hue-rotate(180deg);
+}
+
 .form-check-input[type=checkbox] {
   margin-right: 0px;
 }
