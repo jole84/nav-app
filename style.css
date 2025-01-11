@@ -9,9 +9,8 @@ body {
 
 #map {
   bottom: 0;
-  position: absolute;
-  top: 0;
   width: 100%;
+  height: 100%;
 }
 
 :root {
@@ -20,13 +19,19 @@ body {
 }
 
 html,
-body,
-#map {
+body{
   background-color: #bfe6ff;
   font-family: "roboto", sans-serif;
   overscroll-behavior-y: contain !important;
   padding: 0;
+  height: 100%;
+}
+
+#mapContainer {
   width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 #infoGroup:has(#info:empty):has(#extraInfo:empty):has(#routeInfo:empty):has(#trafficWarning:empty) {
@@ -195,7 +200,21 @@ kbd {
   background-color: #14a44d;
 }
 
+#topBar {
+  height: fit-content;
+  display: flex;
+
+  top: 0;
+  background-color: black;
+  font-family: "B612";
+  color: white;
+  gap: 10px;
+  justify-content: space-around;
+  align-items: baseline;
+}
+
 .infoGroup {
+  display: none;
   backdrop-filter: blur(5px);
   background-color: rgba(255, 255, 255, 0.4);
   border-radius: 5px;
