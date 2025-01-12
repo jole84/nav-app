@@ -208,7 +208,7 @@ function gpxStyle(feature) {
       image: new Icon({
         anchor: [0.5, 1],
         src: "https://jole84.se/poi-marker.svg",
-        opacity: 0.9,
+        opacity: 0.8,
       }),
     });
   }
@@ -264,6 +264,7 @@ const trackStyle = {
     image: new Icon({
       anchor: [0.5, 1],
       src: "https://jole84.se/end-marker.svg",
+      opacity: 0.8,
     }),
   }),
 };
