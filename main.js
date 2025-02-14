@@ -184,7 +184,7 @@ function gpxStyleText(feature) {
         placement: "line",
         textAlign: "left",
         textBaseline: "bottom",
-        offsetX: 15,
+        offsetX: 10,
         fill: new Fill({
           color: "#b41412",
         }),
@@ -209,6 +209,7 @@ function gpxStyle(feature) {
         anchor: [0.5, 1],
         src: "https://jole84.se/poi-marker.svg",
         opacity: 0.8,
+        scale: 0.8,
       }),
     });
   }
@@ -265,6 +266,7 @@ const trackStyle = {
       anchor: [0.5, 1],
       src: "https://jole84.se/end-marker.svg",
       opacity: 0.8,
+      scale: 0.8,
     }),
   }),
 };
@@ -366,7 +368,6 @@ const topoweb = new TileLayer({
   source: new XYZ({
     url: "https://minkarta.lantmateriet.se/map/topowebbcache/?layer=topowebb&style=default&tilematrixset=3857&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix={z}&TileCol={x}&TileRow={y}",
     maxZoom: 17,
-    zDirection: 1,
   }),
   visible: false,
 });
@@ -983,8 +984,8 @@ function switchMap() {
       ortofoto.setVisible(true);
       slitlagerkarta_nedtonad.setMaxZoom(15.5);
       topoweb.setMinZoom(15.5);
-      topoweb.setMaxZoom(18);
-      ortofoto.setMinZoom(18);
+      topoweb.setMaxZoom(17.5);
+      ortofoto.setMinZoom(17.5);
     }
   } else if (localStorage.mapMode == 2) {
     // mapMode 2: slitlagerkarta_nedtonad + night mode
@@ -1390,6 +1391,7 @@ function getDeviations() {
               <EQ name='Deviation.ManagedCause' value='true'/>
               <IN name='Deviation.MessageType' value='Trafikmeddelande,Traffic information'/>
               <GTE name='Deviation.EndTime' value='$now'/>
+              <LTE name='Deviation.StartTime' value='$dateadd(0.01:00)'/>
             </ELEMENTMATCH>
           </OR>
         </FILTER>
