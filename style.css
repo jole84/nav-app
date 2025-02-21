@@ -5,9 +5,11 @@ body {
   height: 100%;
   margin: 0;
   color: #4f4f4f;
+  background-color: #000000;
 }
 
 #map {
+  background-color: #bfe6ff;
   bottom: 0;
   position: absolute;
   top: 0;
@@ -22,7 +24,6 @@ body {
 html,
 body,
 #map {
-  background-color: #bfe6ff;
   font-family: "roboto", sans-serif;
   overscroll-behavior-y: contain !important;
   padding: 0;
