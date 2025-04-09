@@ -526,7 +526,7 @@ function gpxSourceLoader(gpxFile) {
 
 // add selectFile options
 var selectFile = document.getElementById("selectFile");
-fetch("https://jole84.se/filesList.json")
+fetch("https://jole84.se/filesList.php")
   .then((response) => response.json())
   .then((filesList) => {
     for (var i = 0; i < filesList.length; i++) {
