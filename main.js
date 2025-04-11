@@ -1270,7 +1270,7 @@ for (let i = 0; i < urlParams.length; i++) {
     }
     const titleString = decodeURIComponent(urlParams[i].split("/").pop());
     setExtraInfo([titleString]);
-    fetch("https://jole84.se/html_stuff/phpReadFile.php?url=" + urlParams[i], { mode: "cors" })
+    fetch("https://jole84.se/phpReadFile.php?url=" + urlParams[i], { mode: "cors" })
       .then((response) => {
         return response.text();
       })
