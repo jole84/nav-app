@@ -1331,10 +1331,16 @@ document.addEventListener("keydown", function (event) {
     }
     if (event.key == "Escape" || event.key == "§") {
       // carpe iter adventure controller minus button
+      if (view.getZoom() >= 17) {
+        lastInteraction = Date.now();
+      }
       view.adjustZoom(-zoomStep);
     }
     if (event.key == "a") {
       // carpe iter adventure controller plus button
+      if (view.getZoom() >= 17) {
+        lastInteraction = Date.now();
+      }
       view.adjustZoom(zoomStep);
     }
     if (event.code == "Space") {
