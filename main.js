@@ -1597,7 +1597,8 @@ function updateUserPosition() {
   if (!!localStorage.userName) {
     clientPositionArray["userName"] = localStorage.userName;
     clientPositionArray["timeStamp"] = Date.now();
-    clientPositionArray["coords"] = JSON.stringify(currentPosition);
+    clientPositionArray["x"] = geolocation.getPosition()[0];
+    clientPositionArray["y"] = geolocation.getPosition()[1];
     clientPositionArray["heading"] = heading;
     clientPositionArray["accuracy"] = Math.round(accuracy);
     clientPositionArray["speed"] = Math.floor(speedKmh);
@@ -1611,7 +1612,7 @@ function updateUserPosition() {
           if (userList[i]["userName"] != localStorage.userName) {
             // add other than current user
             const marker = new Feature({
-              geometry: new Point(JSON.parse(userList[i]["coords"])),
+              geometry: new Point([userList[i]["x"], userList[i]["y"]]),
               rotation: userList[i]["heading"],
               name: userList[i]["userName"]
                 + (userList[i]["accuracy"] > 50 ? "\nosäker pos. ≈" + userList[i]["accuracy"] + "m" : "")
