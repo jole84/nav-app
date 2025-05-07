@@ -1597,8 +1597,8 @@ function updateUserPosition() {
   if (!!localStorage.userName) {
     clientPositionArray["userName"] = localStorage.userName;
     clientPositionArray["timeStamp"] = Date.now();
-    clientPositionArray["x"] = geolocation.getPosition()[0];
-    clientPositionArray["y"] = geolocation.getPosition()[1];
+    clientPositionArray["x"] = Math.round(geolocation.getPosition()[0]);
+    clientPositionArray["y"] = Math.round(geolocation.getPosition()[1]);
     clientPositionArray["heading"] = heading;
     clientPositionArray["accuracy"] = Math.round(accuracy);
     clientPositionArray["speed"] = Math.floor(speedKmh);
