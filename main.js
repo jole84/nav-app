@@ -1599,7 +1599,7 @@ function updateUserPosition() {
     clientPositionArray["timeStamp"] = Date.now();
     clientPositionArray["x"] = Math.round(geolocation.getPosition()[0]);
     clientPositionArray["y"] = Math.round(geolocation.getPosition()[1]);
-    clientPositionArray["heading"] = heading;
+    clientPositionArray["heading"] = Math.round(heading);
     clientPositionArray["accuracy"] = Math.round(accuracy);
     clientPositionArray["speed"] = Math.floor(speedKmh);
     const clientPositionString = Object.keys(clientPositionArray).map(b => `${b}=${clientPositionArray[b]}`).join('&');
