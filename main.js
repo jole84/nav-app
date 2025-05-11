@@ -526,7 +526,7 @@ function gpxSourceLoader(gpxFile) {
 
 // add selectFile options
 var selectFile = document.getElementById("selectFile");
-fetch("https://jole84.se/filesList.json")
+fetch("https://jole84.se/filesList.php")
   .then((response) => response.json())
   .then((filesList) => {
     for (var i = 0; i < filesList.length; i++) {
@@ -1270,7 +1270,7 @@ for (let i = 0; i < urlParams.length; i++) {
     }
     const titleString = decodeURIComponent(urlParams[i].split("/").pop());
     setExtraInfo([titleString]);
-    fetch("https://jole84.se/html_stuff/phpReadFile.php?url=" + urlParams[i], { mode: "cors" })
+    fetch("https://jole84.se/phpReadFile.php?url=" + urlParams[i], { mode: "cors" })
       .then((response) => {
         return response.text();
       })
@@ -1331,10 +1331,16 @@ document.addEventListener("keydown", function (event) {
     }
     if (event.key == "Escape" || event.key == "§") {
       // carpe iter adventure controller minus button
+      if (view.getZoom() >= 17) {
+        lastInteraction = Date.now();
+      }
       view.adjustZoom(-zoomStep);
     }
     if (event.key == "a") {
       // carpe iter adventure controller plus button
+      if (view.getZoom() >= 17) {
+        lastInteraction = Date.now();
+      }
       view.adjustZoom(zoomStep);
     }
     if (event.code == "Space") {
@@ -1591,8 +1597,9 @@ function updateUserPosition() {
   if (!!localStorage.userName) {
     clientPositionArray["userName"] = localStorage.userName;
     clientPositionArray["timeStamp"] = Date.now();
-    clientPositionArray["coords"] = JSON.stringify(currentPosition);
-    clientPositionArray["heading"] = heading;
+    clientPositionArray["x"] = Math.round(geolocation.getPosition()[0]);
+    clientPositionArray["y"] = Math.round(geolocation.getPosition()[1]);
+    clientPositionArray["heading"] = Math.round(heading);
     clientPositionArray["accuracy"] = Math.round(accuracy);
     clientPositionArray["speed"] = Math.floor(speedKmh);
     const clientPositionString = Object.keys(clientPositionArray).map(b => `${b}=${clientPositionArray[b]}`).join('&');
@@ -1605,10 +1612,10 @@ function updateUserPosition() {
           if (userList[i]["userName"] != localStorage.userName) {
             // add other than current user
             const marker = new Feature({
-              geometry: new Point(JSON.parse(userList[i]["coords"])),
+              geometry: new Point([userList[i]["x"], userList[i]["y"]]),
               rotation: userList[i]["heading"],
               name: userList[i]["userName"]
-                + (userList[i]["accuracy"] > 50 ? "\nosäker pos. ≈" + userList[i]["accuracy"] + "m" : "")
+                + (userList[i]["accuracy"] > 50 ? "\nOSÄKER POSITION! (" + userList[i]["accuracy"] + "m)" : "")
                 + "\n" + msToTime(Date.now() - userList[i]["timeStamp"])
                 + (userList[i]["speed"] < 100 ? userList[i]["speed"] : "??") + "km/h",
             });
