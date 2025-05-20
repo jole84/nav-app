@@ -386,6 +386,12 @@ const gpxLayerLabels = new VectorLayer({
   minZoom: 9,
 });
 
+const speedSource = new VectorSource();
+
+const speedLayer = new VectorLayer({     //Temporary layer speedlimit
+  source: speedSource,
+});
+
 const userLocationLayer = new VectorLayer({
   source: new VectorSource(),
   style: function (feature) {
@@ -479,6 +485,7 @@ const map = new Map({
     userLocationLayer,
     trafficWarningIconLayer,
     trafficWarningTextLayer,
+    speedLayer
   ],
   target: "map",
   view: view,
@@ -1671,7 +1678,6 @@ function wkt2json(geometry) {
   return returnCoordinates;
 }
 const speedLimitDiv = document.getElementById("speedlimit");
-const speedSource = new VectorSource();
 let getPoint = [0, 0];
 function getSpeedLimit(coordinate) {
   if (getDistance(getPoint, coordinate) > 5000 || speedSource.getFeatures().length < 1) {
