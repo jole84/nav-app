@@ -38,6 +38,45 @@ body,
   display: none;
 }
 
+#speedlimit {
+  z-index: 15;
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  aspect-ratio: 1;
+  /* height: 1em; */
+  /* width: 1em; */
+  padding: 0.1em;
+  font-size: 3em;
+  font-family: sans-serif;
+  position: absolute;
+  bottom: 0.5em;
+  right: 0.5em;
+  background-color: #fcd006;
+  border: 0.2em solid #ee293d;
+  border-radius: 50%;
+  font-weight: bold;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.blink {
+  animation: blink 1s step-start infinite;
+}
+
 #trafficWarning {
   background-color: #fcd006;
   border-radius: 5px;
