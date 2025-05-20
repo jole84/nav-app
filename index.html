@@ -52,8 +52,8 @@
       <option value="1">Jole84 Vägkarta</option>
       <option value="2">Jole84 Nattläge</option>
       <option value="3">OpenStreetMap</option>
-      <!-- <option value="4">Lantmäteriet Topo</option>
-      <option value="5">Lantmäteriet Orto</option> -->
+      <option value="4">Lantmäteriet Topo</option>
+      <option value="5">Lantmäteriet Orto</option>
     </select>
     <button class="btn btn-success shadowed fullscreenHide" id="openMenu">Meny</button>
   </div>
@@ -72,21 +72,14 @@
       </tr>
 
       <tr>
-        <td colspan="2">
-          <input class="form-check-input" role="switch" type="checkbox" id="enableLnt">
-          <label class="form-check-label" for="enableLnt">Extra kartor från Lantmäteriet</label>
+        <td>
+          Datalänk (användarnamn för Glympse-liknande funktion, blankt avaktiverar):
+        </td>
+        <td>
+          <input class="form-control" type="text" id="userName" placeholder="användarnamn"><br>
         </td>
       </tr>
 
-      <tr>
-        <td>
-          Användarnamn (för Glympse-liknande funktion, blankt avaktiverar):
-        </td>
-        <td>
-          <input class="form-control" type="text" id="userName"><br>
-        </td>
-      </tr>
-      
       <tr>
         <td>
           Förvald zoom:
@@ -110,27 +103,43 @@
         </td>
       </tr>
 
+      <!-- <tr>
+        <td>
+          <input class="form-check-input" role="switch" type="checkbox" id="enableLnt">
+          <label class="form-check-label" for="enableLnt">Extra kartor från Lantmäteriet</label>
+        </td>
+      </tr> -->
+
       <tr>
         <td><kbd>A/+</kbd> zooma in</td>
         <td><kbd>Esc/-</kbd> zooma ut</td>
       </tr>
+
       <tr>
         <td><kbd>C/Enter</kbd> centrera vy</td>
         <td><kbd>V</kbd> växla karta</td>
       </tr>
+
       <tr>
         <td><kbd>D</kbd> focusera destination</td>
         <td><kbd>Space</kbd> översikt</td>
       </tr>
+
       <tr>
         <td><kbd>R</kbd> räkna om rutt</td>
         <td><kbd>högerklick/långtryck</kbd> navigera till punkt</td>
       </tr>
+
+      <tr>
+        <td>
+          <button style="width: 100%;" class="btn btn-primary" id="tripPointButton">Visa spårpunktsdata</button>
+        </td>
+        <td>
+          <button style="width: 100%;" class="btn btn-danger" id="clearTripButton">Nollställ tripp</button>
+        </td>
+      </tr>
+
     </table>
-    <button class="btn btn-primary" id="tripPointButton">Visa spårpunktsdata</button>
-    <div style="margin-top: 5px; margin-bottom: 10px;">
-      <button style="width: 100%;" class="btn btn-danger" id="clearTripButton">Nollställ tripp</button>
-    </div>
     <div>
       <button class="btn btn-danger" id="clearSettings">Återställ inställningar</button>
       <button class="btn btn-success" id="closeMenu">Stäng</button>
