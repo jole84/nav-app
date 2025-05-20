@@ -16,6 +16,7 @@ import TileWMS from "ol/source/TileWMS.js";
 import VectorSource from "ol/source/Vector.js";
 import WKT from "ol/format/WKT.js";
 import XYZ from "ol/source/XYZ.js";
+import { getSpeedLimit } from "./speedlimitfunctions.js";
 
 localStorage.mapMode = localStorage.mapMode || 0;
 const center = JSON.parse(localStorage.lastPosition || "[1700000, 8500000]");
@@ -32,6 +33,8 @@ const routeInfo = document.getElementById("routeInfo");
 const saveLogButton = document.getElementById("saveLogButton");
 const startTime = Date.now();
 const trafficWarningDiv = document.getElementById("trafficWarning");
+const speedLimitDiv = document.getElementById("speedlimit");
+
 let accuracy = 5000;
 let altitude = 0;
 let closestAccident;
@@ -386,12 +389,6 @@ const gpxLayerLabels = new VectorLayer({
   minZoom: 9,
 });
 
-const speedSource = new VectorSource();
-
-const speedLayer = new VectorLayer({     //Temporary layer speedlimit
-  source: speedSource,
-});
-
 const userLocationLayer = new VectorLayer({
   source: new VectorSource(),
   style: function (feature) {
@@ -485,7 +482,6 @@ const map = new Map({
     userLocationLayer,
     trafficWarningIconLayer,
     trafficWarningTextLayer,
-    speedLayer
   ],
   target: "map",
   view: view,
@@ -734,7 +730,6 @@ geolocation.on("change", function () {
   } else {
     speedLimitDiv.classList.remove("blink");
   }
-
 
   // measure distance and push log if position change > 5 meters and accuracy is good and more than 3 seconds
   if (
@@ -1665,80 +1660,3 @@ document.getElementById("tripPointButton").addEventListener("click", function ()
   }
   menuDiv.style.display = "none";
 });
-
-
-function wkt2json(geometry) {
-  const coordinateStrings = geometry.split("(")[1].split(")")[0].split(",");
-  const returnCoordinates = [];
-  coordinateStrings.forEach(function (item) {
-    const coords = item.trim().split(" ");
-    returnCoordinates.push([parseFloat((coords[0])), parseFloat(coords[1])]);
-  });
-  return returnCoordinates;
-}
-const speedLimitDiv = document.getElementById("speedlimit");
-let getPoint = [0, 0];
-function getSpeedLimit(coordinate) {
-  if (getDistance(getPoint, coordinate) > 5000 || speedSource.getFeatures().length < 1) {
-    console.log("getting speenlimits");
-    getPoint = coordinate;
-    const xmlRequest = "<REQUEST>" +
-      // Use your valid authenticationkey
-      "<LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />" +
-      '<QUERY objecttype="Hastighetsgräns" namespace="vägdata.nvdb_dk_o" schemaversion="1.3">' +
-      "<FILTER>" +
-      `<NEAR name="Geometry.WKT-WGS84-3D" value="${coordinate[0]} ${coordinate[1]}" maxdistance="5000m"/>` +
-      '<NE name="Högsta_tillåtna_hastighet" value="70" />' +
-      "</FILTER>" +
-      "<INCLUDE>Högsta_tillåtna_hastighet</INCLUDE>" +
-      "<INCLUDE>Geometry.WKT-WGS84-3D</INCLUDE>" +
-      "</QUERY></REQUEST>";
-
-    fetch(apiUrl, {
-      method: "Post",
-      headers: {
-        "Content-Type": "text/xml",
-      },
-      body: xmlRequest,
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(result => {
-        const speedlimits = result.RESPONSE.RESULT[0].Hastighetsgräns;
-        const format = new GeoJSON();
-        speedSource.clear();
-        speedlimits.forEach(element => {
-          const linestring = turf.lineString(wkt2json(element.Geometry["WKT-WGS84-3D"]));
-          const buffer = turf.buffer(linestring, 0.02, { steps: 1 });
-          const feature = new Feature({
-            geometry: format.readGeometry(buffer.geometry).transform("EPSG:4326", "EPSG:3857"),
-            speed: element["Högsta_tillåtna_hastighet"],
-          });
-          speedSource.addFeature(feature);
-        });
-      });
-  } else {
-    const possibleSpeedLimits = [];
-    speedSource.getFeaturesAtCoordinate(fromLonLat(coordinate)).forEach(function (feature) {
-      possibleSpeedLimits.push(feature.get("speed"));
-    });
-    return determineSpeed(possibleSpeedLimits);
-  }
-}
-
-function allEqual(arr) {
-  return new Set(arr).size == 1;
-}
-let currentSpeedlimit = 70;
-function determineSpeed(possibleSpeedLimits) {
-  if (allEqual(possibleSpeedLimits)) {
-    currentSpeedlimit = possibleSpeedLimits[0];
-  } else if (!possibleSpeedLimits[0]) {
-    currentSpeedlimit = 70;
-  }
-  return currentSpeedlimit;
-}
