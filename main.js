@@ -729,9 +729,8 @@ geolocation.on("change", function () {
   const speedLimit = getSpeedLimit(lonlat) || 70
   speedLimitDiv.innerHTML = speedLimit;
 
-  if (speed > speedLimit * 1.05) {
+  if (speedKmh > speedLimit * 1.05) {
     speedLimitDiv.classList.add("blink");
-
   } else {
     speedLimitDiv.classList.remove("blink");
   }
@@ -1714,7 +1713,7 @@ function getSpeedLimit(coordinate) {
         speedSource.clear();
         speedlimits.forEach(element => {
           const linestring = turf.lineString(wkt2json(element.Geometry["WKT-WGS84-3D"]));
-          const buffer = turf.buffer(linestring, 0.015, { steps: 1 });
+          const buffer = turf.buffer(linestring, 0.02, { steps: 1 });
           const feature = new Feature({
             geometry: format.readGeometry(buffer.geometry).transform("EPSG:4326", "EPSG:3857"),
             speed: element["Högsta_tillåtna_hastighet"],
@@ -1736,8 +1735,10 @@ function allEqual(arr) {
 }
 let currentSpeedlimit = 70;
 function determineSpeed(possibleSpeedLimits) {
-  if (possibleSpeedLimits.length <= 1 || allEqual(possibleSpeedLimits)) {
-    currentSpeedlimit = possibleSpeedLimits[0] || 70;
+  if (allEqual(possibleSpeedLimits)) {
+    currentSpeedlimit = possibleSpeedLimits[0];
+  } else if (!possibleSpeedLimits[0]) {
+    currentSpeedlimit = 70;
   }
   return currentSpeedlimit;
 }
