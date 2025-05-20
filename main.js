@@ -22,7 +22,7 @@ const center = JSON.parse(localStorage.lastPosition || "[1700000, 8500000]");
 const centerButton = document.getElementById("centerButton");
 const closeMenuButton = document.getElementById("closeMenu");
 const customFileButton = document.getElementById("customFileButton");
-const enableLntDiv = document.getElementById("enableLnt");
+// const enableLntDiv = document.getElementById("enableLnt");
 const infoGroup = document.getElementById("infoGroup");
 const interactionDelay = 10000;
 const openMenuButton = document.getElementById("openMenu");
@@ -120,21 +120,21 @@ infoGroup.addEventListener("dblclick", function () {
 // menu stuff
 const menuDiv = document.getElementById("menuDiv");
 
-localStorage.enableLnt = enableLntDiv.checked = JSON.parse(localStorage.enableLnt || "true");
-enableLntDiv.addEventListener("change", function () {
-  localStorage.enableLnt = enableLntDiv.checked;
-  location.reload();
-});
-if (JSON.parse(localStorage.enableLnt)) {
-  const option4 = document.createElement("option");
-  const option5 = document.createElement("option");
-  option4.text = "Lantmäteriet Topo";
-  option4.value = 4;
-  option5.text = "Lantmäteriet Orto";
-  option5.value = 5;
-  layerSelector.add(option4);
-  layerSelector.add(option5);
-}
+// localStorage.enableLnt = enableLntDiv.checked = JSON.parse(localStorage.enableLnt || "true");
+// enableLntDiv.addEventListener("change", function () {
+//   localStorage.enableLnt = enableLntDiv.checked;
+//   location.reload();
+// });
+// if (JSON.parse(localStorage.enableLnt)) {
+//   const option4 = document.createElement("option");
+//   const option5 = document.createElement("option");
+//   option4.text = "Lantmäteriet Topo";
+//   option4.value = 4;
+//   option5.text = "Lantmäteriet Orto";
+//   option5.value = 5;
+//   layerSelector.add(option4);
+//   layerSelector.add(option5);
+// }
 
 closeMenuButton.onclick = function () {
   menuDiv.style.display = "none";
@@ -971,32 +971,26 @@ function switchMap() {
   if (localStorage.mapMode == 0) {
     // mapMode 0: slitlagerkarta
     slitlagerkarta.setVisible(true);
-    if (JSON.parse(localStorage.enableLnt)) {
-      ortofoto.setVisible(true);
-      slitlagerkarta.setMaxZoom(15.5);
-      ortofoto.setMinZoom(15.5);
-    }
+    ortofoto.setVisible(true);
+    slitlagerkarta.setMaxZoom(15.5);
+    ortofoto.setMinZoom(15.5);
   } else if (localStorage.mapMode == 1) {
     // mapMode 1: slitlagerkarta_nedtonad
     slitlagerkarta_nedtonad.setVisible(true);
-    if (JSON.parse(localStorage.enableLnt)) {
-      topoweb.setVisible(true);
-      ortofoto.setVisible(true);
-      slitlagerkarta_nedtonad.setMaxZoom(15.5);
-      topoweb.setMinZoom(15.5);
-      topoweb.setMaxZoom(17.5);
-      ortofoto.setMinZoom(17.5);
-    }
+    topoweb.setVisible(true);
+    ortofoto.setVisible(true);
+    slitlagerkarta_nedtonad.setMaxZoom(15.5);
+    topoweb.setMinZoom(15.5);
+    topoweb.setMaxZoom(17.5);
+    ortofoto.setMinZoom(17.5);
   } else if (localStorage.mapMode == 2) {
     // mapMode 2: slitlagerkarta_nedtonad + night mode
     slitlagerkarta_nedtonad.setVisible(true);
     document.body.classList.add("darkmode");
-    if (JSON.parse(localStorage.enableLnt)) {
-      topoweb.setVisible(true);
-      slitlagerkarta_nedtonad.setMaxZoom(15.5);
-      topoweb.setMinZoom(15.5);
-      topoweb.setMaxZoom(20);
-    }
+    topoweb.setVisible(true);
+    slitlagerkarta_nedtonad.setMaxZoom(15.5);
+    topoweb.setMinZoom(15.5);
+    topoweb.setMaxZoom(20);
   } else if (localStorage.mapMode == 3) {
     // mapMode 3: Openstreetmap
     osm.setVisible(true);
@@ -1609,18 +1603,16 @@ function updateUserPosition() {
         const userList = JSON.parse(this.responseText);
         userLocationLayer.getSource().clear();
         for (let i = 0; i < userList.length; i++) {
-          if (userList[i]["userName"] != localStorage.userName) {
-            // add other than current user
-            const marker = new Feature({
-              geometry: new Point([userList[i]["x"], userList[i]["y"]]),
-              rotation: userList[i]["heading"],
-              name: userList[i]["userName"]
-                + (userList[i]["accuracy"] > 50 ? "\nOSÄKER POSITION! (" + userList[i]["accuracy"] + "m)" : "")
-                + "\n" + msToTime(Date.now() - userList[i]["timeStamp"])
-                + (userList[i]["speed"] < 100 ? userList[i]["speed"] : "??") + "km/h",
-            });
-            userLocationLayer.getSource().addFeature(marker);
-          }
+          // add the other users
+          const marker = new Feature({
+            geometry: new Point([userList[i]["x"], userList[i]["y"]]),
+            rotation: userList[i]["heading"],
+            name: userList[i]["userName"]
+              + (userList[i]["accuracy"] > 50 ? "\nOSÄKER POSITION! (" + userList[i]["accuracy"] + "m)" : "")
+              + "\n" + msToTime(Date.now() - userList[i]["timeStamp"])
+              + (userList[i]["speed"] < 100 ? userList[i]["speed"] : "??") + "km/h",
+          });
+          userLocationLayer.getSource().addFeature(marker);
         }
       } catch {
         console.log(this.responseText);
