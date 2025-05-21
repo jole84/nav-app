@@ -44,7 +44,7 @@ export function getSpeedLimit(coordinate) {
         speedSource.clear();
         speedlimits.forEach(element => {
           const linestring = turf.lineString(wkt2json(element.Geometry["WKT-WGS84-3D"]));
-          const buffer = turf.buffer(linestring, 0.02, { steps: 1 });
+          const buffer = turf.buffer(linestring, 0.03, { steps: 1 });
           const feature = new Feature({
             geometry: format.readGeometry(buffer.geometry).transform("EPSG:4326", "EPSG:3857"),
             speed: element["Högsta_tillåtna_hastighet"],
