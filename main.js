@@ -3,10 +3,10 @@ import { Feature, Map, View } from "ol";
 import { fromLonLat, toLonLat } from "ol/proj.js";
 import { getDistance } from "ol/sphere";
 import { saveAs } from "file-saver";
-import { Stroke, Style, Icon, Fill, Text } from "ol/style.js";
+import { Style, Icon } from "ol/style.js";
 import { Vector as VectorLayer } from "ol/layer.js";
 import Geolocation from "ol/Geolocation.js";
-import { GPX, GeoJSON, KML } from "ol/format.js";
+import { GeoJSON } from "ol/format.js";
 import LineString from "ol/geom/LineString";
 import MultiPoint from "ol/geom/MultiPoint.js";
 import OSM from "ol/source/OSM.js";
@@ -16,6 +16,24 @@ import TileWMS from "ol/source/TileWMS.js";
 import VectorSource from "ol/source/Vector.js";
 import WKT from "ol/format/WKT.js";
 import XYZ from "ol/source/XYZ.js";
+import {
+  trafficWarningTextStyleFunction,
+  trafficWarningIconStyleFunction,
+  gpxStyleText,
+  gpxStyle,
+  trackStyle,
+  userLocationStyle,
+  routeStyle,
+} from "./styleFuntions.js";
+import {
+  getPixelDistance,
+  breakSentence,
+  msToTime,
+  toHHMMSS,
+  getRemainingDistance,
+  toRemainingString,
+  getFileFormat,
+} from "./modules.js";
 
 localStorage.mapMode = localStorage.mapMode || 0;
 const center = JSON.parse(localStorage.lastPosition || "[1700000, 8500000]");
@@ -174,144 +192,7 @@ const view = new View({
   constrainRotation: false,
 });
 
-function gpxStyleText(feature) {
-  const featureType = feature.getGeometry().getType();
-  if (featureType == "Point") {
-    return new Style({
-      text: new Text({
-        text: feature.get("name"),
-        font: "13px B612, sans-serif",
-        placement: "line",
-        textAlign: "left",
-        textBaseline: "bottom",
-        offsetX: 10,
-        fill: new Fill({
-          color: "#b41412",
-        }),
-        backgroundFill: new Fill({
-          color: [255, 255, 255, 0.9],
-        }),
-        backgroundStroke: new Stroke({
-          color: [0, 0, 0, 0.9],
-          width: 1.5,
-        }),
-        padding: [0, 0, 0, 1],
-      }),
-    });
-  }
-}
-
-function gpxStyle(feature) {
-  const featureType = feature.getGeometry().getType();
-  if (featureType == "Point") {
-    return new Style({
-      image: new Icon({
-        anchor: [0.5, 1],
-        src: "https://jole84.se/poi-marker.svg",
-        opacity: 0.8,
-        scale: 0.8,
-      }),
-    });
-  }
-
-  if (featureType == "LineString" || featureType == "MultiLineString") {
-    return new Style({
-      stroke: new Stroke({
-        color: [0, 0, 255, 0.5],
-        width: 10,
-      }),
-    });
-  }
-
-  if (featureType == "Polygon" || featureType == "MultiPolygon") {
-    return new Style({
-      stroke: new Stroke({
-        color: [255, 0, 0, 1],
-        width: 2,
-      }),
-      fill: new Fill({
-        color: [255, 0, 0, 0.2],
-      }),
-      text: new Text({
-        text: feature.get("name"),
-        font: "13px B612, sans-serif",
-        overflow: true,
-        fill: new Fill({
-          color: "#b41412",
-        }),
-        stroke: new Stroke({
-          color: "white",
-          width: 4,
-        }),
-      }),
-    });
-  }
-}
-
-const trackStyle = {
-  LineString: new Style({
-    stroke: new Stroke({
-      color: [255, 0, 0, 0.9],
-      width: 4,
-    }),
-  }),
-  route: new Style({
-    stroke: new Stroke({
-      color: [0, 0, 255, 0.5],
-      width: 10,
-    }),
-  }),
-  icon: new Style({
-    image: new Icon({
-      anchor: [0.5, 1],
-      src: "https://jole84.se/end-marker.svg",
-      opacity: 0.8,
-      scale: 0.8,
-    }),
-  }),
-};
 trackStyle["MultiLineString"] = trackStyle["LineString"];
-
-const trafficWarningTextStyleFunction = function (feature) {
-  //Function to determine style of icons
-  return [
-    new Style({
-      text: new Text({
-        text: feature.get("name"),
-        font: "13px B612, sans-serif",
-        textAlign: "left",
-        textBaseline: "top",
-        offsetX: 20,
-        fill: new Fill({
-          color: "black",
-        }),
-        backgroundFill: new Fill({
-          color: [252, 208, 30, 0.9],
-        }),
-        backgroundStroke: new Stroke({
-          color: [238, 41, 61, 0.9],
-          width: 2,
-        }),
-        padding: [2, 2, 2, 2],
-      }),
-    }),
-  ];
-};
-
-const trafficWarningIconStyleFunction = function (feature) {
-  //Function to determine style of icons
-  return [
-    new Style({
-      image: new Icon({
-        anchor: [0.5, 0.5],
-        src:
-          "https://api.trafikinfo.trafikverket.se/v2/icons/" +
-          feature.get("iconId") +
-          "?type=png32x32",
-      }),
-    }),
-  ];
-};
 
 const trackLineString = new LineString([]);
 const trackLineFeature = new Feature({
@@ -388,56 +269,25 @@ const gpxLayerLabels = new VectorLayer({
 
 const userLocationLayer = new VectorLayer({
   source: new VectorSource(),
-  style: function (feature) {
-    return new Style({
-      text: new Text({
-        text: feature.get("name"),
-        font: "12px B612, sans-serif",
-        textAlign: "left",
-        textBaseline: "top",
-        offsetX: 17,
-        offsetY: 5,
-        fill: new Fill({
-          color: "black",
-        }),
-        stroke: new Stroke({
-          color: "white",
-          width: 4,
-        }),
-        backgroundFill: new Fill({
-          color: [255, 255, 255, 0.9],
-        }),
-        backgroundStroke: new Stroke({
-          color: [0, 0, 0, 0.9],
-          width: 1.5,
-        }),
-        padding: [0, 0, 0, 1],
-      }),
-      image: new Icon({
-        rotation: feature.get("rotation"),
-        rotateWithView: true,
-        anchor: [0.5, 0.67],
-        color: "red",
-        src: "https://openlayers.org/en/latest/examples/data/geolocation_marker_heading.png",
-      }),
-    });
-  },
+  style: userLocationStyle,
 });
 
 const trackLayer = new VectorLayer({
   source: new VectorSource({
     features: [trackLineFeature],
   }),
-  style: function (feature) {
-    return trackStyle[feature.getGeometry().getType()];
-  },
+  // style: function (feature) {
+  //   return trackStyle[feature.getGeometry().getType()];
+  // },
+  style: trackStyle,
 });
 
 const routeLayer = new VectorLayer({
   source: new VectorSource(),
-  style: function (feature) {
-    return trackStyle[feature.get("type")];
-  },
+  // style: function (feature) {
+  //   return trackStyle[feature.get("type")];
+  // },
+  style: routeStyle,
 });
 routeLayer.addEventListener("change", function () {
   getClosestAccident();
@@ -484,16 +334,6 @@ const map = new Map({
   view: view,
   keyboardEventTarget: document,
 });
-
-function getFileFormat(fileExtention) {
-  if (fileExtention === "gpx") {
-    return new GPX();
-  } else if (fileExtention === "kml") {
-    return new KML({ extractStyles: false });
-  } else if (fileExtention === "geojson") {
-    return new GeoJSON();
-  }
-}
 
 // gpx loader fit view
 // gpxSource.addEventListener("addfeature", function () {
@@ -582,50 +422,6 @@ if ("launchQueue" in window) {
     }
     setExtraInfo(fileNames);
   });
-}
-
-// convert degrees to radians
-function degToRad(deg) {
-  return (deg * Math.PI * 2) / 360;
-}
-
-function radToDeg(rad) {
-  return rad * (180 / Math.PI);
-}
-
-function getPixelDistance(pixel, pixel2) {
-  return Math.sqrt(
-    (pixel[1] - pixel2[1]) * (pixel[1] - pixel2[1]) +
-    (pixel[0] - pixel2[0]) * (pixel[0] - pixel2[0]),
-  );
-}
-
-// milliseconds to HH:MM:SS
-function toHHMMSS(milliSecondsInt) {
-  const dateObj = new Date(milliSecondsInt);
-  const hours = dateObj.getUTCHours().toString().padStart(2, "0");
-  const minutes = dateObj.getUTCMinutes().toString().padStart(2, "0");
-  const seconds = dateObj.getSeconds().toString().padStart(2, "0");
-  return hours + ":" + minutes + ":" + seconds;
-}
-
-// milliseconds to HH:MM
-function toRemainingString(remainingDistance, secondsInt) {
-  const totalMinutes = Math.floor(secondsInt / 60);
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  const ETA = new Date(new Date().getTime() + secondsInt * 1000);
-
-  // first row
-  let returnString = `<div class="equalSpace"><div><font class="infoFormat">-></font> ${Number(remainingDistance).toFixed(1)}<font class="infoFormat">KM</font></div><div>`;
-  if (hours > 0) {
-    returnString += `${hours}<font class="infoFormat">H</font> `;
-  }
-  returnString += `${minutes}<font class="infoFormat">MIN</font></div></div>`
-
-  // second row
-  returnString += `<div class="equalSpace"> <div></div> <div>${ETA.getHours()}:${ETA.getMinutes().toString().padStart(2, "0")}<font class="infoFormat">ETA</font></div></div>`;
-  return returnString;
 }
 
 // start geolocation
@@ -764,7 +560,7 @@ geolocation.on("change", function () {
       const featureType = feature.getGeometry().getType();
       if (featureType == "LineString" || featureType == "MultiLineString") {
         const featureCoordinates = featureType == "MultiLineString" ? feature.getGeometry().getLineString().getCoordinates() : feature.getGeometry().getCoordinates();
-        const gpxRemainingDistance = getRemainingDistance(featureCoordinates);
+        const gpxRemainingDistance = getRemainingDistance(featureCoordinates, lonlat);
         if (gpxRemainingDistance != undefined) {
           routeInfo.innerHTML += toRemainingString(
             gpxRemainingDistance,
@@ -781,7 +577,7 @@ geolocation.on("change", function () {
         .getFeatureById(0)
         .getGeometry()
         .getCoordinates();
-      const routeRemainingDistance = getRemainingDistance(featureCoordinates);
+      const routeRemainingDistance = getRemainingDistance(featureCoordinates, lonlat);
       if (routeRemainingDistance != undefined) {
         routeInfo.innerHTML += toRemainingString(
           routeRemainingDistance,
@@ -809,34 +605,6 @@ geolocation.on("change", function () {
   document.getElementById("speedDiv").innerHTML = Math.floor(speedKmh);
   document.getElementById("maxSpeedDiv").innerHTML = Math.floor(maxSpeed);
 });
-
-function getRemainingDistance(featureCoordinates) {
-  const newMultiPoint = new MultiPoint(featureCoordinates.reverse());
-  let remainingDistance = 0;
-  const closestPoint = newMultiPoint.getClosestPoint(currentPosition);
-  const closeToRoute = getDistance(toLonLat(closestPoint), lonlat) < 500;
-
-  if (closeToRoute) {
-    for (let i = 0; i < featureCoordinates.length - 1; i++) {
-      if (
-        featureCoordinates[0].toString() === closestPoint.toString() ||
-        featureCoordinates[i + 1].toString() === closestPoint.toString()
-      ) {
-        remainingDistance += getDistance(
-          toLonLat(featureCoordinates[i]),
-          lonlat,
-        );
-        break;
-      } else {
-        remainingDistance += getDistance(
-          toLonLat(featureCoordinates[i]),
-          toLonLat(featureCoordinates[i + 1]),
-        );
-      }
-    }
-    return remainingDistance / 1000;
-  }
-}
 
 // alert user if geolocation fails
 geolocation.on("error", function () {
@@ -1348,22 +1116,6 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
-function breakSentence(sentence) {
-  sentence = sentence.replaceAll(".:", ":").replaceAll("\n", "").trim();
-  let returnSentence = "";
-  let x = 0;
-  for (let i = 0; i < sentence.length; i++) {
-    if (x > 20 && sentence[i] == " " && sentence.length - i > 10) {
-      x = 0;
-      returnSentence += "\n";
-    } else {
-      returnSentence += sentence[i];
-    }
-    x++;
-  }
-  return returnSentence;
-}
-
 const apiUrl = "https://api.trafikinfo.trafikverket.se/v2/data.json";
 
 function resetRotation() {
@@ -1580,11 +1332,7 @@ document.getElementById("userName").addEventListener("change", function () {
   }
   localStorage.userName = document.getElementById("userName").value.trim();
   updateUserPosition();
-})
-
-function msToTime(milliseconds) {
-  return milliseconds > 120000 ? (Math.ceil(milliseconds / 1000 / 60) + " min sedan\n") : "";
-}
+});
 
 setInterval(updateUserPosition, 30000);
 function updateUserPosition() {
