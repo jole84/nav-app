@@ -1215,63 +1215,59 @@ map.on("pointerdrag", function () {
 });
 
 // checks url parameters and loads gpx file from url:
-const urlParams = window.location.href.split("?").pop().split("&");
-for (let i = 0; i < urlParams.length; i++) {
-  console.log(decodeURIComponent(urlParams[i]));
-
-  if (urlParams[i].includes("destinationPoints")) {
-    // https://jole84.se/nav-app/index.html?destinationPoints=[[lon,lat]]
-    const destinationPoints = JSON.parse(decodeURI(urlParams[i].split("=")[1]));
-    if (destinationPoints.length == 1) {
-      destinationCoordinates[0] = lonlat;
-      destinationCoordinates.push(destinationPoints[0]);
-      routeMe();
-    } else if (destinationPoints.length > 1) {
-      destinationCoordinates = destinationPoints;
-      routeMe();
-    }
+const searchParams = new URLSearchParams(window.location.search);
+if (searchParams.has("destinationPoints")) {
+  const destinationPoints = JSON.parse(decodeURIComponent(searchParams.get("destinationPoints")));
+  if (destinationPoints.length == 1) {
+    destinationCoordinates[0] = lonlat;
+    destinationCoordinates.push(destinationPoints[0]);
+    routeMe();
+  } else if (destinationPoints.length > 1) {
+    destinationCoordinates = destinationPoints;
+    routeMe();
   }
+}
 
-  if (urlParams[i].includes("trackPoints")) {
-    const line = new LineString([]);
-    const gpxLine = new Feature({
-      geometry: line,
+if (searchParams.has("poiPoints")) {
+  const poiPoints = JSON.parse(decodeURIComponent(searchParams.get("poiPoints")));
+  for (let i = 0; i < poiPoints.length; i++) {
+    const name = poiPoints[i][1];
+    const coordinate = fromLonLat(poiPoints[i][0]);
+    const marker = new Feature({
+      geometry: new Point(coordinate),
+      name: name,
     });
-    const trackPoints = JSON.parse(decodeURI(urlParams[i].split("=")[1]));
-    for (let i = 0; i < trackPoints.length; i++) {
-      const coordinate = fromLonLat(trackPoints[i]);
-      line.appendCoordinate(coordinate);
-    }
-    gpxSource.addFeature(gpxLine);
+    gpxSource.addFeature(marker);
   }
+}
 
-  if (urlParams[i].includes("poiPoints")) {
-    const poiPoints = JSON.parse(decodeURI(urlParams[i].split("=")[1]));
-    for (let i = 0; i < poiPoints.length; i++) {
-      const name = poiPoints[i][1];
-      const coordinate = fromLonLat(poiPoints[i][0]);
-      const marker = new Feature({
-        geometry: new Point(coordinate),
-        name: name,
-      });
-      gpxSource.addFeature(marker);
-    }
+if (searchParams.has("trackPoints")) {
+  const line = new LineString([]);
+  const gpxLine = new Feature({
+    geometry: line,
+  });
+  const trackPoints = JSON.parse(decodeURIComponent(searchParams.get("trackPoints")));
+  for (let i = 0; i < trackPoints.length; i++) {
+    const coordinate = fromLonLat(trackPoints[i]);
+    line.appendCoordinate(coordinate);
   }
+  gpxSource.addFeature(gpxLine);
+}
 
-  if (urlParams[i].includes(".gpx") || urlParams[i].includes(".kml") || urlParams[i].includes(".geojson")) {
-    if (!urlParams[i].includes("http")) {
-      urlParams[i] = "https://jole84.se/rutter/" + urlParams[i];
-    }
-    const titleString = decodeURIComponent(urlParams[i].split("/").pop());
-    setExtraInfo([titleString]);
-    fetch("https://jole84.se/phpReadFile.php?url=" + urlParams[i], { mode: "cors" })
-      .then((response) => {
-        return response.text();
-      })
-      .then((response) => {
-        gpxSourceLoader(new File([response], urlParams[i], { type: "application/gpx" }));
-      });
+if (searchParams.has("gpxFile")) {
+  let gpxFile = searchParams.get("gpxFile");
+  if (!gpxFile.includes("http")) {
+    gpxFile = "https://jole84.se/rutter/" + gpxFile;
   }
+  const titleString = decodeURIComponent(gpxFile.split("/").pop());
+  setExtraInfo([titleString]);
+  fetch("https://jole84.se/phpReadFile.php?url=" + gpxFile, { mode: "cors" })
+    .then((response) => {
+      return response.text();
+    })
+    .then((response) => {
+      gpxSourceLoader(new File([response], gpxFile, { type: "application/gpx" }));
+    });
 }
 switchMap();
 
