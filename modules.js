@@ -11,13 +11,12 @@ export function getPixelDistance(pixel, pixel2) {
 }
 
 export function getFileFormat(fileExtention) {
-  if (fileExtention === "gpx") {
-    return new GPX();
-  } else if (fileExtention === "kml") {
-    return new KML({ extractStyles: false });
-  } else if (fileExtention === "geojson") {
-    return new GeoJSON();
+  const extentions = {
+    gpx: new GPX(),
+    kml: new KML({ extractStyles: false }),
+    geojson: new GeoJSON(),
   }
+  return extentions[fileExtention];
 }
 
 export function breakSentence(sentence) {
@@ -40,7 +39,6 @@ export function msToTime(milliseconds) {
   return milliseconds > 120000 ? (Math.ceil(milliseconds / 1000 / 60) + " min sedan\n") : "";
 }
 
-// milliseconds to HH:MM:SS
 export function toHHMMSS(milliSecondsInt) {
   const dateObj = new Date(milliSecondsInt);
   const hours = dateObj.getUTCHours().toString().padStart(2, "0");
@@ -77,7 +75,6 @@ export function getRemainingDistance(featureCoordinates, lonlat) {
   }
 }
 
-// milliseconds to HH:MM
 export function toRemainingString(remainingDistance, secondsInt) {
   const totalMinutes = Math.floor(secondsInt / 60);
   const hours = Math.floor(totalMinutes / 60);
