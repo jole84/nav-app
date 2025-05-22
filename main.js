@@ -725,7 +725,7 @@ geolocation.on("change", function () {
   const speedLimit = getSpeedLimit(lonlat) || 70
   speedLimitDiv.innerHTML = speedLimit;
 
-  if (speedKmh > speedLimit * 1.05) {
+  if (speedKmh > speedLimit + 5) {
     speedLimitDiv.classList.add("blink");
   } else {
     speedLimitDiv.classList.remove("blink");
