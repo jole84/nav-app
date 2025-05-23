@@ -335,6 +335,22 @@ const map = new Map({
   keyboardEventTarget: document,
 });
 
+// stuff for testing:
+// map.on("click", function (event) {
+//   const eventCoordinate = event.coordinate;
+//   // localStorage.trackLog = JSON.stringify(trackLog);
+//   geolocation.set("accuracy", 10);
+//   geolocation.set("position", eventCoordinate);
+//   trackLog.push([toLonLat(eventCoordinate), altitude, Date.now()]);
+
+//   const lastDistance = getDistance(trackLog[trackLog.length - 1][0], trackLog[trackLog.length - 2][0]);
+//   const lastTime = (new Date(trackLog[trackLog.length - 1][2]) - new Date(trackLog[trackLog.length - 2][2])) / 1000;
+//   const lastKmh = (lastDistance / lastTime) * 3.6;
+//   geolocation.set("speed", lastKmh);
+//   trackLineString.appendCoordinate(eventCoordinate);
+//   geolocation.changed();
+// });
+
 // gpx loader fit view
 // gpxSource.addEventListener("addfeature", function () {
 //   if (gpxSource.getState() === "ready" && Date.now() - lastInteraction > 3000) {
