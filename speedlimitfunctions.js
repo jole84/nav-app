@@ -19,7 +19,7 @@ export function getSpeedLimit(coordinate) {
       '<QUERY objecttype="Hastighetsgräns" namespace="vägdata.nvdb_dk_o" schemaversion="1.3">' +
       "<FILTER>" +
       `<NEAR name="Geometry.WKT-WGS84-3D" value="${coordinate[0]} ${coordinate[1]}" maxdistance="5000m"/>` +
-      '<NE name="Högsta_tillåtna_hastighet" value="70" />' +
+      // '<NE name="Högsta_tillåtna_hastighet" value="70" />' +
       "</FILTER>" +
       "<INCLUDE>Högsta_tillåtna_hastighet</INCLUDE>" +
       "<INCLUDE>Geometry.WKT-WGS84-3D</INCLUDE>" +
@@ -69,7 +69,7 @@ function determineSpeed(possibleSpeedLimits) {
   if (allEqual(possibleSpeedLimits)) {
     currentSpeedlimit = possibleSpeedLimits[0];
   } else if (!possibleSpeedLimits[0]) {
-    currentSpeedlimit = 70;
+    currentSpeedlimit = "";
   }
   return currentSpeedlimit;
 }

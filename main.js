@@ -722,7 +722,7 @@ geolocation.on("change", function () {
   lonlat = toLonLat(currentPosition);
   const currentTime = Date.now();
   positionMarkerPoint.setCoordinates(currentPosition);
-  const speedLimit = getSpeedLimit(lonlat) || 70
+  const speedLimit = getSpeedLimit(lonlat) || "";
   speedLimitDiv.innerHTML = speedLimit;
 
   if (speedKmh > speedLimit + 5) {

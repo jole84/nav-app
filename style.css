@@ -77,6 +77,10 @@ body,
   animation: blink 1s step-start infinite;
 }
 
+#speedlimit:empty {
+  display: none;
+}
+
 #trafficWarning {
   background-color: #fcd006;
   border-radius: 5px;
