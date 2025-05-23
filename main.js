@@ -40,7 +40,7 @@ const center = JSON.parse(localStorage.lastPosition || "[1700000, 8500000]");
 const centerButton = document.getElementById("centerButton");
 const closeMenuButton = document.getElementById("closeMenu");
 const customFileButton = document.getElementById("customFileButton");
-// const enableLntDiv = document.getElementById("enableLnt");
+const menuDiv = document.getElementById("menuDiv");
 const infoGroup = document.getElementById("infoGroup");
 const interactionDelay = 10000;
 const openMenuButton = document.getElementById("openMenu");
@@ -120,12 +120,14 @@ document.addEventListener("visibilitychange", async () => {
 
 centerButton.onclick = centerFunction;
 customFileButton.addEventListener("change", handleFileSelect, false);
-trafficWarningDiv.addEventListener("click", focusTrafficWarning);
+trafficWarningDiv.onclick = focusTrafficWarning;
 saveLogButton.onclick = saveLogButtonFunction;
 document.getElementById("clickFileButton").onclick = function () {
   gpxSource.clear();
   customFileButton.click();
 };
+document.getElementById("restoreTripButton").addEventListener("click", restoreTrip);
+setTimeout(function () { document.getElementById("restoreTripButton").style.display = "none" }, 30000);
 
 infoGroup.addEventListener("dblclick", function () {
   if (!document.fullscreenElement) {
@@ -134,9 +136,6 @@ infoGroup.addEventListener("dblclick", function () {
     document.exitFullscreen();
   }
 });
-
-// menu stuff
-const menuDiv = document.getElementById("menuDiv");
 
 // localStorage.enableLnt = enableLntDiv.checked = JSON.parse(localStorage.enableLnt || "true");
 // enableLntDiv.addEventListener("change", function () {
@@ -159,11 +158,7 @@ closeMenuButton.onclick = function () {
 };
 
 openMenuButton.onclick = function () {
-  if (menuDiv.checkVisibility()) {
-    menuDiv.style.display = "none";
-  } else {
-    menuDiv.style.display = "unset";
-  }
+  menuDiv.style.display = menuDiv.checkVisibility() ? "none" : "unset";
 };
 
 document.getElementById("clearSettings").onclick = function () {
@@ -191,8 +186,6 @@ const view = new View({
   maxZoom: 20,
   constrainRotation: false,
 });
-
-trackStyle["MultiLineString"] = trackStyle["LineString"];
 
 const trackLineString = new LineString([]);
 const trackLineFeature = new Feature({
@@ -276,17 +269,11 @@ const trackLayer = new VectorLayer({
   source: new VectorSource({
     features: [trackLineFeature],
   }),
-  // style: function (feature) {
-  //   return trackStyle[feature.getGeometry().getType()];
-  // },
   style: trackStyle,
 });
 
 const routeLayer = new VectorLayer({
   source: new VectorSource(),
-  // style: function (feature) {
-  //   return trackStyle[feature.get("type")];
-  // },
   style: routeStyle,
 });
 routeLayer.addEventListener("change", function () {
@@ -313,7 +300,6 @@ const trackPointLayer = new VectorLayer({
   declutter: true,
 });
 
-// creating the map
 const map = new Map({
   layers: [
     slitlagerkarta,
@@ -476,49 +462,6 @@ geolocation.on('change:accuracyGeometry', function () {
   }
 });
 
-document.getElementById("restoreTripButton").addEventListener("click", restoreTrip);
-setTimeout(function () { document.getElementById("restoreTripButton").style.display = "none" }, 30000);
-
-function restoreTrip() {
-  // read old route from localStorage
-  const oldRoute = JSON.parse(localStorage.trackLog);
-  distanceTraveled = 0;
-  trackLineString.setCoordinates([]);
-
-  // restore line geometry
-  for (let i = 0; i < oldRoute.length; i++) {
-    trackLineString.appendCoordinate(fromLonLat(oldRoute[i][0]));
-    trackLog[i] = [oldRoute[i][0], oldRoute[i][1], oldRoute[i][2]];
-    if (i == oldRoute.length - 1) {
-      distanceTraveled += getDistance(lonlat, oldRoute[i][0]);
-      trackLineString.appendCoordinate(currentPosition);
-    } else {
-      distanceTraveled += getDistance(oldRoute[i][0], oldRoute[i + 1][0]);
-    }
-  }
-
-  document.getElementById("distanceTraveledDiv").innerHTML = (
-    distanceTraveled / 1000
-  ).toFixed(2);
-
-  document.getElementById("restoreTripButton").style.display = "none";
-  setExtraInfo(["Tripp återställd"]);
-}
-
-document.getElementById("clearTripButton").addEventListener("click", clearTrip);
-function clearTrip() {
-  distanceTraveled = 0;
-  document.getElementById("distanceTraveledDiv").innerHTML = "0.00";
-  document.getElementById("restoreTripButton").style.display = "none";
-  trackLineString.setCoordinates([]);
-  localStorage.removeItem("trackLog");
-  maxSpeed = 0;
-  menuDiv.style.display = "none";
-  setExtraInfo(["Tripp nollställd"]);
-  trackLog = [[lonlat, altitude, Date.now()]];
-  trackPointLayer.getSource().clear();
-}
-
 // runs when position changes
 geolocation.on("change", function () {
   currentPosition = geolocation.getPosition();
@@ -665,6 +608,46 @@ positionMarkerHeading.setStyle(
     }),
   }),
 );
+
+function restoreTrip() {
+  // read old route from localStorage
+  const oldRoute = JSON.parse(localStorage.trackLog);
+  distanceTraveled = 0;
+  trackLineString.setCoordinates([]);
+
+  // restore line geometry
+  for (let i = 0; i < oldRoute.length; i++) {
+    trackLineString.appendCoordinate(fromLonLat(oldRoute[i][0]));
+    trackLog[i] = [oldRoute[i][0], oldRoute[i][1], oldRoute[i][2]];
+    if (i == oldRoute.length - 1) {
+      distanceTraveled += getDistance(lonlat, oldRoute[i][0]);
+      trackLineString.appendCoordinate(currentPosition);
+    } else {
+      distanceTraveled += getDistance(oldRoute[i][0], oldRoute[i + 1][0]);
+    }
+  }
+
+  document.getElementById("distanceTraveledDiv").innerHTML = (
+    distanceTraveled / 1000
+  ).toFixed(2);
+
+  document.getElementById("restoreTripButton").style.display = "none";
+  setExtraInfo(["Tripp återställd"]);
+}
+
+document.getElementById("clearTripButton").addEventListener("click", clearTrip);
+function clearTrip() {
+  distanceTraveled = 0;
+  document.getElementById("distanceTraveledDiv").innerHTML = "0.00";
+  document.getElementById("restoreTripButton").style.display = "none";
+  trackLineString.setCoordinates([]);
+  localStorage.removeItem("trackLog");
+  maxSpeed = 0;
+  menuDiv.style.display = "none";
+  setExtraInfo(["Tripp nollställd"]);
+  trackLog = [[lonlat, altitude, Date.now()]];
+  trackPointLayer.getSource().clear();
+}
 
 // recenters the view by putting the given coordinates at 3/4 from the top of the screen
 function getCenterWithHeading(position, rotation) {
@@ -977,7 +960,7 @@ map.on("contextmenu", function (event) {
       destinationCoordinates.push(
         toLonLat(closestWaypoint.getGeometry().getCoordinates()),
       );
-      setExtraInfo(["Vald punkt:", closestWaypoint.get("name")]);
+      setExtraInfo(["Vald destination:", closestWaypoint.get("name")]);
     } else {
       setExtraInfo([
         `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Streetview</a></div>`,
@@ -1336,7 +1319,6 @@ function recalculateRoute() {
   }
 }
 
-const clientPositionArray = {};
 document.getElementById("userName").value = localStorage.userName || "";
 document.getElementById("userName").addEventListener("change", function () {
   if (document.getElementById("userName").value == "") {
@@ -1349,18 +1331,19 @@ document.getElementById("userName").addEventListener("change", function () {
 setInterval(updateUserPosition, 30000);
 function updateUserPosition() {
   if (!!localStorage.userName) {
-    clientPositionArray["userName"] = localStorage.userName;
-    clientPositionArray["timeStamp"] = Date.now();
-    clientPositionArray["x"] = Math.round(geolocation.getPosition()[0]);
-    clientPositionArray["y"] = Math.round(geolocation.getPosition()[1]);
-    clientPositionArray["heading"] = Math.round(heading);
-    clientPositionArray["accuracy"] = Math.round(accuracy);
-    clientPositionArray["speed"] = Math.floor(speedKmh);
-    const clientPositionString = Object.keys(clientPositionArray).map(b => `${b}=${clientPositionArray[b]}`).join('&');
-    const xhttp = new XMLHttpRequest();
-    xhttp.onload = function () {
-      try {
-        const userList = JSON.parse(this.responseText);
+    const formData = new FormData();
+    formData.append("userName", localStorage.userName);
+    formData.append("timeStamp", Date.now());
+    formData.append("x", Math.round(geolocation.getPosition()[0]));
+    formData.append("y", Math.round(geolocation.getPosition()[1]));
+    formData.append("heading", Math.round(heading));
+    formData.append("accuracy", Math.round(accuracy));
+    formData.append("speed", Math.floor(speedKmh));
+    fetch("https://jole84.se/locationHandler/sql-location-handler.php", {
+      method: "POST",
+      body: formData,
+    }).then((response) => response.json())
+      .then((userList) => {
         userLocationLayer.getSource().clear();
         for (let i = 0; i < userList.length; i++) {
           // add the other users
@@ -1374,13 +1357,9 @@ function updateUserPosition() {
           });
           userLocationLayer.getSource().addFeature(marker);
         }
-      } catch {
-        console.log(this.responseText);
-      }
-    }
-    xhttp.open("POST", "https://jole84.se/locationHandler/sql-location-handler.php");
-    xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    xhttp.send(clientPositionString);
+      }).catch((error) => {
+        console.log(error)
+      });
   }
 }
 
