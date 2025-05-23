@@ -50,7 +50,7 @@ export function toHHMMSS(milliSecondsInt) {
 export function getRemainingDistance(featureCoordinates, lonlat) {
   const newMultiPoint = new MultiPoint(featureCoordinates.reverse());
   let remainingDistance = 0;
-  const closestPoint = newMultiPoint.getClosestPoint(currentPosition);
+  const closestPoint = newMultiPoint.getClosestPoint(fromLonLat(lonlat));
   const closeToRoute = getDistance(toLonLat(closestPoint), lonlat) < 500;
 
   if (closeToRoute) {
