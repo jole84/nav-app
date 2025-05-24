@@ -3,10 +3,10 @@ import { Feature, Map, View } from "ol";
 import { fromLonLat, toLonLat } from "ol/proj.js";
 import { getDistance } from "ol/sphere";
 import { saveAs } from "file-saver";
-import { Stroke, Style, Icon, Fill, Text } from "ol/style.js";
+import { Style, Icon } from "ol/style.js";
 import { Vector as VectorLayer } from "ol/layer.js";
 import Geolocation from "ol/Geolocation.js";
-import { GPX, GeoJSON, KML } from "ol/format.js";
+import { GeoJSON } from "ol/format.js";
 import LineString from "ol/geom/LineString";
 import MultiPoint from "ol/geom/MultiPoint.js";
 import OSM from "ol/source/OSM.js";
@@ -16,13 +16,31 @@ import TileWMS from "ol/source/TileWMS.js";
 import VectorSource from "ol/source/Vector.js";
 import WKT from "ol/format/WKT.js";
 import XYZ from "ol/source/XYZ.js";
+import {
+  trafficWarningTextStyleFunction,
+  trafficWarningIconStyleFunction,
+  gpxStyleText,
+  gpxStyle,
+  trackStyle,
+  userLocationStyle,
+  routeStyle,
+} from "./styleFuntions.js";
+import {
+  getPixelDistance,
+  breakSentence,
+  msToTime,
+  toHHMMSS,
+  getRemainingDistance,
+  toRemainingString,
+  getFileFormat,
+} from "./modules.js";
 
 localStorage.mapMode = localStorage.mapMode || 0;
 const center = JSON.parse(localStorage.lastPosition || "[1700000, 8500000]");
 const centerButton = document.getElementById("centerButton");
 const closeMenuButton = document.getElementById("closeMenu");
 const customFileButton = document.getElementById("customFileButton");
-// const enableLntDiv = document.getElementById("enableLnt");
+const menuDiv = document.getElementById("menuDiv");
 const infoGroup = document.getElementById("infoGroup");
 const interactionDelay = 10000;
 const openMenuButton = document.getElementById("openMenu");
@@ -102,12 +120,14 @@ document.addEventListener("visibilitychange", async () => {
 
 centerButton.onclick = centerFunction;
 customFileButton.addEventListener("change", handleFileSelect, false);
-trafficWarningDiv.addEventListener("click", focusTrafficWarning);
+trafficWarningDiv.onclick = focusTrafficWarning;
 saveLogButton.onclick = saveLogButtonFunction;
 document.getElementById("clickFileButton").onclick = function () {
   gpxSource.clear();
   customFileButton.click();
 };
+document.getElementById("restoreTripButton").addEventListener("click", restoreTrip);
+setTimeout(function () { document.getElementById("restoreTripButton").style.display = "none" }, 30000);
 
 infoGroup.addEventListener("dblclick", function () {
   if (!document.fullscreenElement) {
@@ -116,9 +136,6 @@ infoGroup.addEventListener("dblclick", function () {
     document.exitFullscreen();
   }
 });
-
-// menu stuff
-const menuDiv = document.getElementById("menuDiv");
 
 // localStorage.enableLnt = enableLntDiv.checked = JSON.parse(localStorage.enableLnt || "true");
 // enableLntDiv.addEventListener("change", function () {
@@ -141,11 +158,7 @@ closeMenuButton.onclick = function () {
 };
 
 openMenuButton.onclick = function () {
-  if (menuDiv.checkVisibility()) {
-    menuDiv.style.display = "none";
-  } else {
-    menuDiv.style.display = "unset";
-  }
+  menuDiv.style.display = menuDiv.checkVisibility() ? "none" : "unset";
 };
 
 document.getElementById("clearSettings").onclick = function () {
@@ -173,145 +186,6 @@ const view = new View({
   maxZoom: 20,
   constrainRotation: false,
 });
-
-function gpxStyleText(feature) {
-  const featureType = feature.getGeometry().getType();
-  if (featureType == "Point") {
-    return new Style({
-      text: new Text({
-        text: feature.get("name"),
-        font: "13px B612, sans-serif",
-        placement: "line",
-        textAlign: "left",
-        textBaseline: "bottom",
-        offsetX: 10,
-        fill: new Fill({
-          color: "#b41412",
-        }),
-        backgroundFill: new Fill({
-          color: [255, 255, 255, 0.9],
-        }),
-        backgroundStroke: new Stroke({
-          color: [0, 0, 0, 0.9],
-          width: 1.5,
-        }),
-        padding: [0, 0, 0, 1],
-      }),
-    });
-  }
-}
-
-function gpxStyle(feature) {
-  const featureType = feature.getGeometry().getType();
-  if (featureType == "Point") {
-    return new Style({
-      image: new Icon({
-        anchor: [0.5, 1],
-        src: "https://jole84.se/poi-marker.svg",
-        opacity: 0.8,
-        scale: 0.8,
-      }),
-    });
-  }
-
-  if (featureType == "LineString" || featureType == "MultiLineString") {
-    return new Style({
-      stroke: new Stroke({
-        color: [0, 0, 255, 0.5],
-        width: 10,
-      }),
-    });
-  }
-
-  if (featureType == "Polygon" || featureType == "MultiPolygon") {
-    return new Style({
-      stroke: new Stroke({
-        color: [255, 0, 0, 1],
-        width: 2,
-      }),
-      fill: new Fill({
-        color: [255, 0, 0, 0.2],
-      }),
-      text: new Text({
-        text: feature.get("name"),
-        font: "13px B612, sans-serif",
-        overflow: true,
-        fill: new Fill({
-          color: "#b41412",
-        }),
-        stroke: new Stroke({
-          color: "white",
-          width: 4,
-        }),
-      }),
-    });
-  }
-}
-
-const trackStyle = {
-  LineString: new Style({
-    stroke: new Stroke({
-      color: [255, 0, 0, 0.9],
-      width: 4,
-    }),
-  }),
-  route: new Style({
-    stroke: new Stroke({
-      color: [0, 0, 255, 0.5],
-      width: 10,
-    }),
-  }),
-  icon: new Style({
-    image: new Icon({
-      anchor: [0.5, 1],
-      src: "https://jole84.se/end-marker.svg",
-      opacity: 0.8,
-      scale: 0.8,
-    }),
-  }),
-};
-trackStyle["MultiLineString"] = trackStyle["LineString"];
-
-const trafficWarningTextStyleFunction = function (feature) {
-  //Function to determine style of icons
-  return [
-    new Style({
-      text: new Text({
-        text: feature.get("name"),
-        font: "13px B612, sans-serif",
-        textAlign: "left",
-        textBaseline: "top",
-        offsetX: 20,
-        fill: new Fill({
-          color: "black",
-        }),
-        backgroundFill: new Fill({
-          color: [252, 208, 30, 0.9],
-        }),
-        backgroundStroke: new Stroke({
-          color: [238, 41, 61, 0.9],
-          width: 2,
-        }),
-        padding: [2, 2, 2, 2],
-      }),
-    }),
-  ];
-};
-
-const trafficWarningIconStyleFunction = function (feature) {
-  //Function to determine style of icons
-  return [
-    new Style({
-      image: new Icon({
-        anchor: [0.5, 0.5],
-        src:
-          "https://api.trafikinfo.trafikverket.se/v2/icons/" +
-          feature.get("iconId") +
-          "?type=png32x32",
-      }),
-    }),
-  ];
-};
 
 const trackLineString = new LineString([]);
 const trackLineFeature = new Feature({
@@ -388,56 +262,19 @@ const gpxLayerLabels = new VectorLayer({
 
 const userLocationLayer = new VectorLayer({
   source: new VectorSource(),
-  style: function (feature) {
-    return new Style({
-      text: new Text({
-        text: feature.get("name"),
-        font: "12px B612, sans-serif",
-        textAlign: "left",
-        textBaseline: "top",
-        offsetX: 17,
-        offsetY: 5,
-        fill: new Fill({
-          color: "black",
-        }),
-        stroke: new Stroke({
-          color: "white",
-          width: 4,
-        }),
-        backgroundFill: new Fill({
-          color: [255, 255, 255, 0.9],
-        }),
-        backgroundStroke: new Stroke({
-          color: [0, 0, 0, 0.9],
-          width: 1.5,
-        }),
-        padding: [0, 0, 0, 1],
-      }),
-      image: new Icon({
-        rotation: feature.get("rotation"),
-        rotateWithView: true,
-        anchor: [0.5, 0.67],
-        color: "red",
-        src: "https://openlayers.org/en/latest/examples/data/geolocation_marker_heading.png",
-      }),
-    });
-  },
+  style: userLocationStyle,
 });
 
 const trackLayer = new VectorLayer({
   source: new VectorSource({
     features: [trackLineFeature],
   }),
-  style: function (feature) {
-    return trackStyle[feature.getGeometry().getType()];
-  },
+  style: trackStyle,
 });
 
 const routeLayer = new VectorLayer({
   source: new VectorSource(),
-  style: function (feature) {
-    return trackStyle[feature.get("type")];
-  },
+  style: routeStyle,
 });
 routeLayer.addEventListener("change", function () {
   getClosestAccident();
@@ -463,7 +300,6 @@ const trackPointLayer = new VectorLayer({
   declutter: true,
 });
 
-// creating the map
 const map = new Map({
   layers: [
     slitlagerkarta,
@@ -485,15 +321,21 @@ const map = new Map({
   keyboardEventTarget: document,
 });
 
-function getFileFormat(fileExtention) {
-  if (fileExtention === "gpx") {
-    return new GPX();
-  } else if (fileExtention === "kml") {
-    return new KML({ extractStyles: false });
-  } else if (fileExtention === "geojson") {
-    return new GeoJSON();
-  }
-}
+// stuff for testing:
+// map.on("click", function (event) {
+//   const eventCoordinate = event.coordinate;
+//   // localStorage.trackLog = JSON.stringify(trackLog);
+//   geolocation.set("accuracy", 10);
+//   geolocation.set("position", eventCoordinate);
+//   trackLog.push([toLonLat(eventCoordinate), altitude, Date.now()]);
+
+//   const lastDistance = getDistance(trackLog[trackLog.length - 1][0], trackLog[trackLog.length - 2][0]);
+//   const lastTime = (new Date(trackLog[trackLog.length - 1][2]) - new Date(trackLog[trackLog.length - 2][2])) / 1000;
+//   const lastKmh = (lastDistance / lastTime) * 3.6;
+//   geolocation.set("speed", lastKmh);
+//   trackLineString.appendCoordinate(eventCoordinate);
+//   geolocation.changed();
+// });
 
 // gpx loader fit view
 // gpxSource.addEventListener("addfeature", function () {
@@ -584,50 +426,6 @@ if ("launchQueue" in window) {
   });
 }
 
-// convert degrees to radians
-function degToRad(deg) {
-  return (deg * Math.PI * 2) / 360;
-}
-
-function radToDeg(rad) {
-  return rad * (180 / Math.PI);
-}
-
-function getPixelDistance(pixel, pixel2) {
-  return Math.sqrt(
-    (pixel[1] - pixel2[1]) * (pixel[1] - pixel2[1]) +
-    (pixel[0] - pixel2[0]) * (pixel[0] - pixel2[0]),
-  );
-}
-
-// milliseconds to HH:MM:SS
-function toHHMMSS(milliSecondsInt) {
-  const dateObj = new Date(milliSecondsInt);
-  const hours = dateObj.getUTCHours().toString().padStart(2, "0");
-  const minutes = dateObj.getUTCMinutes().toString().padStart(2, "0");
-  const seconds = dateObj.getSeconds().toString().padStart(2, "0");
-  return hours + ":" + minutes + ":" + seconds;
-}
-
-// milliseconds to HH:MM
-function toRemainingString(remainingDistance, secondsInt) {
-  const totalMinutes = Math.floor(secondsInt / 60);
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  const ETA = new Date(new Date().getTime() + secondsInt * 1000);
-
-  // first row
-  let returnString = `<div class="equalSpace"><div><font class="infoFormat">-></font> ${Number(remainingDistance).toFixed(1)}<font class="infoFormat">KM</font></div><div>`;
-  if (hours > 0) {
-    returnString += `${hours}<font class="infoFormat">H</font> `;
-  }
-  returnString += `${minutes}<font class="infoFormat">MIN</font></div></div>`
-
-  // second row
-  returnString += `<div class="equalSpace"> <div></div> <div>${ETA.getHours()}:${ETA.getMinutes().toString().padStart(2, "0")}<font class="infoFormat">ETA</font></div></div>`;
-  return returnString;
-}
-
 // start geolocation
 const geolocation = new Geolocation({
   projection: view.getProjection(),
@@ -663,49 +461,6 @@ geolocation.on('change:accuracyGeometry', function () {
     accuracyFeature.setGeometry(geolocation.getAccuracyGeometry());
   }
 });
-
-document.getElementById("restoreTripButton").addEventListener("click", restoreTrip);
-setTimeout(function () { document.getElementById("restoreTripButton").style.display = "none" }, 30000);
-
-function restoreTrip() {
-  // read old route from localStorage
-  const oldRoute = JSON.parse(localStorage.trackLog);
-  distanceTraveled = 0;
-  trackLineString.setCoordinates([]);
-
-  // restore line geometry
-  for (let i = 0; i < oldRoute.length; i++) {
-    trackLineString.appendCoordinate(fromLonLat(oldRoute[i][0]));
-    trackLog[i] = [oldRoute[i][0], oldRoute[i][1], oldRoute[i][2]];
-    if (i == oldRoute.length - 1) {
-      distanceTraveled += getDistance(lonlat, oldRoute[i][0]);
-      trackLineString.appendCoordinate(currentPosition);
-    } else {
-      distanceTraveled += getDistance(oldRoute[i][0], oldRoute[i + 1][0]);
-    }
-  }
-
-  document.getElementById("distanceTraveledDiv").innerHTML = (
-    distanceTraveled / 1000
-  ).toFixed(2);
-
-  document.getElementById("restoreTripButton").style.display = "none";
-  setExtraInfo(["Tripp återställd"]);
-}
-
-document.getElementById("clearTripButton").addEventListener("click", clearTrip);
-function clearTrip() {
-  distanceTraveled = 0;
-  document.getElementById("distanceTraveledDiv").innerHTML = "0.00";
-  document.getElementById("restoreTripButton").style.display = "none";
-  trackLineString.setCoordinates([]);
-  localStorage.removeItem("trackLog");
-  maxSpeed = 0;
-  menuDiv.style.display = "none";
-  setExtraInfo(["Tripp nollställd"]);
-  trackLog = [[lonlat, altitude, Date.now()]];
-  trackPointLayer.getSource().clear();
-}
 
 // runs when position changes
 geolocation.on("change", function () {
@@ -764,7 +519,7 @@ geolocation.on("change", function () {
       const featureType = feature.getGeometry().getType();
       if (featureType == "LineString" || featureType == "MultiLineString") {
         const featureCoordinates = featureType == "MultiLineString" ? feature.getGeometry().getLineString().getCoordinates() : feature.getGeometry().getCoordinates();
-        const gpxRemainingDistance = getRemainingDistance(featureCoordinates);
+        const gpxRemainingDistance = getRemainingDistance(featureCoordinates, lonlat);
         if (gpxRemainingDistance != undefined) {
           routeInfo.innerHTML += toRemainingString(
             gpxRemainingDistance,
@@ -781,7 +536,7 @@ geolocation.on("change", function () {
         .getFeatureById(0)
         .getGeometry()
         .getCoordinates();
-      const routeRemainingDistance = getRemainingDistance(featureCoordinates);
+      const routeRemainingDistance = getRemainingDistance(featureCoordinates, lonlat);
       if (routeRemainingDistance != undefined) {
         routeInfo.innerHTML += toRemainingString(
           routeRemainingDistance,
@@ -809,34 +564,6 @@ geolocation.on("change", function () {
   document.getElementById("speedDiv").innerHTML = Math.floor(speedKmh);
   document.getElementById("maxSpeedDiv").innerHTML = Math.floor(maxSpeed);
 });
-
-function getRemainingDistance(featureCoordinates) {
-  const newMultiPoint = new MultiPoint(featureCoordinates.reverse());
-  let remainingDistance = 0;
-  const closestPoint = newMultiPoint.getClosestPoint(currentPosition);
-  const closeToRoute = getDistance(toLonLat(closestPoint), lonlat) < 500;
-
-  if (closeToRoute) {
-    for (let i = 0; i < featureCoordinates.length - 1; i++) {
-      if (
-        featureCoordinates[0].toString() === closestPoint.toString() ||
-        featureCoordinates[i + 1].toString() === closestPoint.toString()
-      ) {
-        remainingDistance += getDistance(
-          toLonLat(featureCoordinates[i]),
-          lonlat,
-        );
-        break;
-      } else {
-        remainingDistance += getDistance(
-          toLonLat(featureCoordinates[i]),
-          toLonLat(featureCoordinates[i + 1]),
-        );
-      }
-    }
-    return remainingDistance / 1000;
-  }
-}
 
 // alert user if geolocation fails
 geolocation.on("error", function () {
@@ -881,6 +608,46 @@ positionMarkerHeading.setStyle(
     }),
   }),
 );
+
+function restoreTrip() {
+  // read old route from localStorage
+  const oldRoute = JSON.parse(localStorage.trackLog);
+  distanceTraveled = 0;
+  trackLineString.setCoordinates([]);
+
+  // restore line geometry
+  for (let i = 0; i < oldRoute.length; i++) {
+    trackLineString.appendCoordinate(fromLonLat(oldRoute[i][0]));
+    trackLog[i] = [oldRoute[i][0], oldRoute[i][1], oldRoute[i][2]];
+    if (i == oldRoute.length - 1) {
+      distanceTraveled += getDistance(lonlat, oldRoute[i][0]);
+      trackLineString.appendCoordinate(currentPosition);
+    } else {
+      distanceTraveled += getDistance(oldRoute[i][0], oldRoute[i + 1][0]);
+    }
+  }
+
+  document.getElementById("distanceTraveledDiv").innerHTML = (
+    distanceTraveled / 1000
+  ).toFixed(2);
+
+  document.getElementById("restoreTripButton").style.display = "none";
+  setExtraInfo(["Tripp återställd"]);
+}
+
+document.getElementById("clearTripButton").addEventListener("click", clearTrip);
+function clearTrip() {
+  distanceTraveled = 0;
+  document.getElementById("distanceTraveledDiv").innerHTML = "0.00";
+  document.getElementById("restoreTripButton").style.display = "none";
+  trackLineString.setCoordinates([]);
+  localStorage.removeItem("trackLog");
+  maxSpeed = 0;
+  menuDiv.style.display = "none";
+  setExtraInfo(["Tripp nollställd"]);
+  trackLog = [[lonlat, altitude, Date.now()]];
+  trackPointLayer.getSource().clear();
+}
 
 // recenters the view by putting the given coordinates at 3/4 from the top of the screen
 function getCenterWithHeading(position, rotation) {
@@ -1193,7 +960,7 @@ map.on("contextmenu", function (event) {
       destinationCoordinates.push(
         toLonLat(closestWaypoint.getGeometry().getCoordinates()),
       );
-      setExtraInfo(["Vald punkt:", closestWaypoint.get("name")]);
+      setExtraInfo(["Vald destination:", closestWaypoint.get("name")]);
     } else {
       setExtraInfo([
         `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Streetview</a></div>`,
@@ -1215,63 +982,59 @@ map.on("pointerdrag", function () {
 });
 
 // checks url parameters and loads gpx file from url:
-const urlParams = window.location.href.split("?").pop().split("&");
-for (let i = 0; i < urlParams.length; i++) {
-  console.log(decodeURIComponent(urlParams[i]));
-
-  if (urlParams[i].includes("destinationPoints")) {
-    // https://jole84.se/nav-app/index.html?destinationPoints=[[lon,lat]]
-    const destinationPoints = JSON.parse(decodeURI(urlParams[i].split("=")[1]));
-    if (destinationPoints.length == 1) {
-      destinationCoordinates[0] = lonlat;
-      destinationCoordinates.push(destinationPoints[0]);
-      routeMe();
-    } else if (destinationPoints.length > 1) {
-      destinationCoordinates = destinationPoints;
-      routeMe();
-    }
+const searchParams = new URLSearchParams(window.location.search);
+if (searchParams.has("destinationPoints")) {
+  const destinationPoints = JSON.parse(decodeURIComponent(searchParams.get("destinationPoints")));
+  if (destinationPoints.length == 1) {
+    destinationCoordinates[0] = lonlat;
+    destinationCoordinates.push(destinationPoints[0]);
+    routeMe();
+  } else if (destinationPoints.length > 1) {
+    destinationCoordinates = destinationPoints;
+    routeMe();
   }
+}
 
-  if (urlParams[i].includes("trackPoints")) {
-    const line = new LineString([]);
-    const gpxLine = new Feature({
-      geometry: line,
+if (searchParams.has("poiPoints")) {
+  const poiPoints = JSON.parse(decodeURIComponent(searchParams.get("poiPoints")));
+  for (let i = 0; i < poiPoints.length; i++) {
+    const name = poiPoints[i][1];
+    const coordinate = fromLonLat(poiPoints[i][0]);
+    const marker = new Feature({
+      geometry: new Point(coordinate),
+      name: name,
     });
-    const trackPoints = JSON.parse(decodeURI(urlParams[i].split("=")[1]));
-    for (let i = 0; i < trackPoints.length; i++) {
-      const coordinate = fromLonLat(trackPoints[i]);
-      line.appendCoordinate(coordinate);
-    }
-    gpxSource.addFeature(gpxLine);
+    gpxSource.addFeature(marker);
   }
+}
 
-  if (urlParams[i].includes("poiPoints")) {
-    const poiPoints = JSON.parse(decodeURI(urlParams[i].split("=")[1]));
-    for (let i = 0; i < poiPoints.length; i++) {
-      const name = poiPoints[i][1];
-      const coordinate = fromLonLat(poiPoints[i][0]);
-      const marker = new Feature({
-        geometry: new Point(coordinate),
-        name: name,
-      });
-      gpxSource.addFeature(marker);
-    }
+if (searchParams.has("trackPoints")) {
+  const line = new LineString([]);
+  const gpxLine = new Feature({
+    geometry: line,
+  });
+  const trackPoints = JSON.parse(decodeURIComponent(searchParams.get("trackPoints")));
+  for (let i = 0; i < trackPoints.length; i++) {
+    const coordinate = fromLonLat(trackPoints[i]);
+    line.appendCoordinate(coordinate);
   }
+  gpxSource.addFeature(gpxLine);
+}
 
-  if (urlParams[i].includes(".gpx") || urlParams[i].includes(".kml") || urlParams[i].includes(".geojson")) {
-    if (!urlParams[i].includes("http")) {
-      urlParams[i] = "https://jole84.se/rutter/" + urlParams[i];
-    }
-    const titleString = decodeURIComponent(urlParams[i].split("/").pop());
-    setExtraInfo([titleString]);
-    fetch("https://jole84.se/phpReadFile.php?url=" + urlParams[i], { mode: "cors" })
-      .then((response) => {
-        return response.text();
-      })
-      .then((response) => {
-        gpxSourceLoader(new File([response], urlParams[i], { type: "application/gpx" }));
-      });
+if (searchParams.has("gpxFile")) {
+  let gpxFile = searchParams.get("gpxFile");
+  if (!gpxFile.includes("http")) {
+    gpxFile = "https://jole84.se/rutter/" + gpxFile;
   }
+  const titleString = decodeURIComponent(gpxFile.split("/").pop());
+  setExtraInfo([titleString]);
+  fetch("https://jole84.se/phpReadFile.php?url=" + gpxFile, { mode: "cors" })
+    .then((response) => {
+      return response.text();
+    })
+    .then((response) => {
+      gpxSourceLoader(new File([response], gpxFile, { type: "application/gpx" }));
+    });
 }
 switchMap();
 
@@ -1347,22 +1110,6 @@ document.addEventListener("keydown", function (event) {
     resetRotation();
   }
 });
-
-function breakSentence(sentence) {
-  sentence = sentence.replaceAll(".:", ":").replaceAll("\n", "").trim();
-  let returnSentence = "";
-  let x = 0;
-  for (let i = 0; i < sentence.length; i++) {
-    if (x > 20 && sentence[i] == " " && sentence.length - i > 10) {
-      x = 0;
-      returnSentence += "\n";
-    } else {
-      returnSentence += sentence[i];
-    }
-    x++;
-  }
-  return returnSentence;
-}
 
 const apiUrl = "https://api.trafikinfo.trafikverket.se/v2/data.json";
 
@@ -1572,7 +1319,6 @@ function recalculateRoute() {
   }
 }
 
-const clientPositionArray = {};
 document.getElementById("userName").value = localStorage.userName || "";
 document.getElementById("userName").addEventListener("change", function () {
   if (document.getElementById("userName").value == "") {
@@ -1580,27 +1326,24 @@ document.getElementById("userName").addEventListener("change", function () {
   }
   localStorage.userName = document.getElementById("userName").value.trim();
   updateUserPosition();
-})
-
-function msToTime(milliseconds) {
-  return milliseconds > 120000 ? (Math.ceil(milliseconds / 1000 / 60) + " min sedan\n") : "";
-}
+});
 
 setInterval(updateUserPosition, 30000);
 function updateUserPosition() {
   if (!!localStorage.userName) {
-    clientPositionArray["userName"] = localStorage.userName;
-    clientPositionArray["timeStamp"] = Date.now();
-    clientPositionArray["x"] = Math.round(geolocation.getPosition()[0]);
-    clientPositionArray["y"] = Math.round(geolocation.getPosition()[1]);
-    clientPositionArray["heading"] = Math.round(heading);
-    clientPositionArray["accuracy"] = Math.round(accuracy);
-    clientPositionArray["speed"] = Math.floor(speedKmh);
-    const clientPositionString = Object.keys(clientPositionArray).map(b => `${b}=${clientPositionArray[b]}`).join('&');
-    const xhttp = new XMLHttpRequest();
-    xhttp.onload = function () {
-      try {
-        const userList = JSON.parse(this.responseText);
+    const formData = new FormData();
+    formData.append("userName", localStorage.userName);
+    formData.append("timeStamp", Date.now());
+    formData.append("x", Math.round(geolocation.getPosition()[0]));
+    formData.append("y", Math.round(geolocation.getPosition()[1]));
+    formData.append("heading", Math.round(heading));
+    formData.append("accuracy", Math.round(accuracy));
+    formData.append("speed", Math.floor(speedKmh));
+    fetch("https://jole84.se/locationHandler/sql-location-handler.php", {
+      method: "POST",
+      body: formData,
+    }).then((response) => response.json())
+      .then((userList) => {
         userLocationLayer.getSource().clear();
         for (let i = 0; i < userList.length; i++) {
           // add the other users
@@ -1614,13 +1357,9 @@ function updateUserPosition() {
           });
           userLocationLayer.getSource().addFeature(marker);
         }
-      } catch {
-        console.log(this.responseText);
-      }
-    }
-    xhttp.open("POST", "https://jole84.se/locationHandler/sql-location-handler.php");
-    xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    xhttp.send(clientPositionString);
+      }).catch((error) => {
+        console.log(error)
+      });
   }
 }
 
