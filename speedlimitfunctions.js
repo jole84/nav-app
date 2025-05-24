@@ -55,7 +55,7 @@ export function getSpeedLimit(coordinate) {
   } else {
     const possibleSpeedLimits = [];
     speedSource.getFeaturesAtCoordinate(fromLonLat(coordinate)).forEach(function (feature) {
-      possibleSpeedLimits.push(feature.get("speed"));
+      possibleSpeedLimits.push(Number(feature.get("speed")));
     });
     return determineSpeed(possibleSpeedLimits);
   }
