@@ -1328,7 +1328,7 @@ document.getElementById("userName").addEventListener("change", function () {
   updateUserPosition();
 });
 
-setInterval(updateUserPosition, 30000);
+setInterval(updateUserPosition, 15000);
 function updateUserPosition() {
   if (!!localStorage.userName) {
     const formData = new FormData();
@@ -1336,7 +1336,7 @@ function updateUserPosition() {
     formData.append("timeStamp", Date.now());
     formData.append("x", Math.round(geolocation.getPosition()[0]));
     formData.append("y", Math.round(geolocation.getPosition()[1]));
-    formData.append("heading", Math.round(heading));
+    formData.append("heading", (heading).toFixed(2));
     formData.append("accuracy", Math.round(accuracy));
     formData.append("speed", Math.floor(speedKmh));
     fetch("https://jole84.se/locationHandler/sql-location-handler.php", {
