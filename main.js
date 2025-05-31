@@ -374,7 +374,7 @@ fetch("https://jole84.se/filesList.php")
     for (var i = 0; i < filesList.length; i++) {
       var opt = filesList[i];
       var el = document.createElement("option");
-      el.textContent = opt;
+      el.textContent = opt.split("/").pop();
       el.value = opt;
       selectFile.appendChild(el);
     }
@@ -385,14 +385,15 @@ fetch("https://jole84.se/filesList.php")
 // load gpx file from selectFile in menuDiv
 selectFile.addEventListener("change", function () {
   gpxSource.clear();
+  console.log(selectFile.value)
   if (selectFile.value !== "välj gpxfil") {
-    fetch("https://jole84.se/rutter/" + selectFile.value, { mode: "no-cors" })
+    fetch(selectFile.value, { mode: "cors" })
       .then((response) => {
         return response.text();
       })
       .then((response) => {
         gpxSourceLoader(new File([response], selectFile.value, { type: "application/gpx" }));
-        setExtraInfo([selectFile.value]);
+        setExtraInfo([selectFile.value.split("/").pop()]);
       });
   } else {
     setExtraInfo([]);
