@@ -996,6 +996,18 @@ if (searchParams.has("destinationPoints")) {
   }
 }
 
+if (searchParams.has("destinationPoints64")) {
+  const destinationPoints = JSON.parse(atob(searchParams.get("destinationPoints64")));
+  if (destinationPoints.length == 1) {
+    destinationCoordinates[0] = lonlat;
+    destinationCoordinates.push(destinationPoints[0]);
+    routeMe();
+  } else if (destinationPoints.length > 1) {
+    destinationCoordinates = destinationPoints;
+    routeMe();
+  }
+}
+
 if (searchParams.has("poiPoints")) {
   const poiPoints = JSON.parse(decodeURIComponent(searchParams.get("poiPoints")));
   for (let i = 0; i < poiPoints.length; i++) {
