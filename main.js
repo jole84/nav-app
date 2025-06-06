@@ -1021,6 +1021,19 @@ if (searchParams.has("poiPoints")) {
   }
 }
 
+if (searchParams.has("poiPoints64")) {
+  const poiPoints = JSON.parse(decodeURIComponent(atob(searchParams.get("poiPoints64"))));
+  for (let i = 0; i < poiPoints.length; i++) {
+    const name = poiPoints[i][1];
+    const coordinate = fromLonLat(poiPoints[i][0]);
+    const marker = new Feature({
+      geometry: new Point(coordinate),
+      name: name,
+    });
+    gpxSource.addFeature(marker);
+  }
+}
+
 if (searchParams.has("trackPoints")) {
   const line = new LineString([]);
   const gpxLine = new Feature({
