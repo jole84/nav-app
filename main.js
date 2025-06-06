@@ -1035,15 +1035,10 @@ if (searchParams.has("poiPoints64")) {
 }
 
 if (searchParams.has("trackPoints")) {
-  const line = new LineString([]);
-  const gpxLine = new Feature({
-    geometry: line,
-  });
   const trackPoints = JSON.parse(decodeURIComponent(searchParams.get("trackPoints")));
-  for (let i = 0; i < trackPoints.length; i++) {
-    const coordinate = fromLonLat(trackPoints[i]);
-    line.appendCoordinate(coordinate);
-  }
+  const gpxLine = new Feature({
+    geometry: new LineString(trackPoints),
+  });
   gpxSource.addFeature(gpxLine);
 }
 
