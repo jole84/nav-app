@@ -352,7 +352,7 @@ const map = new Map({
 
 function gpxSourceLoader(gpxFile) {
   const reader = new FileReader();
-  const fileExtention = gpxFile.name.split(".").pop().toLowerCase();
+  const fileExtention = gpxFile.name.replace(".gpx.txt", ".gpx").split(".").pop().toLowerCase();
   const fileFormat = getFileFormat(fileExtention);
   reader.readAsText(gpxFile, "UTF-8");
   reader.onload = function (evt) {
@@ -374,7 +374,7 @@ fetch("https://jole84.se/filesList.php")
     for (var i = 0; i < filesList.length; i++) {
       var opt = filesList[i];
       var el = document.createElement("option");
-      el.textContent = opt;
+      el.textContent = opt.split("/").pop();
       el.value = opt;
       selectFile.appendChild(el);
     }
@@ -385,14 +385,15 @@ fetch("https://jole84.se/filesList.php")
 // load gpx file from selectFile in menuDiv
 selectFile.addEventListener("change", function () {
   gpxSource.clear();
+  console.log(selectFile.value)
   if (selectFile.value !== "välj gpxfil") {
-    fetch("https://jole84.se/rutter/" + selectFile.value, { mode: "no-cors" })
+    fetch(selectFile.value, { mode: "cors" })
       .then((response) => {
         return response.text();
       })
       .then((response) => {
         gpxSourceLoader(new File([response], selectFile.value, { type: "application/gpx" }));
-        setExtraInfo([selectFile.value]);
+        setExtraInfo([selectFile.value.split("/").pop()]);
       });
   } else {
     setExtraInfo([]);
@@ -995,6 +996,18 @@ if (searchParams.has("destinationPoints")) {
   }
 }
 
+if (searchParams.has("destinationPoints64")) {
+  const destinationPoints = JSON.parse(atob(searchParams.get("destinationPoints64")));
+  if (destinationPoints.length == 1) {
+    destinationCoordinates[0] = lonlat;
+    destinationCoordinates.push(destinationPoints[0]);
+    routeMe();
+  } else if (destinationPoints.length > 1) {
+    destinationCoordinates = destinationPoints;
+    routeMe();
+  }
+}
+
 if (searchParams.has("poiPoints")) {
   const poiPoints = JSON.parse(decodeURIComponent(searchParams.get("poiPoints")));
   for (let i = 0; i < poiPoints.length; i++) {
@@ -1008,16 +1021,24 @@ if (searchParams.has("poiPoints")) {
   }
 }
 
-if (searchParams.has("trackPoints")) {
-  const line = new LineString([]);
-  const gpxLine = new Feature({
-    geometry: line,
-  });
-  const trackPoints = JSON.parse(decodeURIComponent(searchParams.get("trackPoints")));
-  for (let i = 0; i < trackPoints.length; i++) {
-    const coordinate = fromLonLat(trackPoints[i]);
-    line.appendCoordinate(coordinate);
+if (searchParams.has("poiPoints64")) {
+  const poiPoints = JSON.parse(decodeURIComponent(atob(searchParams.get("poiPoints64"))));
+  for (let i = 0; i < poiPoints.length; i++) {
+    const name = poiPoints[i][1];
+    const coordinate = fromLonLat(poiPoints[i][0]);
+    const marker = new Feature({
+      geometry: new Point(coordinate),
+      name: name,
+    });
+    gpxSource.addFeature(marker);
   }
+}
+
+if (searchParams.has("trackPoints")) {
+  const trackPoints = JSON.parse(decodeURIComponent(searchParams.get("trackPoints")));
+  const gpxLine = new Feature({
+    geometry: new LineString(trackPoints),
+  });
   gpxSource.addFeature(gpxLine);
 }
 
@@ -1328,7 +1349,7 @@ document.getElementById("userName").addEventListener("change", function () {
   updateUserPosition();
 });
 
-setInterval(updateUserPosition, 30000);
+setInterval(updateUserPosition, 15000);
 function updateUserPosition() {
   if (!!localStorage.userName) {
     const formData = new FormData();
@@ -1336,7 +1357,7 @@ function updateUserPosition() {
     formData.append("timeStamp", Date.now());
     formData.append("x", Math.round(geolocation.getPosition()[0]));
     formData.append("y", Math.round(geolocation.getPosition()[1]));
-    formData.append("heading", Math.round(heading));
+    formData.append("heading", (heading).toFixed(2));
     formData.append("accuracy", Math.round(accuracy));
     formData.append("speed", Math.floor(speedKmh));
     fetch("https://jole84.se/locationHandler/sql-location-handler.php", {

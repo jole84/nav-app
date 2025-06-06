@@ -67,13 +67,14 @@
         <td colspan="2">
           <select class="form-select" id="selectFile">
             <option>välj gpxfil</option>
+            <option value="https://jole84.se/phpReadFile.php?url=https://transeurotrail.org/wp-content/uploads/gpxsync/S.gpx">TET Sverige</option>
           </select>
         </td>
       </tr>
 
       <tr>
         <td>
-          Datalänk (användarnamn för Glympse-liknande funktion, blankt avaktiverar):
+          Användarnamn (för Glympse-liknande funktion, tomt avaktiverar):
         </td>
         <td>
           <input class="form-control" type="text" id="userName" placeholder="användarnamn"><br>
@@ -145,7 +146,7 @@
       <button class="btn btn-success" id="closeMenu">Stäng</button>
     </div>
   </div>
-  <input type="file" id="customFileButton" multiple accept=".gpx,application/gpx+xml,.kml,.geojson"
+  <input type="file" id="customFileButton" multiple accept=".gpx,.gpx.txt,application/gpx+xml,.kml,.geojson"
     style="display: none;" />
 </body>
 
