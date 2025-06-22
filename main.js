@@ -209,12 +209,9 @@ const slitlagerkarta = new MapboxVectorLayer({
   useInterimTilesOnError: false,
 });
 
-const slitlagerkarta_nedtonad = new TileLayer({
-  source: new XYZ({
-    url: "https://jole84.se/slitlagerkarta_nedtonad/{z}/{x}/{y}.jpg",
-    minZoom: 6,
-    maxZoom: 14,
-  }),
+const slitlagerkarta_nedtonad = new MapboxVectorLayer({
+  styleUrl: "mapbox://styles/tryckluft/clylee4ra013201qp02kk1wxy",
+  accessToken: accessToken,
   visible: false,
   useInterimTilesOnError: false,
 });
@@ -731,18 +728,18 @@ function switchMap() {
   if (localStorage.mapMode == 0) {
     // mapMode 0: slitlagerkarta
     slitlagerkarta.setVisible(true);
-    ortofoto.setVisible(true);
-    slitlagerkarta.setMaxZoom(15.5);
-    ortofoto.setMinZoom(15.5);
+    // ortofoto.setVisible(true);
+    // slitlagerkarta.setMaxZoom(15.5);
+    // ortofoto.setMinZoom(15.5);
   } else if (localStorage.mapMode == 1) {
     // mapMode 1: slitlagerkarta_nedtonad
     slitlagerkarta_nedtonad.setVisible(true);
-    topoweb.setVisible(true);
-    ortofoto.setVisible(true);
-    slitlagerkarta_nedtonad.setMaxZoom(15.5);
-    topoweb.setMinZoom(15.5);
-    topoweb.setMaxZoom(17.5);
-    ortofoto.setMinZoom(17.5);
+    // topoweb.setVisible(true);
+    // ortofoto.setVisible(true);
+    // slitlagerkarta_nedtonad.setMaxZoom(15.5);
+    // topoweb.setMinZoom(15.5);
+    // topoweb.setMaxZoom(17.5);
+    // ortofoto.setMinZoom(17.5);
   } else if (localStorage.mapMode == 2) {
     // mapMode 2: slitlagerkarta_nedtonad + night mode
     slitlagerkarta_nedtonad.setVisible(true);
