@@ -1108,6 +1108,7 @@ document.addEventListener("keydown", function (event) {
       focusDestination();
     }
     if (event.key == "Escape" || event.key == "§") {
+      event.preventDefault();
       // carpe iter adventure controller minus button
       if (view.getZoom() >= 17) {
         lastInteraction = Date.now();
