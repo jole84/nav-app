@@ -1101,8 +1101,9 @@ document.addEventListener("keydown", function (event) {
     if (event.key == "x") {
       view.adjustRotation(-0.2);
     }
-    if (event.key == "s") {
-      saveLogButtonFunction();
+    if (event.key == "n") {
+      lastInteraction = Date.now();
+      view.setRotation(0);
     }
     if (event.key == "d") {
       focusDestination();
