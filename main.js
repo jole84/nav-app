@@ -1258,6 +1258,12 @@ function focusDestination() {
 }
 
 function getClosestAccident() {
+  closestAccident = trafficWarningSource.getClosestFeatureToCoordinate(
+    currentPosition,
+    // function (feature) {
+    //   return feature.get("iconId") === "roadAccident";
+    // },
+  );
   if (trafficWarningSource.getFeatures().length >= 1) {
     // check route for accidents
     let routeHasAccident = false;
@@ -1287,14 +1293,6 @@ function getClosestAccident() {
           break;
         }
       }
-    } else {
-      // if no route is active check closest accident
-      closestAccident = trafficWarningSource.getClosestFeatureToCoordinate(
-        currentPosition,
-        // function (feature) {
-        //   return feature.get("iconId") === "roadAccident";
-        // },
-      );
     }
 
     // check accident information
