@@ -79,8 +79,18 @@ body,
   display: none;
 }
 
+.flexContainer {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
 #menuDiv {
-  -ms-transform: translate(-50%, -50%);
+  width: calc(100% - 22px);
+  height: calc(100% - 22px);
+  margin: 5px;
   background-attachment: fixed;
   background-color: rgba(251, 251, 251, 1);
   background-image: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95)), url("https://jole84.se/84.svg");
@@ -90,17 +100,10 @@ body,
   border-radius: 5px;
   border: 1px solid rgb(32, 32, 32);
   display: none;
-  left: 50%;
-  max-height: 98%;
-  max-width: 700px;
-  min-width: 550px;
   overflow: auto;
-  padding: 10px;
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  word-wrap: break-word;
+  padding: 5px;
   z-index: 10;
+  position: absolute;
 }
 
 #selectFile {
@@ -248,14 +251,6 @@ kbd {
 @media (max-width: 550px) {
   #optionButtons {
     max-width: calc(100% - 10px);
-  }
-
-  #menuDiv {
-    -ms-transform: translate(0%, -50%);
-    left: 5px;
-    min-width: unset;
-    right: 5px;
-    transform: translate(0%, -50%);
   }
 }
 
