@@ -2,7 +2,7 @@ import "./style.css";
 import { Feature, Map, View } from "ol";
 import { fromLonLat, toLonLat } from "ol/proj.js";
 import { getDistance } from "ol/sphere";
-import { saveAs } from "file-saver";
+// import { saveAs } from "file-saver";
 import { Style, Icon } from "ol/style.js";
 import { Vector as VectorLayer } from "ol/layer.js";
 import Geolocation from "ol/Geolocation.js";
@@ -777,12 +777,7 @@ function switchMap() {
 
 // logic for saveLogButton
 function saveLogButtonFunction() {
-  if (trackLog.length > 5) {
-    saveLog();
-  } else {
-    console.log(JSON.stringify(trackLog));
-    console.log(localStorage);
-  }
+  saveLog();
 }
 
 // new saveLog function
@@ -827,8 +822,23 @@ async function saveLog() {
     });
   } catch (error) {
     setExtraInfo([error]);
-    saveAs(file, filename);
+    // saveAs(file, filename);
+    saveFile(file, filename);
   }
+}
+
+async function saveFile(data, filename) {
+  // create a new handle
+  const newHandle = await window.showSaveFilePicker({ suggestedName: filename });
+
+  // create a FileSystemWritableFileStream to write to
+  const writableStream = await newHandle.createWritable();
+
+  // write our file
+  await writableStream.write(data);
+
+  // close the file and write the contents to disk.
+  await writableStream.close();
 }
 
 function setExtraInfo(infoText) {
