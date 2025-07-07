@@ -75,6 +75,10 @@ body,
   width: 100%;
 }
 
+html:fullscreen div.ol-zoom {
+  margin-top: max(env(safe-area-inset-top), .5em);
+}
+  
 #map .ol-rotate {
   display: none;
 }
@@ -229,6 +233,10 @@ kbd {
   top: 5px;
   word-wrap: break-word;
   z-index: 10;
+}
+
+html:fullscreen .infoGroup {
+  margin-top: env(safe-area-inset-top);
 }
 
 .shadowed {
