@@ -816,14 +816,16 @@ async function saveLog() {
   let file = new Blob([gpxFile], { type: "application/gpx+xml" });
 
   // tries to share text file
-  try {
-    await navigator.share({
-      files: [new File([gpxFile], filename + ".txt", { type: "text/plain" })],
-    });
-  } catch (error) {
-    setExtraInfo([error]);
-    // saveAs(file, filename);
+  if (window.showSaveFilePicker) {
     saveFile(file, filename);
+  } else {
+    try {
+      await navigator.share({
+        files: [new File([gpxFile], filename + ".txt", { type: "text/plain" })],
+      });
+    } catch (error) {
+      setExtraInfo([error]);
+    }
   }
 }
 
