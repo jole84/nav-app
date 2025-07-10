@@ -2,7 +2,6 @@ import "./style.css";
 import { Feature, Map, View } from "ol";
 import { fromLonLat, toLonLat } from "ol/proj.js";
 import { getDistance } from "ol/sphere";
-import { saveAs } from "file-saver";
 import { Style, Icon } from "ol/style.js";
 import { Vector as VectorLayer } from "ol/layer.js";
 import Geolocation from "ol/Geolocation.js";
@@ -766,12 +765,7 @@ function switchMap() {
 
 // logic for saveLogButton
 function saveLogButtonFunction() {
-  if (trackLog.length > 5) {
-    saveLog();
-  } else {
-    console.log(JSON.stringify(trackLog));
-    console.log(localStorage);
-  }
+  saveLog();
 }
 
 // new saveLog function
@@ -803,20 +797,41 @@ async function saveLog() {
 </trk>
 </gpx>`;
 
-  const filename =
-    new Date(trackLog[0][2]).toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + "_" + (distanceTraveled / 1000).toFixed(2) + "km.gpx";
-  setExtraInfo(["Sparar fil:", filename]);
+  const filename = new Date(trackLog[0][2]).toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + "_" + (distanceTraveled / 1000).toFixed(2) + "km.gpx";
 
   let file = new Blob([gpxFile], { type: "application/gpx+xml" });
 
   // tries to share text file
+  if (window.showSaveFilePicker) {
+    saveFile(file, filename);
+  } else {
+    try {
+      await navigator.share({
+        files: [new File([gpxFile], filename + ".txt", { type: "text/plain" })],
+      });
+    } catch (error) {
+      setExtraInfo([error]);
+    }
+  }
+}
+
+async function saveFile(data, fileName) {
   try {
-    await navigator.share({
-      files: [new File([gpxFile], filename + ".txt", { type: "text/plain" })],
-    });
-  } catch (error) {
-    setExtraInfo([error]);
-    saveAs(file, filename);
+    // create a new handle
+    const newHandle = await window.showSaveFilePicker({ suggestedName: fileName });
+
+    // create a FileSystemWritableFileStream to write to
+    const writableStream = await newHandle.createWritable();
+
+    // write our file
+    await writableStream.write(data);
+
+    // close the file and write the contents to disk.
+    await writableStream.close();
+
+    alert("GPX sparad!");
+  } catch (e) {
+    alert("Något gick snett :( \n" + e.message);
   }
 }
 
@@ -1090,13 +1105,15 @@ document.addEventListener("keydown", function (event) {
     if (event.key == "x") {
       view.adjustRotation(-0.2);
     }
-    if (event.key == "s") {
-      saveLogButtonFunction();
+    if (event.key == "n") {
+      lastInteraction = Date.now();
+      view.setRotation(0);
     }
     if (event.key == "d") {
       focusDestination();
     }
     if (event.key == "Escape" || event.key == "§") {
+      event.preventDefault();
       // carpe iter adventure controller minus button
       if (view.getZoom() >= 17) {
         lastInteraction = Date.now();
@@ -1245,6 +1262,12 @@ function focusDestination() {
 }
 
 function getClosestAccident() {
+  closestAccident = trafficWarningSource.getClosestFeatureToCoordinate(
+    currentPosition,
+    // function (feature) {
+    //   return feature.get("iconId") === "roadAccident";
+    // },
+  );
   if (trafficWarningSource.getFeatures().length >= 1) {
     // check route for accidents
     let routeHasAccident = false;
@@ -1274,14 +1297,6 @@ function getClosestAccident() {
           break;
         }
       }
-    } else {
-      // if no route is active check closest accident
-      closestAccident = trafficWarningSource.getClosestFeatureToCoordinate(
-        currentPosition,
-        // function (feature) {
-        //   return feature.get("iconId") === "roadAccident";
-        // },
-      );
     }
 
     // check accident information
