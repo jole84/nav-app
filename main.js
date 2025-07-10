@@ -2,7 +2,6 @@ import "./style.css";
 import { Feature, Map, View } from "ol";
 import { fromLonLat, toLonLat } from "ol/proj.js";
 import { getDistance } from "ol/sphere";
-// import { saveAs } from "file-saver";
 import { Style, Icon } from "ol/style.js";
 import { Vector as VectorLayer } from "ol/layer.js";
 import Geolocation from "ol/Geolocation.js";
@@ -809,9 +808,7 @@ async function saveLog() {
 </trk>
 </gpx>`;
 
-  const filename =
-    new Date(trackLog[0][2]).toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + "_" + (distanceTraveled / 1000).toFixed(2) + "km.gpx";
-  setExtraInfo(["Sparar fil:", filename]);
+  const filename = new Date(trackLog[0][2]).toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + "_" + (distanceTraveled / 1000).toFixed(2) + "km.gpx";
 
   let file = new Blob([gpxFile], { type: "application/gpx+xml" });
 
@@ -829,18 +826,24 @@ async function saveLog() {
   }
 }
 
-async function saveFile(data, filename) {
-  // create a new handle
-  const newHandle = await window.showSaveFilePicker({ suggestedName: filename });
+async function saveFile(data, fileName) {
+  try {
+    // create a new handle
+    const newHandle = await window.showSaveFilePicker({ suggestedName: fileName });
 
-  // create a FileSystemWritableFileStream to write to
-  const writableStream = await newHandle.createWritable();
+    // create a FileSystemWritableFileStream to write to
+    const writableStream = await newHandle.createWritable();
 
-  // write our file
-  await writableStream.write(data);
+    // write our file
+    await writableStream.write(data);
 
-  // close the file and write the contents to disk.
-  await writableStream.close();
+    // close the file and write the contents to disk.
+    await writableStream.close();
+
+    alert(fileName + " sparad!");
+  } catch (e) {
+    alert("Något gick snett :( \n" + e.message);
+  }
 }
 
 function setExtraInfo(infoText) {
