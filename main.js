@@ -840,7 +840,7 @@ async function saveFile(data, fileName) {
     // close the file and write the contents to disk.
     await writableStream.close();
 
-    alert(fileName + " sparad!");
+    alert("GPX sparad!");
   } catch (e) {
     alert("Något gick snett :( \n" + e.message);
   }
