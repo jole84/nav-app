@@ -860,6 +860,7 @@ function routeMe() {
   const params = new URLSearchParams({
     geometries: 'geojson',
     overview: 'full',
+    continue_straight: false,
     generate_hints: false,
     skip_waypoints: true,
     steps: false,
