@@ -857,49 +857,41 @@ function setExtraInfo(infoText) {
 
 // brouter routing
 function routeMe() {
-  fetch(
-    "https://brouter.de/brouter" +
-    // "https://jole84.se:17777/brouter" +
-    "?lonlats=" +
-    destinationCoordinates.join("|") +
-    "&profile=car-fast&alternativeidx=0&format=geojson",
-  ).then(function (response) {
-    if (!response.ok) {
-      setExtraInfo(["Felaktig rutt"]);
-      routeInfo.innerHTML = "";
-      destinationCoordinates.pop(); // remove faulty coordinate
-      return;
-    }
-    response.json().then(function (result) {
-      const route = new GeoJSON()
-        .readFeature(result.features[0], {
-          dataProjection: "EPSG:4326",
-          featureProjection: "EPSG:3857",
-        }).getGeometry();
-
-      const totalLength = result.features[0].properties["track-length"] / 1000; // track-length in km
-      const totalTime = result.features[0].properties["total-time"];
-
-      // add route information to info box
-      routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
-
-      const routeFeature = new Feature({
-        type: "route",
-        geometry: route,
-      });
-      routeFeature.setId(0);
-
-      const endMarker = new Feature({
-        type: "icon",
-        geometry: new Point(route.getLastCoordinate()),
-      });
-
-      // remove previus route
-      routeLayer.getSource().clear();
-
-      // finally add route to map
-      routeLayer.getSource().addFeatures([routeFeature, endMarker]);
+  const params = new URLSearchParams({
+    geometries: 'geojson',
+    overview: 'full',
+    generate_hints: false,
+    skip_waypoints: true,
+    steps: false,
+  });
+  fetch(`https://router.project-osrm.org/route/v1/driving/${destinationCoordinates.join(";")}?` + params).then(response => {
+    return response.json();
+  }).then(result => {
+    console.log(result)
+    const format = new GeoJSON();
+    const newGeometry = format.readFeatures(result.routes[0].geometry, {
+      dataProjection: "EPSG:4326",
+      featureProjection: "EPSG:3857"
     });
+
+    console.log(newGeometry[0])
+
+    const endMarker = new Feature({
+      type: "icon",
+      // geometry: new Point(newGeometry[0].getGeometry().getLastCoordinate()),
+      geometry: new Point(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1])),
+    });
+
+
+    const totalLength = result.routes[0].distance / 1000; // track-length in km
+    const totalTime = result.routes[0].duration;
+    routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
+
+    // remove previus route
+    routeLayer.getSource().clear();
+
+    // finally add route to map
+    routeLayer.getSource().addFeatures([newGeometry[0], endMarker]);
   });
 }
 
