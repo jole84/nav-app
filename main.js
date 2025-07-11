@@ -966,7 +966,7 @@ map.on("contextmenu", function (event) {
     // else push clicked coord to destinationCoordinates
     if (clickedOnWaypoint) {
       destinationCoordinates.push(
-        toLonLat(closestWaypoint.getGeometry().getCoordinates()),
+        [toLonLat(closestWaypoint.getGeometry().getCoordinates())[0], toLonLat(closestWaypoint.getGeometry().getCoordinates())[1]],
       );
       setExtraInfo(["Vald destination:", closestWaypoint.get("name")]);
     } else {
