@@ -1,5 +1,5 @@
 import "./style.css";
-import { Feature, Map, View } from "ol";
+import { Collection, Feature, Map, View } from "ol";
 import { fromLonLat, toLonLat } from "ol/proj.js";
 import { getDistance } from "ol/sphere";
 import { Style, Icon } from "ol/style.js";
@@ -486,6 +486,8 @@ geolocation.on("change", function () {
   const currentTime = Date.now();
   positionMarkerPoint.setCoordinates(currentPosition);
 
+  getClosestStep(currentPosition);
+
   // measure distance and push log if position change > 5 meters and accuracy is good and more than 3 seconds
   if (
     getDistance(lonlat, trackLog[trackLog.length - 1][0]) > 5 &&
@@ -862,6 +864,9 @@ function setExtraInfo(infoText) {
   }, 15000);
 }
 
+const collection = new Collection();
+const stepSource = new VectorSource()
+
 // brouter routing
 function routeMe() {
   const params = new URLSearchParams({
@@ -870,7 +875,7 @@ function routeMe() {
     continue_straight: false,
     generate_hints: false,
     skip_waypoints: true,
-    steps: false,
+    steps: true,
   });
   fetch(`https://router.project-osrm.org/route/v1/driving/${destinationCoordinates.join(";")}?` + params).then(response => {
     return response.json();
@@ -888,10 +893,49 @@ function routeMe() {
 
     routeLineString.setCoordinates(newGeometry[0].getGeometry().getCoordinates());
     endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
+
+
+    collection.clear();
+    stepSource.clear();
+    const fileFormat = new GeoJSON();
+    const legs = result.routes[0].legs;
+    for (const leg of legs) {
+      const steps = leg.steps;
+      for (const step of steps) {
+        const featureID = collection.getArray().length
+        collection.insertAt(featureID, step);
+        const stepGeom = fileFormat.readFeature(step.geometry, {
+          dataProjection: "EPSG:4326",
+          featureProjection: "EPSG:3857",
+        });
+        stepGeom.setId(featureID);
+        stepSource.addFeature(stepGeom)
+        // const poiMarker = new Feature({
+        //   geometry: new Point(fromLonLat(step.maneuver.location)),
+        //   name: JSON.stringify(step.maneuver, null, 2),
+        // });
+        // gpxSource.addFeature(poiMarker);
+      }
+    }
   });
 }
 
+function getClosestStep(coordinate) {
+  if (stepSource.getFeatures().length > 0) {
+    const closeststepSourceFeature = stepSource.getClosestFeatureToCoordinate(coordinate).getId()
+    // console.log(collection.item(closeststepSourceFeature + 1).maneuver);
+    const distanceToStep = getDistance(toLonLat(coordinate), collection.item(closeststepSourceFeature + 1).maneuver.location);
+    document.getElementById("extraInfo").innerHTML = [
+      collection.item(closeststepSourceFeature + 1).maneuver.type,
+      collection.item(closeststepSourceFeature + 1).maneuver.modifier,
+      Math.round(distanceToStep) + "m"
+    ].join(" ");
+  }
+}
+
 map.on("singleclick", function (evt) {
+  getClosestStep(evt.coordinate);
+
   if (evt.originalEvent.ctrlKey) {
     const coordinate = toLonLat(evt.coordinate).reverse();
     window.open(
