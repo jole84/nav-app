@@ -271,8 +271,19 @@ const trackLayer = new VectorLayer({
   style: trackStyle,
 });
 
+const endMarker = new Point([]);
+const routeLineString = new LineString([]);
 const routeLayer = new VectorLayer({
-  source: new VectorSource(),
+  source: new VectorSource({
+    features: [
+      new Feature({
+        geometry: routeLineString
+      }),
+      new Feature({
+        geometry: endMarker
+      }),
+    ],
+  }),
   style: routeStyle,
 });
 routeLayer.addEventListener("change", function () {
@@ -530,12 +541,8 @@ geolocation.on("change", function () {
     });
 
     // calculate remaing distance on route
-    if (routeLayer.getSource().getFeatureById(0) != null) {
-      const featureCoordinates = routeLayer
-        .getSource()
-        .getFeatureById(0)
-        .getGeometry()
-        .getCoordinates();
+    if (routeLineString.getCoordinates().length > 0) {
+      const featureCoordinates = routeLineString.getCoordinates();
       const routeRemainingDistance = getRemainingDistance(featureCoordinates, lonlat);
       if (routeRemainingDistance != undefined) {
         routeInfo.innerHTML += toRemainingString(
@@ -875,24 +882,12 @@ function routeMe() {
       featureProjection: "EPSG:3857"
     });
 
-    console.log(newGeometry[0])
-
-    const endMarker = new Feature({
-      type: "icon",
-      // geometry: new Point(newGeometry[0].getGeometry().getLastCoordinate()),
-      geometry: new Point(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1])),
-    });
-
-
     const totalLength = result.routes[0].distance / 1000; // track-length in km
     const totalTime = result.routes[0].duration;
     routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
 
-    // remove previus route
-    routeLayer.getSource().clear();
-
-    // finally add route to map
-    routeLayer.getSource().addFeatures([newGeometry[0], endMarker]);
+    routeLineString.setCoordinates(newGeometry[0].getGeometry().getCoordinates());
+    endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
   });
 }
 
@@ -960,7 +955,8 @@ map.on("contextmenu", function (event) {
     (destinationCoordinates.length == 2 && clickedOnLastDestination) ||
     clickedOnCurrentPosition
   ) {
-    routeLayer.getSource().clear();
+    endMarker.setCoordinates([]);
+    routeLineString.setCoordinates([]);
     routeInfo.innerHTML = "";
     destinationCoordinates = [];
   } else {
@@ -1275,9 +1271,9 @@ function getClosestAccident() {
   if (trafficWarningSource.getFeatures().length >= 1) {
     // check route for accidents
     let routeHasAccident = false;
-    const routeIsActive = routeLayer.getSource().getFeatureById(0) != undefined;
+    const routeIsActive = routeLineString.getCoordinates().length > 0;
     if (routeIsActive) {
-      const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
+      const featureCoordinates = routeLineString.getCoordinates();
       const newMultiPoint = new MultiPoint(featureCoordinates.reverse());
       const newMultiPointCurrentPosition = newMultiPoint.getClosestPoint(currentPosition);
 
@@ -1337,7 +1333,8 @@ function recalculateRoute() {
       routeInfo.innerHTML = "";
       document.getElementById("extraInfo").innerHTML = "";
       destinationCoordinates = [];
-      routeLayer.getSource().clear();
+      endMarker.setCoordinates([]);
+      routeLineString.setCoordinates([]);
     } else {
       destinationCoordinates = [
         lonlat,
