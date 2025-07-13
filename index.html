@@ -15,7 +15,7 @@
   <link rel="icon" type="image/svg" href="https://jole84.se/nav-app.svg" />
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
   <meta name="theme-color" content="#000000">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
@@ -29,7 +29,8 @@
     <div id="coordinatesDiv"></div>
     <div class="equalSpace">
       <div><span id="distanceTraveledDiv">0.00</span><span class="infoFormat">KM</span></div>
-      <div id="batteryDiv"><span id="batteryCharging"></span><span id="batteryLevel"></span><span class="infoFormat">%</span></div>
+      <div id="batteryDiv"><span id="batteryCharging"></span><span id="batteryLevel"></span><span
+          class="infoFormat">%</span></div>
     </div>
     <div class="equalSpace">
       <div>
@@ -57,95 +58,102 @@
     </select>
     <button class="btn btn-success shadowed fullscreenHide" id="openMenu">Meny</button>
   </div>
+<div class="menuContainer">
 
   <div id="menuDiv" class="shadowed">
-    <img src="https://jole84.se/jole84.svg" height="16"> navigationsapp med <a
-        href="https://github.com/jole84/nav-app">öppen källkod</a>, baserad på <a href="https://openlayers.org">Openlayers</a>. Navigation från <a
-        href="https://brouter.de/">BRouter</a>. Karta skapad av öppna data från Lantmäteriet och Trafikverket.
-    <table class="table table-borderless table-sm align-middle">
-      <tr>
-        <td colspan="2">
-          <select class="form-select" id="selectFile">
-            <option>välj gpxfil</option>
-            <option value="https://jole84.se/phpReadFile.php?url=https://transeurotrail.org/wp-content/uploads/gpxsync/S.gpx">TET Sverige</option>
-          </select>
-        </td>
-      </tr>
+    <div class="menuContentContainer">
+      <div>
+        <img src="https://jole84.se/jole84.svg" height="16"> navigationsapp med <a
+          href="https://github.com/jole84/nav-app">öppen källkod</a>, baserad på <a
+          href="https://openlayers.org">Openlayers</a>. Navigation från <a href="https://project-osrm.org//">OSRM</a>. Karta
+        skapad av öppna data från Lantmäteriet och Trafikverket.
+        <table class="table">
+          <tr>
+            <td colspan="2">
+              <select class="form-select" id="selectFile">
+                <option>välj gpxfil</option>
+                <option
+                  value="https://jole84.se/phpReadFile.php?url=https://transeurotrail.org/wp-content/uploads/gpxsync/S.gpx">
+                  TET Sverige</option>
+              </select>
+            </td>
+          </tr>
 
-      <tr>
-        <td>
-          Användarnamn (för Glympse-liknande funktion, tomt avaktiverar):
-        </td>
-        <td>
-          <input class="form-control" type="text" id="userName" placeholder="användarnamn"><br>
-        </td>
-      </tr>
+          <tr>
+            <td>
+              Användarnamn (för Glympse-liknande funktion, tomt avaktiverar):
+            </td>
+            <td>
+              <input style="width: 8rem;" class="form-control" type="text" id="userName" placeholder="användarnamn"><br>
+            </td>
+          </tr>
 
-      <tr>
-        <td>
-          Förvald zoom:
-        </td>
-        <td>
-          <input class="form-control" type="number" id="prefferedZoom" value="14" min="6" max="20" step="0.1" required
-            placeholder="14"><br>
-        </td>
-      </tr>
+          <tr>
+            <td>
+              Förvald zoom:
+            </td>
+            <td>
+              <input class="form-control" type="number" id="prefferedZoom" value="14" min="6" max="20" step="0.1"
+                required placeholder="14"><br>
+            </td>
+          </tr>
 
-      <tr>
-        <td>
-          Storlek på infotext:
-        </td>
-        <td>
-          <select class="form-select" id="preferredFontSize">
-            <option value="20px">mindre</option>
-            <option value="25px">normal</option>
-            <option value="30px">större</option>
-          </select>
-        </td>
-      </tr>
+          <tr>
+            <td>
+              Storlek på infotext:
+            </td>
+            <td>
+              <select class="form-select" id="preferredFontSize">
+                <option value="20px">mindre</option>
+                <option value="25px">normal</option>
+                <option value="30px">större</option>
+              </select>
+            </td>
+          </tr>
 
-      <!-- <tr>
-        <td>
-          <input class="form-check-input" role="switch" type="checkbox" id="enableLnt">
-          <label class="form-check-label" for="enableLnt">Extra kartor från Lantmäteriet</label>
-        </td>
-      </tr> -->
+          <tr>
+            <td><kbd>A/+</kbd> zooma in</td>
+            <td><kbd>Esc/-</kbd> zooma ut</td>
+          </tr>
 
-      <tr>
-        <td><kbd>A/+</kbd> zooma in</td>
-        <td><kbd>Esc/-</kbd> zooma ut</td>
-      </tr>
+          <tr>
+            <td><kbd>C/Enter</kbd> centrera vy</td>
+            <td><kbd>V</kbd> växla karta</td>
+          </tr>
 
-      <tr>
-        <td><kbd>C/Enter</kbd> centrera vy</td>
-        <td><kbd>V</kbd> växla karta</td>
-      </tr>
+          <tr>
+            <td><kbd>D</kbd> focusera destination</td>
+            <td><kbd>Space</kbd> översikt</td>
+          </tr>
 
-      <tr>
-        <td><kbd>D</kbd> focusera destination</td>
-        <td><kbd>Space</kbd> översikt</td>
-      </tr>
+          <tr>
+            <td><kbd>R</kbd> räkna om rutt</td>
+            <td><kbd>högerklick/långtryck</kbd> navigera till punkt</td>
+          </tr>
 
-      <tr>
-        <td><kbd>R</kbd> räkna om rutt</td>
-        <td><kbd>högerklick/långtryck</kbd> navigera till punkt</td>
-      </tr>
+          <tr>
+            <td>
+              <button class="btn btn-primary" id="tripPointButton">Visa spårpunktsdata</button>
+            </td>
+            <td>
+              <button class="btn btn-danger" id="clearTripButton">Nollställ tripp</button>
+            </td>
+          </tr>
 
-      <tr>
-        <td>
-          <button style="width: 100%;" class="btn btn-primary" id="tripPointButton">Visa spårpunktsdata</button>
-        </td>
-        <td>
-          <button style="width: 100%;" class="btn btn-danger" id="clearTripButton">Nollställ tripp</button>
-        </td>
-      </tr>
+        </table>
+      </div>
 
-    </table>
-    <div>
-      <button class="btn btn-danger" id="clearSettings">Återställ inställningar</button>
-      <button class="btn btn-success" id="closeMenu">Stäng</button>
+      <div><br></div>
+
+      <div>
+        <button class="btn btn-danger" id="clearSettings">Återställ inställningar</button>
+        <button class="btn btn-success" id="closeMenu">Stäng</button>
+      </div>
     </div>
   </div>
+</div>
+
+
   <input type="file" id="customFileButton" multiple accept=".gpx,.gpx.txt,application/gpx+xml,.kml,.geojson"
     style="display: none;" />
 </body>

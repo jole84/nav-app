@@ -2,7 +2,6 @@ import "./style.css";
 import { Feature, Map, View } from "ol";
 import { fromLonLat, toLonLat } from "ol/proj.js";
 import { getDistance } from "ol/sphere";
-import { saveAs } from "file-saver";
 import { Style, Icon } from "ol/style.js";
 import { Vector as VectorLayer } from "ol/layer.js";
 import Geolocation from "ol/Geolocation.js";
@@ -272,8 +271,19 @@ const trackLayer = new VectorLayer({
   style: trackStyle,
 });
 
+const endMarker = new Point([]);
+const routeLineString = new LineString([]);
 const routeLayer = new VectorLayer({
-  source: new VectorSource(),
+  source: new VectorSource({
+    features: [
+      new Feature({
+        geometry: routeLineString
+      }),
+      new Feature({
+        geometry: endMarker
+      }),
+    ],
+  }),
   style: routeStyle,
 });
 routeLayer.addEventListener("change", function () {
@@ -531,12 +541,8 @@ geolocation.on("change", function () {
     });
 
     // calculate remaing distance on route
-    if (routeLayer.getSource().getFeatureById(0) != null) {
-      const featureCoordinates = routeLayer
-        .getSource()
-        .getFeatureById(0)
-        .getGeometry()
-        .getCoordinates();
+    if (routeLineString.getCoordinates().length > 0) {
+      const featureCoordinates = routeLineString.getCoordinates();
       const routeRemainingDistance = getRemainingDistance(featureCoordinates, lonlat);
       if (routeRemainingDistance != undefined) {
         routeInfo.innerHTML += toRemainingString(
@@ -777,12 +783,7 @@ function switchMap() {
 
 // logic for saveLogButton
 function saveLogButtonFunction() {
-  if (trackLog.length > 5) {
-    saveLog();
-  } else {
-    console.log(JSON.stringify(trackLog));
-    console.log(localStorage);
-  }
+  saveLog();
 }
 
 // new saveLog function
@@ -814,20 +815,41 @@ async function saveLog() {
 </trk>
 </gpx>`;
 
-  const filename =
-    new Date(trackLog[0][2]).toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + "_" + (distanceTraveled / 1000).toFixed(2) + "km.gpx";
-  setExtraInfo(["Sparar fil:", filename]);
+  const filename = new Date(trackLog[0][2]).toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + "_" + (distanceTraveled / 1000).toFixed(2) + "km.gpx";
 
   let file = new Blob([gpxFile], { type: "application/gpx+xml" });
 
   // tries to share text file
+  if (window.showSaveFilePicker) {
+    saveFile(file, filename);
+  } else {
+    try {
+      await navigator.share({
+        files: [new File([gpxFile], filename + ".txt", { type: "text/plain" })],
+      });
+    } catch (error) {
+      setExtraInfo([error]);
+    }
+  }
+}
+
+async function saveFile(data, fileName) {
   try {
-    await navigator.share({
-      files: [new File([gpxFile], filename + ".txt", { type: "text/plain" })],
-    });
-  } catch (error) {
-    setExtraInfo([error]);
-    saveAs(file, filename);
+    // create a new handle
+    const newHandle = await window.showSaveFilePicker({ suggestedName: fileName });
+
+    // create a FileSystemWritableFileStream to write to
+    const writableStream = await newHandle.createWritable();
+
+    // write our file
+    await writableStream.write(data);
+
+    // close the file and write the contents to disk.
+    await writableStream.close();
+
+    alert("GPX sparad!");
+  } catch (e) {
+    alert("Något gick snett :( \n" + e.message);
   }
 }
 
@@ -842,49 +864,30 @@ function setExtraInfo(infoText) {
 
 // brouter routing
 function routeMe() {
-  fetch(
-    "https://brouter.de/brouter" +
-    // "https://jole84.se:17777/brouter" +
-    "?lonlats=" +
-    destinationCoordinates.join("|") +
-    "&profile=car-fast&alternativeidx=0&format=geojson",
-  ).then(function (response) {
-    if (!response.ok) {
-      setExtraInfo(["Felaktig rutt"]);
-      routeInfo.innerHTML = "";
-      destinationCoordinates.pop(); // remove faulty coordinate
-      return;
-    }
-    response.json().then(function (result) {
-      const route = new GeoJSON()
-        .readFeature(result.features[0], {
-          dataProjection: "EPSG:4326",
-          featureProjection: "EPSG:3857",
-        }).getGeometry();
-
-      const totalLength = result.features[0].properties["track-length"] / 1000; // track-length in km
-      const totalTime = result.features[0].properties["total-time"];
-
-      // add route information to info box
-      routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
-
-      const routeFeature = new Feature({
-        type: "route",
-        geometry: route,
-      });
-      routeFeature.setId(0);
-
-      const endMarker = new Feature({
-        type: "icon",
-        geometry: new Point(route.getLastCoordinate()),
-      });
-
-      // remove previus route
-      routeLayer.getSource().clear();
-
-      // finally add route to map
-      routeLayer.getSource().addFeatures([routeFeature, endMarker]);
+  const params = new URLSearchParams({
+    geometries: 'geojson',
+    overview: 'full',
+    continue_straight: false,
+    generate_hints: false,
+    skip_waypoints: true,
+    steps: false,
+  });
+  fetch(`https://router.project-osrm.org/route/v1/driving/${destinationCoordinates.join(";")}?` + params).then(response => {
+    return response.json();
+  }).then(result => {
+    console.log(result)
+    const format = new GeoJSON();
+    const newGeometry = format.readFeatures(result.routes[0].geometry, {
+      dataProjection: "EPSG:4326",
+      featureProjection: "EPSG:3857"
     });
+
+    const totalLength = result.routes[0].distance / 1000; // track-length in km
+    const totalTime = result.routes[0].duration;
+    routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
+
+    routeLineString.setCoordinates(newGeometry[0].getGeometry().getCoordinates());
+    endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
   });
 }
 
@@ -952,14 +955,15 @@ map.on("contextmenu", function (event) {
     (destinationCoordinates.length == 2 && clickedOnLastDestination) ||
     clickedOnCurrentPosition
   ) {
-    routeLayer.getSource().clear();
+    endMarker.setCoordinates([]);
+    routeLineString.setCoordinates([]);
     routeInfo.innerHTML = "";
     destinationCoordinates = [];
   } else {
     // else push clicked coord to destinationCoordinates
     if (clickedOnWaypoint) {
       destinationCoordinates.push(
-        toLonLat(closestWaypoint.getGeometry().getCoordinates()),
+        [toLonLat(closestWaypoint.getGeometry().getCoordinates())[0], toLonLat(closestWaypoint.getGeometry().getCoordinates())[1]],
       );
       setExtraInfo(["Vald destination:", closestWaypoint.get("name")]);
     } else {
@@ -1101,13 +1105,15 @@ document.addEventListener("keydown", function (event) {
     if (event.key == "x") {
       view.adjustRotation(-0.2);
     }
-    if (event.key == "s") {
-      saveLogButtonFunction();
+    if (event.key == "n") {
+      lastInteraction = Date.now();
+      view.setRotation(0);
     }
     if (event.key == "d") {
       focusDestination();
     }
     if (event.key == "Escape" || event.key == "§") {
+      event.preventDefault();
       // carpe iter adventure controller minus button
       if (view.getZoom() >= 17) {
         lastInteraction = Date.now();
@@ -1256,12 +1262,18 @@ function focusDestination() {
 }
 
 function getClosestAccident() {
+  closestAccident = trafficWarningSource.getClosestFeatureToCoordinate(
+    currentPosition,
+    // function (feature) {
+    //   return feature.get("iconId") === "roadAccident";
+    // },
+  );
   if (trafficWarningSource.getFeatures().length >= 1) {
     // check route for accidents
     let routeHasAccident = false;
-    const routeIsActive = routeLayer.getSource().getFeatureById(0) != undefined;
+    const routeIsActive = routeLineString.getCoordinates().length > 0;
     if (routeIsActive) {
-      const featureCoordinates = routeLayer.getSource().getFeatureById(0).getGeometry().getCoordinates();
+      const featureCoordinates = routeLineString.getCoordinates();
       const newMultiPoint = new MultiPoint(featureCoordinates.reverse());
       const newMultiPointCurrentPosition = newMultiPoint.getClosestPoint(currentPosition);
 
@@ -1285,14 +1297,6 @@ function getClosestAccident() {
           break;
         }
       }
-    } else {
-      // if no route is active check closest accident
-      closestAccident = trafficWarningSource.getClosestFeatureToCoordinate(
-        currentPosition,
-        // function (feature) {
-        //   return feature.get("iconId") === "roadAccident";
-        // },
-      );
     }
 
     // check accident information
@@ -1329,7 +1333,8 @@ function recalculateRoute() {
       routeInfo.innerHTML = "";
       document.getElementById("extraInfo").innerHTML = "";
       destinationCoordinates = [];
-      routeLayer.getSource().clear();
+      endMarker.setCoordinates([]);
+      routeLineString.setCoordinates([]);
     } else {
       destinationCoordinates = [
         lonlat,
