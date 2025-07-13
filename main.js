@@ -39,14 +39,15 @@ const center = JSON.parse(localStorage.lastPosition || "[1700000, 8500000]");
 const centerButton = document.getElementById("centerButton");
 const closeMenuButton = document.getElementById("closeMenu");
 const customFileButton = document.getElementById("customFileButton");
-const menuDiv = document.getElementById("menuDiv");
 const infoGroup = document.getElementById("infoGroup");
 const interactionDelay = 10000;
+const menuDiv = document.getElementById("menuDiv");
 const openMenuButton = document.getElementById("openMenu");
 const preferredFontSizeDiv = document.getElementById("preferredFontSize");
 const prefferedZoomDiv = document.getElementById("prefferedZoom");
 const routeInfo = document.getElementById("routeInfo");
 const saveLogButton = document.getElementById("saveLogButton");
+const selectFile = document.getElementById("selectFile");
 const startTime = Date.now();
 const trafficWarningDiv = document.getElementById("trafficWarning");
 let accuracy = 5000;
@@ -119,13 +120,14 @@ document.addEventListener("visibilitychange", async () => {
 
 centerButton.onclick = centerFunction;
 customFileButton.addEventListener("change", handleFileSelect, false);
+saveLogButton.onclick = saveLog;
 trafficWarningDiv.onclick = focusTrafficWarning;
-saveLogButton.onclick = saveLogButtonFunction;
+document.getElementById("clearTripButton").onclick = clearTrip;
+document.getElementById("restoreTripButton").onclick = restoreTrip;
 document.getElementById("clickFileButton").onclick = function () {
   gpxSource.clear();
   customFileButton.click();
 };
-document.getElementById("restoreTripButton").addEventListener("click", restoreTrip);
 setTimeout(function () { document.getElementById("restoreTripButton").style.display = "none" }, 30000);
 
 infoGroup.addEventListener("dblclick", function () {
@@ -187,9 +189,6 @@ const view = new View({
 });
 
 const trackLineString = new LineString([]);
-const trackLineFeature = new Feature({
-  geometry: trackLineString,
-});
 
 const osm = new TileLayer({
   className: "saturated",
@@ -266,7 +265,9 @@ const userLocationLayer = new VectorLayer({
 
 const trackLayer = new VectorLayer({
   source: new VectorSource({
-    features: [trackLineFeature],
+    features: [new Feature({
+      geometry: trackLineString,
+    })],
   }),
   style: trackStyle,
 });
@@ -331,35 +332,6 @@ const map = new Map({
   keyboardEventTarget: document,
 });
 
-// stuff for testing:
-// map.on("click", function (event) {
-//   const eventCoordinate = event.coordinate;
-//   // localStorage.trackLog = JSON.stringify(trackLog);
-//   geolocation.set("accuracy", 10);
-//   geolocation.set("position", eventCoordinate);
-//   trackLog.push([toLonLat(eventCoordinate), altitude, Date.now()]);
-
-//   const lastDistance = getDistance(trackLog[trackLog.length - 1][0], trackLog[trackLog.length - 2][0]);
-//   const lastTime = (new Date(trackLog[trackLog.length - 1][2]) - new Date(trackLog[trackLog.length - 2][2])) / 1000;
-//   const lastKmh = (lastDistance / lastTime) * 3.6;
-//   geolocation.set("speed", lastKmh);
-//   trackLineString.appendCoordinate(eventCoordinate);
-//   geolocation.changed();
-// });
-
-// gpx loader fit view
-// gpxSource.addEventListener("addfeature", function () {
-//   if (gpxSource.getState() === "ready" && Date.now() - lastInteraction > 3000) {
-//     const padding = 100;
-//     lastInteraction = Date.now();
-//     view.setRotation(0);
-//     view.fit(gpxSource.getExtent(), {
-//       padding: [padding, padding, padding, padding],
-//       maxZoom: 15,
-//     });
-//   }
-// });
-
 function gpxSourceLoader(gpxFile) {
   const reader = new FileReader();
   const fileExtention = gpxFile.name.replace(".gpx.txt", ".gpx").split(".").pop().toLowerCase();
@@ -377,7 +349,6 @@ function gpxSourceLoader(gpxFile) {
 }
 
 // add selectFile options
-var selectFile = document.getElementById("selectFile");
 fetch("https://jole84.se/filesList.php")
   .then((response) => response.json())
   .then((filesList) => {
@@ -642,7 +613,6 @@ function restoreTrip() {
   setExtraInfo(["Tripp återställd"]);
 }
 
-document.getElementById("clearTripButton").addEventListener("click", clearTrip);
 function clearTrip() {
   distanceTraveled = 0;
   document.getElementById("distanceTraveledDiv").innerHTML = "0.00";
@@ -779,11 +749,6 @@ function switchMap() {
     ortofoto.setMinZoom(0);
   }
   infoGroup.style.fontSize = localStorage.preferredFontSize;
-}
-
-// logic for saveLogButton
-function saveLogButtonFunction() {
-  saveLog();
 }
 
 // new saveLog function
