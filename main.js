@@ -465,17 +465,13 @@ geolocation.on("change", function () {
   ) {
     trackLog.push([lonlat, altitude, currentTime]);
     trackLineString.appendCoordinate(currentPosition);
-    if (currentTime - startTime > 300000) {
+    if (currentTime - startTime > 300000) { // wait 5 minutes before log backup
       localStorage.trackLog = JSON.stringify(trackLog);
     }
 
     // recalculate route if > 300 m off route
     if (destinationCoordinates.length == 2) {
-      const closestRoutePoint = routeLayer
-        .getSource()
-        .getFeatureById(0)
-        .getGeometry()
-        .getClosestPoint(currentPosition);
+      const closestRoutePoint = routeLineString.getClosestPoint(currentPosition);
       if (getDistance(lonlat, toLonLat(closestRoutePoint)) > 300) {
         destinationCoordinates[0] = lonlat;
         routeMe();
@@ -834,15 +830,16 @@ function routeMe() {
     overview: 'full',
     continue_straight: false,
     generate_hints: false,
-    skip_waypoints: true,
+    // skip_waypoints: true,
     steps: false,
   });
   fetch(`https://router.project-osrm.org/route/v1/driving/${destinationCoordinates.join(";")}?` + params).then(response => {
     return response.json();
   }).then(result => {
     console.log(result)
+    destinationCoordinates[destinationCoordinates.length - 1] = result.waypoints[destinationCoordinates.length - 1].location;
     const format = new GeoJSON();
-    const newGeometry = format.readFeatures(result.routes[0].geometry, {
+    const newGeometry = format.readFeature(result.routes[0].geometry, {
       dataProjection: "EPSG:4326",
       featureProjection: "EPSG:3857"
     });
@@ -851,7 +848,7 @@ function routeMe() {
     const totalTime = result.routes[0].duration;
     routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
 
-    routeLineString.setCoordinates(newGeometry[0].getGeometry().getCoordinates());
+    routeLineString.setCoordinates(newGeometry.getGeometry().getCoordinates());
     endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
   });
 }
@@ -1050,10 +1047,13 @@ document.addEventListener("keydown", function (event) {
       event.preventDefault();
       if (Date.now() - lastInteraction > interactionDelay) {
         lastInteraction = Date.now();
-        focusTrafficWarning();
+        view.animate({
+          rotation: 0,
+          duration: 500,
+        })
       } else {
-        centerFunction();
         lastInteraction = Date.now() - interactionDelay;
+        centerFunction();
       }
     }
     if (event.key == "c") {
