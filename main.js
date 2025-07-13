@@ -925,9 +925,9 @@ map.on("contextmenu", function (event) {
     // else push clicked coord to destinationCoordinates
     if (clickedOnWaypoint) {
       destinationCoordinates.push(
-        [toLonLat(closestWaypoint.getGeometry().getCoordinates())[0], toLonLat(closestWaypoint.getGeometry().getCoordinates())[1]],
+        [toLonLat(closestWaypoint.getGeometry().getCoordinates()).splice(0,2)],
       );
-      setExtraInfo(["Vald destination:", closestWaypoint.get("name")]);
+      setExtraInfo(["Navigerar till:", closestWaypoint.get("name")]);
     } else {
       setExtraInfo([
         `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Streetview</a></div>`,
