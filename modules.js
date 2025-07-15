@@ -101,3 +101,19 @@ export function degToRad(deg) {
 export function radToDeg(rad) {
   return rad * (180 / Math.PI);
 }
+
+export function addTestMarker(coordinate, name = "") {
+  const marker = new Feature({
+    geometry: new Point(coordinate),
+    name: String(name),
+  });
+  gpxSource.addFeature(marker);
+}
+
+export function findIndexOf(value, array) {
+  for (let i = 0; i < array.length; i++) {
+    if (array[i].toString() == value.toString()) {
+      return i;
+    }
+  }
+}

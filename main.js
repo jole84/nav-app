@@ -32,6 +32,7 @@ import {
   getRemainingDistance,
   toRemainingString,
   getFileFormat,
+  findIndexOf,
 } from "./modules.js";
 
 localStorage.mapMode = localStorage.mapMode || 0;
@@ -925,7 +926,7 @@ map.on("contextmenu", function (event) {
     // else push clicked coord to destinationCoordinates
     if (clickedOnWaypoint) {
       destinationCoordinates.push(
-        [toLonLat(closestWaypoint.getGeometry().getCoordinates()).splice(0,2)],
+        [toLonLat(closestWaypoint.getGeometry().getCoordinates()).splice(0, 2)],
       );
       setExtraInfo(["Navigerar till:", closestWaypoint.get("name")]);
     } else {
@@ -1227,59 +1228,58 @@ function focusDestination() {
 }
 
 function getClosestAccident() {
-  closestAccident = trafficWarningSource.getClosestFeatureToCoordinate(
-    currentPosition,
-    // function (feature) {
-    //   return feature.get("iconId") === "roadAccident";
-    // },
-  );
-  if (trafficWarningSource.getFeatures().length >= 1) {
-    // check route for accidents
-    let routeHasAccident = false;
+  closestAccident = false;
+  if (trafficWarningSource.getFeatures().length > 0) {
     const routeIsActive = routeLineString.getCoordinates().length > 0;
+    let distanceToAccident = 0;
     if (routeIsActive) {
       const featureCoordinates = routeLineString.getCoordinates();
-      const newMultiPoint = new MultiPoint(featureCoordinates.reverse());
+      const newMultiPoint = new MultiPoint(featureCoordinates);
       const newMultiPointCurrentPosition = newMultiPoint.getClosestPoint(currentPosition);
+      const startIndex = findIndexOf(newMultiPointCurrentPosition, featureCoordinates);
 
-      for (let i = 0; i < featureCoordinates.length; i++) {
-        const closestLineStringPoint =
-          trafficWarningSource.getClosestFeatureToCoordinate(
-            featureCoordinates[i],
-            // function (feature) {
-            //   return feature.get("iconId") === "roadAccident";
-            // },
-          );
-        const closestLineStringPointDistance = getDistance(
-          toLonLat(closestLineStringPoint.getGeometry().getCoordinates()),
+      for (let i = startIndex; (i < featureCoordinates.length - 1) && !closestAccident; i++) {
+        distanceToAccident += getDistance(
           toLonLat(featureCoordinates[i]),
+          toLonLat(featureCoordinates[i + 1])
+        )
+        // addTestMarker(featureCoordinates[i], Math.round(distanceToAccident));
+
+        closestAccident =
+          trafficWarningSource.getClosestFeatureToCoordinate(featureCoordinates[i],
+            function (feature) {
+              return getDistance(
+                toLonLat(feature.getGeometry().getCoordinates()),
+                toLonLat(featureCoordinates[i])) < 200;
+            },
+          );
+      }
+    } else {
+      closestAccident = trafficWarningSource.getClosestFeatureToCoordinate(
+        currentPosition,
+        function (feature) {
+          return getDistance(
+            toLonLat(feature.getGeometry().getCoordinates()),
+            lonlat) < 30000;
+        }
+      );
+      if (closestAccident) {
+        distanceToAccident = getDistance(
+          toLonLat(closestAccident.getGeometry().getCoordinates()),
+          lonlat
         );
-        if (closestLineStringPointDistance < 500) {
-          routeHasAccident = true;
-          closestAccident = closestLineStringPoint;
-        }
-        if (featureCoordinates[i].toString() === newMultiPointCurrentPosition.toString()) {
-          break;
-        }
       }
     }
 
-    // check accident information
-    const closestAccidentRoadNumber = closestAccident.get("roadNumber");
-    const messageCode = closestAccident.get("messageCode");
-    const closestAccidentCoords = closestAccident.getGeometry().getCoordinates();
-    const closestAccidentDistance = getDistance(
-      toLonLat(closestAccidentCoords),
-      lonlat,
-    );
+    if (!!closestAccident) {
+      const closestAccidentRoadNumber = closestAccident.get("roadNumber");
+      const messageCode = closestAccident.get("messageCode");
 
-    if ((closestAccidentDistance < 30000 && !routeIsActive) || routeHasAccident) {
       trafficWarningDiv.innerHTML =
         messageCode + ", " +
         closestAccidentRoadNumber.replace(/^V/, "v") +
-        " (" + Math.round(closestAccidentDistance / 1000) + "km)";
+        " (" + Math.round(distanceToAccident / 1000) + "km)";
     } else {
-      closestAccident = null;
       trafficWarningDiv.innerHTML = "";
     }
   } else {
