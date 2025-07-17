@@ -868,73 +868,46 @@ map.on("singleclick", function (evt) {
 map.on("contextmenu", function (event) {
   lastInteraction = Date.now();
   const eventLonLat = toLonLat(event.coordinate);
-  let closestWaypoint;
-
   // set start position
   destinationCoordinates[0] = lonlat;
 
-  let clickedOnWaypoint = false;
   const clickedOnCurrentPosition =
     getDistance(lonlat, eventLonLat) < 200 ||
     getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
-  const clickedOnLastDestination =
-    getPixelDistance(
-      event.pixel,
-      map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))
-    ) < 40;
 
-  // check if clicked on a waypoint
-  if (gpxSource.getFeatures().length > 0) {
-    closestWaypoint = gpxSource.getClosestFeatureToCoordinate(
+  const clickedOnEndMarker = getPixelDistance(
+    event.pixel,
+    map.getPixelFromCoordinate(endMarker.getCoordinates())
+  ) < 40;
+
+  const clickedOnWaypoint =
+    gpxSource.getClosestFeatureToCoordinate(
       event.coordinate,
-      function (feature) {
-        return feature.getGeometry().getType() === "Point";
+      feature => {
+        return feature.getGeometry().getType() === "Point" &&
+          getPixelDistance(map.getPixelFromCoordinate(feature.getGeometry().getCoordinates()), event.pixel) < 40
       },
     );
-    if (closestWaypoint != null) {
-      clickedOnWaypoint =
-        getPixelDistance(
-          map.getPixelFromCoordinate(
-            closestWaypoint.getGeometry().getCoordinates(),
-          ),
-          event.pixel,
-        ) < 40;
-    }
-  }
 
-  // measure distance from current pos
-  if (clickedOnCurrentPosition) {
+  if (clickedOnCurrentPosition || (clickedOnEndMarker && destinationCoordinates.length <= 2)) {
     setExtraInfo([
       Math.round(getDistance(lonlat, eventLonLat)) +
       '<font class="infoFormat">M</font>',
     ]);
-  }
-
-  // remove last point if click < 40 pixels from last point
-  if (destinationCoordinates.length > 2 && clickedOnLastDestination) {
-    destinationCoordinates.pop();
-    // clear route if click < 40 pixels from last point or click on current position
-  } else if (
-    (destinationCoordinates.length == 2 && clickedOnLastDestination) ||
-    clickedOnCurrentPosition
-  ) {
     endMarker.setCoordinates([]);
     routeLineString.setCoordinates([]);
     routeInfo.innerHTML = "";
     destinationCoordinates = [];
+  } else if (clickedOnEndMarker) {
+    destinationCoordinates.pop();
+  } else if (clickedOnWaypoint) {
+    setExtraInfo(["Navigerar till:", clickedOnWaypoint.get("name")]);
+    destinationCoordinates.push(toLonLat(clickedOnWaypoint.getGeometry().getCoordinates()).splice(0, 2));
   } else {
-    // else push clicked coord to destinationCoordinates
-    if (clickedOnWaypoint) {
-      destinationCoordinates.push(
-        [toLonLat(closestWaypoint.getGeometry().getCoordinates()).splice(0, 2)],
-      );
-      setExtraInfo(["Navigerar till:", closestWaypoint.get("name")]);
-    } else {
-      setExtraInfo([
-        `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Streetview</a></div>`,
-      ]);
-      destinationCoordinates.push(eventLonLat);
-    }
+    setExtraInfo([
+      `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Streetview</a></div>`,
+    ]);
+    destinationCoordinates.push(eventLonLat);
   }
 
   // start routing
