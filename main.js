@@ -1327,6 +1327,14 @@ function updateUserPosition() {
   }
 }
 
+function addTestMarker(coordinate, sourceLayer, name = "") {
+  const marker = new Feature({
+    geometry: new Point(coordinate),
+    name: String(name),
+  });
+  sourceLayer.addFeature(marker);
+}
+
 let showTripPoints = false;
 document.getElementById("tripPointButton").addEventListener("click", function () {
   showTripPoints = !showTripPoints;
@@ -1338,13 +1346,13 @@ document.getElementById("tripPointButton").addEventListener("click", function ()
       const segmentTimeMS = new Date(trackLog[i][2]) - new Date(trackLog[i - 1][2]);
       const speedKmh = (segmentDistanceM / segmentTimeMS) * 3600;
       totalDistance += segmentDistanceM;
-      const marker = new Feature({
-        geometry: new Point(fromLonLat(trackLog[i][0])),
-        name: String(
+      addTestMarker(
+        fromLonLat(trackLog[i][0]),
+        trackPointLayer.getSource(),
+        String(
           new Date(trackLog[i][2]).toLocaleTimeString() + " " + Math.round(speedKmh) + "km/h\n" +
-          (totalDistance / 1000).toFixed(1) + "km"),
-      });
-      trackPointLayer.getSource().addFeature(marker);
+          (totalDistance / 1000).toFixed(1) + "km")
+      );
     }
   } else {
     this.innerHTML = "Visa spårpunktsdata";
