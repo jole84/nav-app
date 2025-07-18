@@ -824,7 +824,44 @@ function setExtraInfo(infoText) {
   }, 15000);
 }
 
-// brouter routing
+// Open Route Service routing
+function routeMeOSR() {
+  fetch(`https://api.openrouteservice.org/v2/directions/driving-car/geojson?`, {
+    method: "post",
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Accept': 'application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8',
+      'Authorization': '5b3ce3597851110001cf62482ba2170071134e8a80497f7f4f2a0683'
+    },
+    body: JSON.stringify({
+      coordinates: destinationCoordinates,
+      instructions: false,
+      // maneuvers: true,
+      // preference: "recommended",
+      // preference: "shortest",
+      // preference: "fastest",
+    })
+  }).then(response => {
+    return response.json();
+  }).then(result => {
+    console.log(result)
+    destinationCoordinates[destinationCoordinates.length - 1] = result.features[0].geometry.coordinates[result.features[0].geometry.coordinates.length - 1];
+    const format = new GeoJSON();
+    const newGeometry = format.readFeature(result.features[0].geometry, {
+      dataProjection: "EPSG:4326",
+      featureProjection: "EPSG:3857"
+    });
+
+    const totalLength = result.features[0].properties.summary.distance / 1000; // track-length in km
+    const totalTime = result.features[0].properties.summary.duration;
+    routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
+
+    routeLineString.setCoordinates(newGeometry.getGeometry().getCoordinates());
+    endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
+  });
+}
+
+// OSRM routing
 function routeMe() {
   const params = new URLSearchParams({
     geometries: 'geojson',
@@ -851,6 +888,9 @@ function routeMe() {
 
     routeLineString.setCoordinates(newGeometry.getGeometry().getCoordinates());
     endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
+  }).catch((error) => {
+    setExtraInfo(["OSRM error:", error]);
+    routeMeOSR();
   });
 }
 
