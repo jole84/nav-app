@@ -1043,6 +1043,7 @@ switchMap();
 document.addEventListener("keydown", function (event) {
   if (menuDiv.checkVisibility()) {
     if (event.key == "Escape" || event.key == "§") {
+      event.preventDefault();
       closeMenuButton.click();
     }
   } else {
@@ -1059,15 +1060,19 @@ document.addEventListener("keydown", function (event) {
     }
     if (event.key == "Enter") {
       event.preventDefault();
-      if (Date.now() - lastInteraction > interactionDelay) {
-        lastInteraction = Date.now();
-        view.animate({
-          rotation: 0,
-          duration: 500,
-        })
+      if (document.getElementById("restoreTripButton").checkVisibility()) {
+        restoreTrip();
       } else {
-        lastInteraction = Date.now() - interactionDelay;
-        centerFunction();
+        if (Date.now() - lastInteraction > interactionDelay) {
+          lastInteraction = Date.now();
+          view.animate({
+            rotation: 0,
+            duration: 500,
+          })
+        } else {
+          lastInteraction = Date.now() - interactionDelay;
+          centerFunction();
+        }
       }
     }
     if (event.key == "c") {
@@ -1314,10 +1319,7 @@ function recalculateRoute() {
       endMarker.setCoordinates([]);
       routeLineString.setCoordinates([]);
     } else {
-      destinationCoordinates = [
-        lonlat,
-        destinationCoordinates[destinationCoordinates.length - 1],
-      ];
+      destinationCoordinates[0] = lonlat;
       routeMe();
     }
   }
