@@ -32,6 +32,7 @@ import {
   getRemainingDistance,
   toRemainingString,
   getFileFormat,
+  findIndexOf,
 } from "./modules.js";
 
 localStorage.mapMode = localStorage.mapMode || 0;
@@ -39,15 +40,15 @@ const center = JSON.parse(localStorage.lastPosition || "[1700000, 8500000]");
 const centerButton = document.getElementById("centerButton");
 const closeMenuButton = document.getElementById("closeMenu");
 const customFileButton = document.getElementById("customFileButton");
-const menuDiv = document.getElementById("menuDiv");
 const infoGroup = document.getElementById("infoGroup");
 const interactionDelay = 10000;
+const menuDiv = document.getElementById("menuDiv");
 const openMenuButton = document.getElementById("openMenu");
 const preferredFontSizeDiv = document.getElementById("preferredFontSize");
 const prefferedZoomDiv = document.getElementById("prefferedZoom");
 const routeInfo = document.getElementById("routeInfo");
 const saveLogButton = document.getElementById("saveLogButton");
-const startTime = Date.now();
+const selectFile = document.getElementById("selectFile");
 const trafficWarningDiv = document.getElementById("trafficWarning");
 let accuracy = 5000;
 let altitude = 0;
@@ -63,6 +64,7 @@ let maxSpeed = 0;
 let prevLonlat;
 let speed = 0;
 let speedKmh = 0;
+let startTime = Date.now();
 let timeOut;
 let trackLog = [];
 
@@ -119,13 +121,14 @@ document.addEventListener("visibilitychange", async () => {
 
 centerButton.onclick = centerFunction;
 customFileButton.addEventListener("change", handleFileSelect, false);
+saveLogButton.onclick = saveLog;
 trafficWarningDiv.onclick = focusTrafficWarning;
-saveLogButton.onclick = saveLogButtonFunction;
+document.getElementById("clearTripButton").onclick = clearTrip;
+document.getElementById("restoreTripButton").onclick = restoreTrip;
 document.getElementById("clickFileButton").onclick = function () {
   gpxSource.clear();
   customFileButton.click();
 };
-document.getElementById("restoreTripButton").addEventListener("click", restoreTrip);
 setTimeout(function () { document.getElementById("restoreTripButton").style.display = "none" }, 30000);
 
 infoGroup.addEventListener("dblclick", function () {
@@ -187,9 +190,6 @@ const view = new View({
 });
 
 const trackLineString = new LineString([]);
-const trackLineFeature = new Feature({
-  geometry: trackLineString,
-});
 
 const osm = new TileLayer({
   className: "saturated",
@@ -266,7 +266,9 @@ const userLocationLayer = new VectorLayer({
 
 const trackLayer = new VectorLayer({
   source: new VectorSource({
-    features: [trackLineFeature],
+    features: [new Feature({
+      geometry: trackLineString,
+    })],
   }),
   style: trackStyle,
 });
@@ -331,35 +333,6 @@ const map = new Map({
   keyboardEventTarget: document,
 });
 
-// stuff for testing:
-// map.on("click", function (event) {
-//   const eventCoordinate = event.coordinate;
-//   // localStorage.trackLog = JSON.stringify(trackLog);
-//   geolocation.set("accuracy", 10);
-//   geolocation.set("position", eventCoordinate);
-//   trackLog.push([toLonLat(eventCoordinate), altitude, Date.now()]);
-
-//   const lastDistance = getDistance(trackLog[trackLog.length - 1][0], trackLog[trackLog.length - 2][0]);
-//   const lastTime = (new Date(trackLog[trackLog.length - 1][2]) - new Date(trackLog[trackLog.length - 2][2])) / 1000;
-//   const lastKmh = (lastDistance / lastTime) * 3.6;
-//   geolocation.set("speed", lastKmh);
-//   trackLineString.appendCoordinate(eventCoordinate);
-//   geolocation.changed();
-// });
-
-// gpx loader fit view
-// gpxSource.addEventListener("addfeature", function () {
-//   if (gpxSource.getState() === "ready" && Date.now() - lastInteraction > 3000) {
-//     const padding = 100;
-//     lastInteraction = Date.now();
-//     view.setRotation(0);
-//     view.fit(gpxSource.getExtent(), {
-//       padding: [padding, padding, padding, padding],
-//       maxZoom: 15,
-//     });
-//   }
-// });
-
 function gpxSourceLoader(gpxFile) {
   const reader = new FileReader();
   const fileExtention = gpxFile.name.replace(".gpx.txt", ".gpx").split(".").pop().toLowerCase();
@@ -377,7 +350,6 @@ function gpxSourceLoader(gpxFile) {
 }
 
 // add selectFile options
-var selectFile = document.getElementById("selectFile");
 fetch("https://jole84.se/filesList.php")
   .then((response) => response.json())
   .then((filesList) => {
@@ -494,17 +466,13 @@ geolocation.on("change", function () {
   ) {
     trackLog.push([lonlat, altitude, currentTime]);
     trackLineString.appendCoordinate(currentPosition);
-    if (currentTime - startTime > 300000) {
+    if (currentTime - startTime > 300000) { // wait 5 minutes before log backup
       localStorage.trackLog = JSON.stringify(trackLog);
     }
 
     // recalculate route if > 300 m off route
     if (destinationCoordinates.length == 2) {
-      const closestRoutePoint = routeLayer
-        .getSource()
-        .getFeatureById(0)
-        .getGeometry()
-        .getClosestPoint(currentPosition);
+      const closestRoutePoint = routeLineString.getClosestPoint(currentPosition);
       if (getDistance(lonlat, toLonLat(closestRoutePoint)) > 300) {
         destinationCoordinates[0] = lonlat;
         routeMe();
@@ -619,6 +587,7 @@ positionMarkerHeading.setStyle(
 function restoreTrip() {
   // read old route from localStorage
   const oldRoute = JSON.parse(localStorage.trackLog);
+  startTime = oldRoute[0][2];
   distanceTraveled = 0;
   trackLineString.setCoordinates([]);
 
@@ -642,7 +611,6 @@ function restoreTrip() {
   setExtraInfo(["Tripp återställd"]);
 }
 
-document.getElementById("clearTripButton").addEventListener("click", clearTrip);
 function clearTrip() {
   distanceTraveled = 0;
   document.getElementById("distanceTraveledDiv").innerHTML = "0.00";
@@ -781,11 +749,6 @@ function switchMap() {
   infoGroup.style.fontSize = localStorage.preferredFontSize;
 }
 
-// logic for saveLogButton
-function saveLogButtonFunction() {
-  saveLog();
-}
-
 // new saveLog function
 async function saveLog() {
   let gpxFile = `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
@@ -862,22 +825,60 @@ function setExtraInfo(infoText) {
   }, 15000);
 }
 
-// brouter routing
+// Open Route Service routing
+function routeMeOSR() {
+  fetch(`https://api.openrouteservice.org/v2/directions/driving-car/geojson?`, {
+    method: "post",
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Accept': 'application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8',
+      'Authorization': '5b3ce3597851110001cf62482ba2170071134e8a80497f7f4f2a0683'
+    },
+    body: JSON.stringify({
+      coordinates: destinationCoordinates,
+      instructions: false,
+      // maneuvers: true,
+      // preference: "recommended",
+      // preference: "shortest",
+      // preference: "fastest",
+    })
+  }).then(response => {
+    return response.json();
+  }).then(result => {
+    console.log(result)
+    destinationCoordinates[destinationCoordinates.length - 1] = result.features[0].geometry.coordinates[result.features[0].geometry.coordinates.length - 1];
+    const format = new GeoJSON();
+    const newGeometry = format.readFeature(result.features[0].geometry, {
+      dataProjection: "EPSG:4326",
+      featureProjection: "EPSG:3857"
+    });
+
+    const totalLength = result.features[0].properties.summary.distance / 1000; // track-length in km
+    const totalTime = result.features[0].properties.summary.duration;
+    routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
+
+    routeLineString.setCoordinates(newGeometry.getGeometry().getCoordinates());
+    endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
+  });
+}
+
+// OSRM routing
 function routeMe() {
   const params = new URLSearchParams({
     geometries: 'geojson',
     overview: 'full',
     continue_straight: false,
     generate_hints: false,
-    skip_waypoints: true,
+    // skip_waypoints: true,
     steps: false,
   });
   fetch(`https://router.project-osrm.org/route/v1/driving/${destinationCoordinates.join(";")}?` + params).then(response => {
     return response.json();
   }).then(result => {
     console.log(result)
+    destinationCoordinates[destinationCoordinates.length - 1] = result.waypoints[destinationCoordinates.length - 1].location;
     const format = new GeoJSON();
-    const newGeometry = format.readFeatures(result.routes[0].geometry, {
+    const newGeometry = format.readFeature(result.routes[0].geometry, {
       dataProjection: "EPSG:4326",
       featureProjection: "EPSG:3857"
     });
@@ -886,8 +887,11 @@ function routeMe() {
     const totalTime = result.routes[0].duration;
     routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
 
-    routeLineString.setCoordinates(newGeometry[0].getGeometry().getCoordinates());
+    routeLineString.setCoordinates(newGeometry.getGeometry().getCoordinates());
     endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
+  }).catch((error) => {
+    setExtraInfo(["OSRM error:", error]);
+    routeMeOSR();
   });
 }
 
@@ -905,73 +909,46 @@ map.on("singleclick", function (evt) {
 map.on("contextmenu", function (event) {
   lastInteraction = Date.now();
   const eventLonLat = toLonLat(event.coordinate);
-  let closestWaypoint;
-
   // set start position
   destinationCoordinates[0] = lonlat;
 
-  let clickedOnWaypoint = false;
   const clickedOnCurrentPosition =
     getDistance(lonlat, eventLonLat) < 200 ||
     getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
-  const clickedOnLastDestination =
-    getPixelDistance(
-      event.pixel,
-      map.getPixelFromCoordinate(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]))
-    ) < 40;
 
-  // check if clicked on a waypoint
-  if (gpxSource.getFeatures().length > 0) {
-    closestWaypoint = gpxSource.getClosestFeatureToCoordinate(
+  const clickedOnEndMarker = getPixelDistance(
+    event.pixel,
+    map.getPixelFromCoordinate(endMarker.getCoordinates())
+  ) < 40;
+
+  const clickedOnWaypoint =
+    gpxSource.getClosestFeatureToCoordinate(
       event.coordinate,
-      function (feature) {
-        return feature.getGeometry().getType() === "Point";
+      feature => {
+        return feature.getGeometry().getType() === "Point" &&
+          getPixelDistance(map.getPixelFromCoordinate(feature.getGeometry().getCoordinates()), event.pixel) < 40
       },
     );
-    if (closestWaypoint != null) {
-      clickedOnWaypoint =
-        getPixelDistance(
-          map.getPixelFromCoordinate(
-            closestWaypoint.getGeometry().getCoordinates(),
-          ),
-          event.pixel,
-        ) < 40;
-    }
-  }
 
-  // measure distance from current pos
-  if (clickedOnCurrentPosition) {
+  if (clickedOnCurrentPosition || (clickedOnEndMarker && destinationCoordinates.length <= 2)) {
     setExtraInfo([
       Math.round(getDistance(lonlat, eventLonLat)) +
       '<font class="infoFormat">M</font>',
     ]);
-  }
-
-  // remove last point if click < 40 pixels from last point
-  if (destinationCoordinates.length > 2 && clickedOnLastDestination) {
-    destinationCoordinates.pop();
-    // clear route if click < 40 pixels from last point or click on current position
-  } else if (
-    (destinationCoordinates.length == 2 && clickedOnLastDestination) ||
-    clickedOnCurrentPosition
-  ) {
     endMarker.setCoordinates([]);
     routeLineString.setCoordinates([]);
     routeInfo.innerHTML = "";
     destinationCoordinates = [];
+  } else if (clickedOnEndMarker) {
+    destinationCoordinates.pop();
+  } else if (clickedOnWaypoint) {
+    setExtraInfo(["Navigerar till:", clickedOnWaypoint.get("name")]);
+    destinationCoordinates.push(toLonLat(clickedOnWaypoint.getGeometry().getCoordinates()).splice(0, 2));
   } else {
-    // else push clicked coord to destinationCoordinates
-    if (clickedOnWaypoint) {
-      destinationCoordinates.push(
-        [toLonLat(closestWaypoint.getGeometry().getCoordinates())[0], toLonLat(closestWaypoint.getGeometry().getCoordinates())[1]],
-      );
-      setExtraInfo(["Vald destination:", closestWaypoint.get("name")]);
-    } else {
-      setExtraInfo([
-        `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Streetview</a></div>`,
-      ]);
-      destinationCoordinates.push(eventLonLat);
-    }
+    setExtraInfo([
+      `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Streetview</a></div>`,
+    ]);
+    destinationCoordinates.push(eventLonLat);
   }
 
   // start routing
@@ -1067,6 +1044,7 @@ switchMap();
 document.addEventListener("keydown", function (event) {
   if (menuDiv.checkVisibility()) {
     if (event.key == "Escape" || event.key == "§") {
+      event.preventDefault();
       closeMenuButton.click();
     }
   } else {
@@ -1083,12 +1061,19 @@ document.addEventListener("keydown", function (event) {
     }
     if (event.key == "Enter") {
       event.preventDefault();
-      if (Date.now() - lastInteraction > interactionDelay) {
-        lastInteraction = Date.now();
-        focusTrafficWarning();
+      if (document.getElementById("restoreTripButton").checkVisibility()) {
+        restoreTrip();
       } else {
-        centerFunction();
-        lastInteraction = Date.now() - interactionDelay;
+        if (Date.now() - lastInteraction > interactionDelay) {
+          lastInteraction = Date.now();
+          view.animate({
+            rotation: 0,
+            duration: 500,
+          })
+        } else {
+          lastInteraction = Date.now() - interactionDelay;
+          centerFunction();
+        }
       }
     }
     if (event.key == "c") {
@@ -1262,59 +1247,58 @@ function focusDestination() {
 }
 
 function getClosestAccident() {
-  closestAccident = trafficWarningSource.getClosestFeatureToCoordinate(
-    currentPosition,
-    // function (feature) {
-    //   return feature.get("iconId") === "roadAccident";
-    // },
-  );
-  if (trafficWarningSource.getFeatures().length >= 1) {
-    // check route for accidents
-    let routeHasAccident = false;
+  closestAccident = false;
+  if (trafficWarningSource.getFeatures().length > 0) {
     const routeIsActive = routeLineString.getCoordinates().length > 0;
+    let distanceToAccident = 0;
     if (routeIsActive) {
       const featureCoordinates = routeLineString.getCoordinates();
-      const newMultiPoint = new MultiPoint(featureCoordinates.reverse());
+      const newMultiPoint = new MultiPoint(featureCoordinates);
       const newMultiPointCurrentPosition = newMultiPoint.getClosestPoint(currentPosition);
+      const startIndex = findIndexOf(newMultiPointCurrentPosition, featureCoordinates);
 
-      for (let i = 0; i < featureCoordinates.length; i++) {
-        const closestLineStringPoint =
-          trafficWarningSource.getClosestFeatureToCoordinate(
-            featureCoordinates[i],
-            // function (feature) {
-            //   return feature.get("iconId") === "roadAccident";
-            // },
-          );
-        const closestLineStringPointDistance = getDistance(
-          toLonLat(closestLineStringPoint.getGeometry().getCoordinates()),
+      for (let i = startIndex; (i < featureCoordinates.length - 1) && !closestAccident; i++) {
+        distanceToAccident += getDistance(
           toLonLat(featureCoordinates[i]),
+          toLonLat(featureCoordinates[i + 1])
+        )
+        // addTestMarker(featureCoordinates[i], Math.round(distanceToAccident));
+
+        closestAccident =
+          trafficWarningSource.getClosestFeatureToCoordinate(featureCoordinates[i],
+            function (feature) {
+              return getDistance(
+                toLonLat(feature.getGeometry().getCoordinates()),
+                toLonLat(featureCoordinates[i])) < 200;
+            },
+          );
+      }
+    } else {
+      closestAccident = trafficWarningSource.getClosestFeatureToCoordinate(
+        currentPosition,
+        function (feature) {
+          return getDistance(
+            toLonLat(feature.getGeometry().getCoordinates()),
+            lonlat) < 30000;
+        }
+      );
+      if (closestAccident) {
+        distanceToAccident = getDistance(
+          toLonLat(closestAccident.getGeometry().getCoordinates()),
+          lonlat
         );
-        if (closestLineStringPointDistance < 500) {
-          routeHasAccident = true;
-          closestAccident = closestLineStringPoint;
-        }
-        if (featureCoordinates[i].toString() === newMultiPointCurrentPosition.toString()) {
-          break;
-        }
       }
     }
 
-    // check accident information
-    const closestAccidentRoadNumber = closestAccident.get("roadNumber");
-    const messageCode = closestAccident.get("messageCode");
-    const closestAccidentCoords = closestAccident.getGeometry().getCoordinates();
-    const closestAccidentDistance = getDistance(
-      toLonLat(closestAccidentCoords),
-      lonlat,
-    );
+    if (!!closestAccident) {
+      const closestAccidentRoadNumber = closestAccident.get("roadNumber");
+      const messageCode = closestAccident.get("messageCode");
 
-    if ((closestAccidentDistance < 30000 && !routeIsActive) || routeHasAccident) {
       trafficWarningDiv.innerHTML =
         messageCode + ", " +
         closestAccidentRoadNumber.replace(/^V/, "v") +
-        " (" + Math.round(closestAccidentDistance / 1000) + "km)";
+        " (" + Math.round(distanceToAccident / 1000) + "km)";
     } else {
-      closestAccident = null;
       trafficWarningDiv.innerHTML = "";
     }
   } else {
@@ -1336,10 +1320,7 @@ function recalculateRoute() {
       endMarker.setCoordinates([]);
       routeLineString.setCoordinates([]);
     } else {
-      destinationCoordinates = [
-        lonlat,
-        destinationCoordinates[destinationCoordinates.length - 1],
-      ];
+      destinationCoordinates[0] = lonlat;
       routeMe();
     }
   }
@@ -1389,6 +1370,14 @@ function updateUserPosition() {
   }
 }
 
+function addTestMarker(coordinate, sourceLayer, name = "") {
+  const marker = new Feature({
+    geometry: new Point(coordinate),
+    name: String(name),
+  });
+  sourceLayer.addFeature(marker);
+}
+
 let showTripPoints = false;
 document.getElementById("tripPointButton").addEventListener("click", function () {
   showTripPoints = !showTripPoints;
@@ -1400,13 +1389,13 @@ document.getElementById("tripPointButton").addEventListener("click", function ()
       const segmentTimeMS = new Date(trackLog[i][2]) - new Date(trackLog[i - 1][2]);
       const speedKmh = (segmentDistanceM / segmentTimeMS) * 3600;
       totalDistance += segmentDistanceM;
-      const marker = new Feature({
-        geometry: new Point(fromLonLat(trackLog[i][0])),
-        name: String(
+      addTestMarker(
+        fromLonLat(trackLog[i][0]),
+        trackPointLayer.getSource(),
+        String(
           new Date(trackLog[i][2]).toLocaleTimeString() + " " + Math.round(speedKmh) + "km/h\n" +
-          (totalDistance / 1000).toFixed(1) + "km"),
-      });
-      trackPointLayer.getSource().addFeature(marker);
+          (totalDistance / 1000).toFixed(1) + "km")
+      );
     }
   } else {
     this.innerHTML = "Visa spårpunktsdata";
