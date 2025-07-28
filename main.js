@@ -14,7 +14,11 @@ import TileLayer from "ol/layer/Tile.js";
 import TileWMS from "ol/source/TileWMS.js";
 import VectorSource from "ol/source/Vector.js";
 import WKT from "ol/format/WKT.js";
+import VectorTileLayer from 'ol/layer/VectorTile.js';
+import VectorTileSource from 'ol/source/VectorTile.js';
+import MVT from 'ol/format/MVT.js';
 import XYZ from "ol/source/XYZ.js";
+import { styleStuff } from "./styleTileFunctions.js"
 import {
   trafficWarningTextStyleFunction,
   trafficWarningIconStyleFunction,
@@ -199,11 +203,6 @@ const osm = new TileLayer({
   visible: false,
 });
 
-// const osm = new MapboxVectorLayer({
-//   styleUrl: "mapbox://styles/tryckluft/clqmovmf100pb01o9g1li1hxb",
-//   accessToken : "pk.eyJ1IjoidHJ5Y2tsdWZ0IiwiYSI6ImNrcTU1YTIzeTFlem8yd3A4MXRsMTZreWQifQ.lI612CDqRgWujJDv6zlBqw",
-// });
-
 const slitlagerkarta = new TileLayer({
   source: new XYZ({
     url: "https://jole84.se/slitlagerkarta/{z}/{x}/{y}.jpg",
@@ -224,6 +223,17 @@ const slitlagerkarta_nedtonad = new TileLayer({
   }),
   visible: false,
   useInterimTilesOnError: false,
+});
+
+const newTileLayer = new VectorTileLayer({
+  source: new VectorTileSource({
+    format: new MVT(),
+    // url: './tiles/{z}/{x}/{y}.pbf',
+    url: 'https://jole84.se/tiles/{z}/{x}/{y}.pbf',
+    minZoom: 6,
+    maxZoom: 14,
+  }),
+  style: styleStuff
 });
 
 const ortofoto = new TileLayer({
@@ -316,6 +326,7 @@ const map = new Map({
   layers: [
     slitlagerkarta,
     slitlagerkarta_nedtonad,
+    newTileLayer,
     osm,
     ortofoto,
     topoweb,
@@ -699,12 +710,13 @@ if (!!window.chrome) {
 function switchMap() {
   slitlagerkarta.setVisible(false);
   slitlagerkarta_nedtonad.setVisible(false);
+  newTileLayer.setVisible(false);
   ortofoto.setVisible(false);
   topoweb.setVisible(false);
   osm.setVisible(false);
   document.body.classList.remove("darkmode");
 
-  if (localStorage.mapMode > 5) {
+  if (localStorage.mapMode > 6) {
     localStorage.mapMode = 0;
   }
 
@@ -745,6 +757,12 @@ function switchMap() {
     // mapMode 4: orto
     ortofoto.setVisible(true);
     ortofoto.setMinZoom(0);
+  } else if (localStorage.mapMode == 6) {
+    // mapMode 6: MVT
+    newTileLayer.setVisible(true);
+    ortofoto.setVisible(true);
+    newTileLayer.setMaxZoom(16.5);
+    ortofoto.setMinZoom(16.5);
   }
   infoGroup.style.fontSize = localStorage.preferredFontSize;
 }
@@ -1048,7 +1066,7 @@ document.addEventListener("keydown", function (event) {
       closeMenuButton.click();
     }
   } else {
-    for (let i = 1; i < 7; i++) {
+    for (let i = 1; i < 8; i++) {
       if (event.key == i) {
         localStorage.mapMode = i - 1;
         switchMap();
