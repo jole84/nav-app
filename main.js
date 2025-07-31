@@ -716,7 +716,7 @@ function switchMap() {
   osm.setVisible(false);
   document.body.classList.remove("darkmode");
 
-  if (localStorage.mapMode > 6) {
+  if (localStorage.mapMode > 7) {
     localStorage.mapMode = 0;
   }
 
@@ -759,10 +759,21 @@ function switchMap() {
     ortofoto.setMinZoom(0);
   } else if (localStorage.mapMode == 6) {
     // mapMode 6: MVT
+    sessionStorage.vagkarta = false;
     newTileLayer.setVisible(true);
     ortofoto.setVisible(true);
     newTileLayer.setMaxZoom(16.5);
     ortofoto.setMinZoom(16.5);
+  } else if (localStorage.mapMode == 7) {
+    // mapMode 6: MVT Vägkarta
+    sessionStorage.vagkarta = true;
+    newTileLayer.setVisible(true);
+    topoweb.setVisible(true);
+    ortofoto.setVisible(true);
+    newTileLayer.setMaxZoom(15.5);
+    topoweb.setMinZoom(15.5);
+    topoweb.setMaxZoom(17.5);
+    ortofoto.setMinZoom(17.5);
   }
   infoGroup.style.fontSize = localStorage.preferredFontSize;
 }
@@ -1066,7 +1077,7 @@ document.addEventListener("keydown", function (event) {
       closeMenuButton.click();
     }
   } else {
-    for (let i = 1; i < 8; i++) {
+    for (let i = 1; i < 9; i++) {
       if (event.key == i) {
         localStorage.mapMode = i - 1;
         switchMap();
