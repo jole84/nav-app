@@ -188,7 +188,7 @@ preferredFontSizeDiv.addEventListener("change", function () {
 
 const view = new View({
   center: center,
-  zoom: 6,
+  zoom: localStorage.defaultZoom,
   maxZoom: 20,
   constrainRotation: false,
 });
@@ -717,30 +717,36 @@ function switchMap() {
   osm.setVisible(false);
   document.body.classList.remove("darkmode");
 
-  if (localStorage.mapMode > 7) {
+  if (localStorage.mapMode > 6) {
     localStorage.mapMode = 0;
   }
 
   layerSelector.value = localStorage.mapMode;
 
   if (localStorage.mapMode == 0) {
-    // mapMode 0: slitlagerkarta
-    slitlagerkarta.setVisible(true);
+    // mapMode 0: MVT Tärräng
+    sessionStorage.vagkarta = false;
+    newTileLayer.setVisible(true);
+    newTileLayer.getSource().refresh({ force: true });
     ortofoto.setVisible(true);
-    slitlagerkarta.setMaxZoom(15.5);
-    ortofoto.setMinZoom(15.5);
+    newTileLayer.setMaxZoom(16.5);
+    ortofoto.setMinZoom(16.5);
   } else if (localStorage.mapMode == 1) {
-    // mapMode 1: slitlagerkarta_nedtonad
-    slitlagerkarta_nedtonad.setVisible(true);
+    // mapMode 1: MVT Vägkarta
+    sessionStorage.vagkarta = true;
+    newTileLayer.setVisible(true);
+    newTileLayer.getSource().refresh({ force: true });
     topoweb.setVisible(true);
     ortofoto.setVisible(true);
-    slitlagerkarta_nedtonad.setMaxZoom(15.5);
+    newTileLayer.setMaxZoom(15.5);
     topoweb.setMinZoom(15.5);
     topoweb.setMaxZoom(17.5);
     ortofoto.setMinZoom(17.5);
   } else if (localStorage.mapMode == 2) {
     // mapMode 2: slitlagerkarta_nedtonad + night mode
-    slitlagerkarta_nedtonad.setVisible(true);
+    sessionStorage.vagkarta = true;
+    newTileLayer.setVisible(true);
+    newTileLayer.getSource().refresh({ force: true });
     document.body.classList.add("darkmode");
     topoweb.setVisible(true);
     slitlagerkarta_nedtonad.setMaxZoom(15.5);
@@ -755,26 +761,15 @@ function switchMap() {
     topoweb.setMinZoom(0);
     topoweb.setMaxZoom(20);
   } else if (localStorage.mapMode == 5) {
-    // mapMode 4: orto
+    // mapMode 5: orto
     ortofoto.setVisible(true);
     ortofoto.setMinZoom(0);
   } else if (localStorage.mapMode == 6) {
-    // mapMode 6: MVT
-    sessionStorage.vagkarta = false;
-    newTileLayer.setVisible(true);
+    // mapMode 6: slitlagerkarta
+    slitlagerkarta.setVisible(true);
     ortofoto.setVisible(true);
-    newTileLayer.setMaxZoom(16.5);
-    ortofoto.setMinZoom(16.5);
-  } else if (localStorage.mapMode == 7) {
-    // mapMode 6: MVT Vägkarta
-    sessionStorage.vagkarta = true;
-    newTileLayer.setVisible(true);
-    topoweb.setVisible(true);
-    ortofoto.setVisible(true);
-    newTileLayer.setMaxZoom(15.5);
-    topoweb.setMinZoom(15.5);
-    topoweb.setMaxZoom(17.5);
-    ortofoto.setMinZoom(17.5);
+    slitlagerkarta.setMaxZoom(15.5);
+    ortofoto.setMinZoom(15.5);
   }
   infoGroup.style.fontSize = localStorage.preferredFontSize;
 }
