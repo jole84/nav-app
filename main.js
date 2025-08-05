@@ -1345,7 +1345,7 @@ function recalculateRoute() {
       endMarker.setCoordinates([]);
       routeLineString.setCoordinates([]);
     } else {
-      destinationCoordinates[0] = lonlat;
+      destinationCoordinates = [lonlat, destinationCoordinates[destinationCoordinates.length - 1]];
       routeMe();
     }
   }
