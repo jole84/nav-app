@@ -738,8 +738,8 @@ function switchMap() {
     newTileLayer.getSource().refresh({ force: true });
     topoweb.setVisible(true);
     ortofoto.setVisible(true);
-    newTileLayer.setMaxZoom(15.5);
-    topoweb.setMinZoom(15.5);
+    newTileLayer.setMaxZoom(16);
+    topoweb.setMinZoom(16);
     topoweb.setMaxZoom(17.5);
     ortofoto.setMinZoom(17.5);
   } else if (localStorage.mapMode == 2) {
