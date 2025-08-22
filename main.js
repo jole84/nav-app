@@ -725,7 +725,6 @@ function switchMap() {
 
   if (localStorage.mapMode == 0) {
     // mapMode 0: MVT Tärräng
-    sessionStorage.vagkarta = false;
     newTileLayer.setVisible(true);
     newTileLayer.getSource().refresh({ force: true });
     ortofoto.setVisible(true);
@@ -733,7 +732,6 @@ function switchMap() {
     ortofoto.setMinZoom(16.5);
   } else if (localStorage.mapMode == 1) {
     // mapMode 1: MVT Vägkarta
-    sessionStorage.vagkarta = true;
     newTileLayer.setVisible(true);
     newTileLayer.getSource().refresh({ force: true });
     topoweb.setVisible(true);
@@ -744,7 +742,6 @@ function switchMap() {
     ortofoto.setMinZoom(17.5);
   } else if (localStorage.mapMode == 2) {
     // mapMode 2: slitlagerkarta_nedtonad + night mode
-    sessionStorage.vagkarta = true;
     newTileLayer.setVisible(true);
     newTileLayer.getSource().refresh({ force: true });
     document.body.classList.add("darkmode");
