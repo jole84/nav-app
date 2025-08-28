@@ -219,7 +219,6 @@ const slitlagerkarta_nedtonad = new TileLayer({
     url: "https://jole84.se/slitlagerkarta_nedtonad/{z}/{x}/{y}.jpg",
     minZoom: 6,
     maxZoom: 14,
-    transition: 0,
   }),
   visible: false,
   useInterimTilesOnError: false,
@@ -228,8 +227,8 @@ const slitlagerkarta_nedtonad = new TileLayer({
 const newTileLayer = new VectorTileLayer({
   source: new VectorTileSource({
     format: new MVT(),
-    // url: './tiles/{z}/{x}/{y}.pbf',
     url: 'https://jole84.se/tiles/{z}/{x}/{y}.pbf',
+    transition: 0,
     minZoom: 6,
     maxZoom: 14,
   }),
@@ -715,7 +714,11 @@ function switchMap() {
   ortofoto.setVisible(false);
   topoweb.setVisible(false);
   osm.setVisible(false);
-  document.body.classList.remove("darkmode");
+  // document.body.classList.remove("darkmode");
+  document.getElementById("map").style.backgroundColor = (localStorage.mapMode == 2) ? "#00263F" : "#bfe6ff";
+  document.getElementById("infoGroup").style.color = (localStorage.mapMode == 2) ? "rgb(245, 245, 245)" : "rgb(32, 32, 32)";
+  document.getElementById("infoGroup").style.backgroundColor = (localStorage.mapMode == 2) ? "rgba(0, 0, 0, 0.4)" : "rgba(255, 255, 255, 0.4)";
+  document.getElementById("optionButtons").style.filter = (localStorage.mapMode == 2) ? "invert(1) opacity(0.9) hue-rotate(180deg)" : "revert";
 
   if (localStorage.mapMode > 6) {
     localStorage.mapMode = 0;
@@ -728,8 +731,8 @@ function switchMap() {
     newTileLayer.setVisible(true);
     newTileLayer.getSource().refresh({ force: true });
     ortofoto.setVisible(true);
-    newTileLayer.setMaxZoom(16.5);
-    ortofoto.setMinZoom(16.5);
+    newTileLayer.setMaxZoom(17);
+    ortofoto.setMinZoom(17);
   } else if (localStorage.mapMode == 1) {
     // mapMode 1: MVT Vägkarta
     newTileLayer.setVisible(true);
@@ -741,14 +744,14 @@ function switchMap() {
     topoweb.setMaxZoom(17.5);
     ortofoto.setMinZoom(17.5);
   } else if (localStorage.mapMode == 2) {
-    // mapMode 2: slitlagerkarta_nedtonad + night mode
+    // mapMode 2: MVT Vägkarta + night mode
     newTileLayer.setVisible(true);
     newTileLayer.getSource().refresh({ force: true });
-    document.body.classList.add("darkmode");
-    topoweb.setVisible(true);
-    slitlagerkarta_nedtonad.setMaxZoom(15.5);
-    topoweb.setMinZoom(15.5);
-    topoweb.setMaxZoom(20);
+    // document.body.classList.add("darkmode");
+    // topoweb.setVisible(true);
+    // slitlagerkarta_nedtonad.setMaxZoom(15.5);
+    // topoweb.setMinZoom(15.5);
+    // topoweb.setMaxZoom(20);
   } else if (localStorage.mapMode == 3) {
     // mapMode 3: Openstreetmap
     osm.setVisible(true);
