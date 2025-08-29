@@ -747,6 +747,7 @@ function switchMap() {
     // mapMode 2: MVT Vägkarta + night mode
     newTileLayer.setVisible(true);
     newTileLayer.getSource().refresh({ force: true });
+    newTileLayer.setMaxZoom(20);
     // document.body.classList.add("darkmode");
     // topoweb.setVisible(true);
     // slitlagerkarta_nedtonad.setMaxZoom(15.5);
@@ -767,9 +768,7 @@ function switchMap() {
   } else if (localStorage.mapMode == 6) {
     // mapMode 6: slitlagerkarta
     slitlagerkarta.setVisible(true);
-    ortofoto.setVisible(true);
-    slitlagerkarta.setMaxZoom(15.5);
-    ortofoto.setMinZoom(15.5);
+    slitlagerkarta.setMaxZoom(20);
   }
   infoGroup.style.fontSize = localStorage.preferredFontSize;
 }
