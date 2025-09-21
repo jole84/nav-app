@@ -175,7 +175,7 @@ document.getElementById("clearSettings").onclick = function () {
 localStorage.defaultZoom = prefferedZoomDiv.value =
   localStorage.defaultZoom || 14;
 prefferedZoomDiv.addEventListener("change", function () {
-  localStorage.defaultZoom = prefferedZoomDiv.value;
+  localStorage.defaultZoom = prefferedZoomDiv.value || 14;
   centerFunction();
 });
 
@@ -447,14 +447,14 @@ geolocation.once("change", function () {
   updateUserPosition();
 });
 
-const accuracyFeature = new Feature();
-geolocation.on('change:accuracyGeometry', function () {
-  if (accuracy < 20) {
-    accuracyFeature.setGeometry();
-  } else {
-    accuracyFeature.setGeometry(geolocation.getAccuracyGeometry());
-  }
-});
+// const accuracyFeature = new Feature();
+// geolocation.on('change:accuracyGeometry', function () {
+//   if (accuracy < 20) {
+//     accuracyFeature.setGeometry();
+//   } else {
+//     accuracyFeature.setGeometry(geolocation.getAccuracyGeometry());
+//   }
+// });
 
 // runs when position changes
 geolocation.on("change", function () {
@@ -467,6 +467,7 @@ geolocation.on("change", function () {
   localStorage.lastPosition = JSON.stringify(currentPosition);
   lonlat = toLonLat(currentPosition);
   const currentTime = Date.now();
+  const accuratePos = accuracy < 200 ? 1 : 0;
   positionMarkerPoint.setCoordinates(currentPosition);
 
   // measure distance and push log if position change > 5 meters and accuracy is good and more than 3 seconds
@@ -495,7 +496,7 @@ geolocation.on("change", function () {
     // change marker if speed
     positionMarkerHeading.getStyle().getImage().setRotation(heading);
     positionMarker.getStyle().getImage().setOpacity(0);
-    positionMarkerHeading.getStyle().getImage().setOpacity(1);
+    positionMarkerHeading.getStyle().getImage().setOpacity(accuratePos);
 
     // change view if no interaction occurred last 10 seconds
     if (currentTime - lastInteraction > interactionDelay) {
@@ -533,7 +534,7 @@ geolocation.on("change", function () {
   }
 
   if (speed < 1) {
-    positionMarker.getStyle().getImage().setOpacity(1);
+    positionMarker.getStyle().getImage().setOpacity(accuratePos);
     positionMarkerHeading.getStyle().getImage().setOpacity(0);
   }
 
@@ -570,7 +571,7 @@ const positionMarkerHeading = new Feature({
 map.addLayer(
   new VectorLayer({
     source: new VectorSource({
-      features: [positionMarker, positionMarkerHeading, accuracyFeature],
+      features: [positionMarker, positionMarkerHeading],
     }),
   }),
 );
@@ -653,32 +654,17 @@ function centerFunction() {
   const padding = 50;
   if (speed > 1) {
     lastInteraction = Date.now() - interactionDelay;
-    if (!!accuracyFeature.getGeometry()) {
-      view.fit(accuracyFeature.getGeometry().getExtent(), {
-        padding: [padding, padding, padding, padding],
-        maxZoom: localStorage.defaultZoom,
-      });
-    } else {
-      view.setZoom(localStorage.defaultZoom);
-    }
+    view.setZoom(localStorage.defaultZoom);
     updateView();
   } else {
-    if (!!accuracyFeature.getGeometry()) {
-      view.fit(accuracyFeature.getGeometry().getExtent(), {
-        padding: [padding, padding, padding, padding],
-        duration: duration,
-        maxZoom: localStorage.defaultZoom,
-      });
-    } else {
-      view.animate({
-        center: currentPosition,
-        duration: duration,
-      });
-      view.animate({
-        zoom: localStorage.defaultZoom,
-        duration: duration,
-      });
-    }
+    view.animate({
+      center: currentPosition,
+      duration: duration,
+    });
+    view.animate({
+      zoom: localStorage.defaultZoom,
+      duration: duration,
+    });
     view.animate({
       rotation: 0,
       duration: duration,
@@ -933,51 +919,58 @@ map.on("singleclick", function (evt) {
 map.on("contextmenu", function (event) {
   lastInteraction = Date.now();
   const eventLonLat = toLonLat(event.coordinate);
-  // set start position
-  destinationCoordinates[0] = lonlat;
-
-  const clickedOnCurrentPosition =
-    getDistance(lonlat, eventLonLat) < 200 ||
-    getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
-
-  const clickedOnEndMarker = getPixelDistance(
-    event.pixel,
-    map.getPixelFromCoordinate(endMarker.getCoordinates())
-  ) < 40;
-
-  const clickedOnWaypoint =
-    gpxSource.getClosestFeatureToCoordinate(
-      event.coordinate,
-      feature => {
-        return feature.getGeometry().getType() === "Point" &&
-          getPixelDistance(map.getPixelFromCoordinate(feature.getGeometry().getCoordinates()), event.pixel) < 40
-      },
-    );
-
-  if (clickedOnCurrentPosition || (clickedOnEndMarker && destinationCoordinates.length <= 2)) {
+  if (accuracy > 200) {
     setExtraInfo([
-      Math.round(getDistance(lonlat, eventLonLat)) +
-      '<font class="infoFormat">M</font>',
-    ]);
-    endMarker.setCoordinates([]);
-    routeLineString.setCoordinates([]);
-    routeInfo.innerHTML = "";
-    destinationCoordinates = [];
-  } else if (clickedOnEndMarker) {
-    destinationCoordinates.pop();
-  } else if (clickedOnWaypoint) {
-    setExtraInfo(["Navigerar till:", clickedOnWaypoint.get("name")]);
-    destinationCoordinates.push(toLonLat(clickedOnWaypoint.getGeometry().getCoordinates()).splice(0, 2));
-  } else {
-    setExtraInfo([
+      `${(eventLonLat[1]).toFixed(5)} ${(eventLonLat[0]).toFixed(5)}`,
       `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Streetview</a></div>`,
     ]);
-    destinationCoordinates.push(eventLonLat);
-  }
+  } else {
+    // set start position
+    destinationCoordinates[0] = lonlat;
 
-  // start routing
-  if (destinationCoordinates.length >= 2) {
-    routeMe();
+    const clickedOnCurrentPosition =
+      getDistance(lonlat, eventLonLat) < 200 ||
+      getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
+
+    const clickedOnEndMarker = getPixelDistance(
+      event.pixel,
+      map.getPixelFromCoordinate(endMarker.getCoordinates())
+    ) < 40;
+
+    const clickedOnWaypoint =
+      gpxSource.getClosestFeatureToCoordinate(
+        event.coordinate,
+        feature => {
+          return feature.getGeometry().getType() === "Point" &&
+            getPixelDistance(map.getPixelFromCoordinate(feature.getGeometry().getCoordinates()), event.pixel) < 40
+        },
+      );
+
+    if (clickedOnCurrentPosition || (clickedOnEndMarker && destinationCoordinates.length <= 2)) {
+      setExtraInfo([
+        Math.round(getDistance(lonlat, eventLonLat)) +
+        '<font class="infoFormat">M</font>',
+      ]);
+      endMarker.setCoordinates([]);
+      routeLineString.setCoordinates([]);
+      routeInfo.innerHTML = "";
+      destinationCoordinates = [];
+    } else if (clickedOnEndMarker) {
+      destinationCoordinates.pop();
+    } else if (clickedOnWaypoint) {
+      setExtraInfo(["Navigerar till:", clickedOnWaypoint.get("name")]);
+      destinationCoordinates.push(toLonLat(clickedOnWaypoint.getGeometry().getCoordinates()).splice(0, 2));
+    } else {
+      setExtraInfo([
+        `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Streetview</a></div>`,
+      ]);
+      destinationCoordinates.push(eventLonLat);
+    }
+
+    // start routing
+    if (destinationCoordinates.length >= 2) {
+      routeMe();
+    }
   }
 });
 
