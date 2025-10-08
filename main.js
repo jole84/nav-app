@@ -234,6 +234,8 @@ const newTileLayer = new VectorTileLayer({
   }),
   style: styleStuff,
   declutter: true,
+  updateWhileAnimating: true,
+  updateWhileInteracting: true,
 });
 
 const ortofoto = new TileLayer({
@@ -313,7 +315,7 @@ const trafficWarningTextLayer = new VectorLayer({
   source: trafficWarningSource,
   style: trafficWarningTextStyleFunction,
   declutter: true,
-  minZoom: 10,
+  minZoom: 12,
 });
 
 const trackPointLayer = new VectorLayer({
@@ -1151,11 +1153,12 @@ function resetRotation() {
   }
 }
 // <GTE name="Deviation.SeverityCode" value="2" /> 
+// <EQ name="Deviation.MessageCodeValue" value="roadClosed" />
 function getDeviations() {
   let xmlRequest = `
     <REQUEST>
       <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
-      <QUERY objecttype='Situation' schemaversion='1.5'>
+      <QUERY objecttype='Situation' namespace="road.trafficinfo" schemaversion='1.6'>
         <FILTER>
           <OR>
             <ELEMENTMATCH>
@@ -1168,6 +1171,12 @@ function getDeviations() {
               <IN name='Deviation.MessageType' value='Trafikmeddelande,Traffic information'/>
               <GTE name='Deviation.EndTime' value='$now'/>
               <LTE name='Deviation.StartTime' value='$dateadd(0.01:00)'/>
+            </ELEMENTMATCH>
+            <ELEMENTMATCH>
+              <EQ name='Deviation.ManagedCause' value='true' />
+              <NE name="Deviation.Suspended" value="true" />
+              <EQ name="Deviation.SeverityCode" value="5" />
+              <GTE name='Deviation.EndTime' value='$now'/>
             </ELEMENTMATCH>
           </OR>
         </FILTER>
@@ -1193,6 +1202,15 @@ function getDeviations() {
         trafficWarningSource.clear();
         const resultRoadSituation = result.RESPONSE.RESULT[0].Situation;
         resultRoadSituation.forEach(function (item) {
+
+          // console.table(item.Deviation);
+          let IconId = item.Deviation[0].IconId;
+          item.Deviation.forEach(function (deviation) {
+            if (deviation.IconId == "roadClosed") {
+              IconId = "roadClosed";
+            }
+          });
+
           const format = new WKT();
           const position = format
             .readGeometry(item.Deviation[0].Geometry.Point.WGS84)
@@ -1207,7 +1225,7 @@ function getDeviations() {
               "\nSluttid: " +
               new Date(item.Deviation[0].EndTime).toLocaleString("sv-SE", { year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric" }),
             roadNumber: item.Deviation[0].RoadNumber || "väg",
-            iconId: item.Deviation[0].IconId,
+            iconId: IconId,
             messageCode: item.Deviation[0].MessageCode || "Tillbud",
           });
           trafficWarningSource.addFeature(feature);
@@ -1296,7 +1314,8 @@ function getClosestAccident() {
         function (feature) {
           return getDistance(
             toLonLat(feature.getGeometry().getCoordinates()),
-            lonlat) < 30000;
+            lonlat) < 30000 &&
+            feature.get("messageCode") == "Olycka";
         }
       );
       if (closestAccident) {
@@ -1312,7 +1331,7 @@ function getClosestAccident() {
       const messageCode = closestAccident.get("messageCode");
 
       trafficWarningDiv.innerHTML =
-        messageCode + ", " +
+        messageCode + ",<br>" +
         closestAccidentRoadNumber.replace(/^V/, "v") +
         " (" + Math.round(distanceToAccident / 1000) + "km)";
     } else {

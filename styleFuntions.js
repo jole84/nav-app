@@ -14,13 +14,13 @@ export function trafficWarningTextStyleFunction(feature) {
                     color: "black",
                 }),
                 backgroundFill: new Fill({
-                    color: [252, 208, 30, 0.9],
+                    color: [252, 208, 30, 0.7],
                 }),
                 backgroundStroke: new Stroke({
-                    color: [238, 41, 61, 0.9],
+                    color: [238, 41, 61, 0.7],
                     width: 2,
                 }),
-                padding: [2, 2, 2, 2],
+                padding: [1, 1, 1, 1],
             }),
         }),
     ];
@@ -36,6 +36,7 @@ export function trafficWarningIconStyleFunction(feature) {
                     feature.get("iconId") +
                     "?type=png32x32",
             }),
+            scale: 0.8,
         }),
     ];
 };
