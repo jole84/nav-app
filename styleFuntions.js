@@ -14,10 +14,10 @@ export function trafficWarningTextStyleFunction(feature) {
                     color: "black",
                 }),
                 backgroundFill: new Fill({
-                    color: [252, 208, 30, 0.7],
+                    color: [252, 208, 30, 0.9],
                 }),
                 backgroundStroke: new Stroke({
-                    color: [238, 41, 61, 0.7],
+                    color: [238, 41, 61, 0.9],
                     width: 2,
                 }),
                 padding: [1, 1, 1, 1],

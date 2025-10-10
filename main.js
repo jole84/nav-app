@@ -1253,7 +1253,7 @@ function focusTrafficWarning() {
     duration: duration,
   });
   view.animate({
-    zoom: 11,
+    zoom: 13,
     duration: duration,
   });
   view.animate({
@@ -1304,7 +1304,8 @@ function getClosestAccident() {
             function (feature) {
               return getDistance(
                 toLonLat(feature.getGeometry().getCoordinates()),
-                toLonLat(featureCoordinates[i])) < 200;
+                toLonLat(featureCoordinates[i])) < 100 &&
+                (feature.get("messageCode") == "Olycka" || feature.get("iconId") == "roadClosed" );
             },
           );
       }
@@ -1396,7 +1397,7 @@ function updateUserPosition() {
             name: userList[i]["userName"]
               + (userList[i]["accuracy"] > 50 ? "\nOSÄKER POSITION! (" + userList[i]["accuracy"] + "m)" : "")
               + "\n" + msToTime(Date.now() - userList[i]["timeStamp"])
-              + (userList[i]["speed"] < 100 ? userList[i]["speed"] : "??") + "km/h",
+              + (userList[i]["speed"] < 100 ? userList[i]["speed"] : "?") + "km/h",
           });
           userLocationLayer.getSource().addFeature(marker);
         }
