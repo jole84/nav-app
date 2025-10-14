@@ -6,7 +6,7 @@ export function trafficWarningTextStyleFunction(feature) {
         new Style({
             text: new Text({
                 text: feature.get("name"),
-                font: "13px B612, sans-serif",
+                font: "12px B612, sans-serif",
                 textAlign: "left",
                 textBaseline: "top",
                 offsetX: 20,

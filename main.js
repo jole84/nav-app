@@ -197,9 +197,7 @@ const trackLineString = new LineString([]);
 
 const osm = new TileLayer({
   className: "saturated",
-  source: new OSM({
-    zDirection: 1,
-  }),
+  source: new OSM(),
   visible: false,
 });
 
@@ -1160,23 +1158,16 @@ function getDeviations() {
       <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
       <QUERY objecttype='Situation' namespace="road.trafficinfo" schemaversion='1.6'>
         <FILTER>
+          <LTE name="Deviation.StartTime" value="$dateadd(0.01:00)"/>
+          <GTE name="Deviation.EndTime" value="$now"/>
+          <NE name="Deviation.Suspended" value="true" />
           <OR>
+            <EQ name='Deviation.MessageType' value='Olycka' />
+            <IN name="Deviation.MessageTypeValue" value="AnimalPresenceObstruction,EnvironmentalObstruction,EquipmentOrSystemFault,GeneralInstructionOrMessageToRoadUsers,NonWeatherRelatedRoadConditions,ReroutingManagement,RoadsideAssistance,VehicleObstruction"/>
+            <EQ name='Deviation.IconId' value='roadClosed'/>
             <ELEMENTMATCH>
-              <EQ name='Deviation.ManagedCause' value='true' />
-              <EQ name='Deviation.MessageType' value='Olycka' />
-              <GTE name='Deviation.EndTime' value='$now'/>
-            </ELEMENTMATCH>
-            <ELEMENTMATCH>
-              <EQ name='Deviation.ManagedCause' value='true'/>
-              <IN name='Deviation.MessageType' value='Trafikmeddelande,Traffic information'/>
-              <GTE name='Deviation.EndTime' value='$now'/>
-              <LTE name='Deviation.StartTime' value='$dateadd(0.01:00)'/>
-            </ELEMENTMATCH>
-            <ELEMENTMATCH>
-              <EQ name='Deviation.ManagedCause' value='true' />
-              <NE name="Deviation.Suspended" value="true" />
+              <EQ name="Deviation.MessageTypeValue" value="MaintenanceWorks" />
               <EQ name="Deviation.SeverityCode" value="5" />
-              <GTE name='Deviation.EndTime' value='$now'/>
             </ELEMENTMATCH>
           </OR>
         </FILTER>
@@ -1186,6 +1177,7 @@ function getDeviations() {
         <INCLUDE>Deviation.RoadNumber</INCLUDE>
         <INCLUDE>Deviation.EndTime</INCLUDE>
         <INCLUDE>Deviation.MessageCode</INCLUDE>
+
       </QUERY>
     </REQUEST>
   `;
