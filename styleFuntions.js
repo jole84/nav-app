@@ -127,18 +127,18 @@ export function userLocationStyle(feature) {
             fill: new Fill({
                 color: "black",
             }),
-            stroke: new Stroke({
-                color: "white",
-                width: 4,
-            }),
+            // stroke: new Stroke({
+            //     color: "white",
+            //     width: 4,
+            // }),
             backgroundFill: new Fill({
-                color: [255, 255, 255, 0.9],
+                color: [255, 255, 255, 1],
             }),
             backgroundStroke: new Stroke({
-                color: [0, 0, 0, 0.9],
+                color: [0, 0, 0, 1],
                 width: 1.5,
             }),
-            padding: [0, 0, 0, 1],
+            padding: [1, 0, 0, 2],
         }),
         image: new Icon({
             rotation: feature.get("rotation"),
