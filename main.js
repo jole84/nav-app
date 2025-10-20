@@ -1403,7 +1403,7 @@ function updateUserPosition() {
             geometry: new Point([userList[i]["x"], userList[i]["y"]]),
             rotation: userList[i]["heading"],
             name: userList[i]["userName"]
-              + (userList[i]["accuracy"] > 50 ? "\nOSÄKER POSITION! (" + userList[i]["accuracy"] + "m)" : "")
+              + (userList[i]["accuracy"] > 50 ? "\nOSÄKER POSITION (" + userList[i]["accuracy"] + "m)" : "")
               + "\n" + msToTime(Date.now() - userList[i]["timeStamp"])
               + (userList[i]["speed"] < 100 ? userList[i]["speed"] : "?") + "km/h",
           });
