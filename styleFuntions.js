@@ -6,7 +6,7 @@ export function trafficWarningTextStyleFunction(feature) {
         new Style({
             text: new Text({
                 text: feature.get("name"),
-                font: "12px B612, sans-serif",
+                font: "13px Arial, Helvetica, sans-serif",
                 textAlign: "left",
                 textBaseline: "top",
                 offsetX: 20,
@@ -47,7 +47,7 @@ export function gpxStyleText(feature) {
         return new Style({
             text: new Text({
                 text: feature.get("name"),
-                font: "13px B612, sans-serif",
+                font: "13px Arial, Helvetica, sans-serif",
                 placement: "line",
                 textAlign: "left",
                 textBaseline: "bottom",
@@ -101,7 +101,7 @@ export function gpxStyle(feature) {
             }),
             text: new Text({
                 text: feature.get("name"),
-                font: "13px B612, sans-serif",
+                font: "13px Arial, Helvetica, sans-serif",
                 overflow: true,
                 fill: new Fill({
                     color: "#b41412",
@@ -119,7 +119,7 @@ export function userLocationStyle(feature) {
     return new Style({
         text: new Text({
             text: feature.get("name"),
-            font: "12px B612, sans-serif",
+            font: "12px Arial, Helvetica, sans-serif",
             textAlign: "left",
             textBaseline: "top",
             offsetX: 17,

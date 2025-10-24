@@ -1298,7 +1298,7 @@ function getClosestAccident() {
               return getDistance(
                 toLonLat(feature.getGeometry().getCoordinates()),
                 toLonLat(featureCoordinates[i])) < 100 &&
-                (feature.get("messageCode") == "Olycka" || feature.get("iconId") == "roadClosed" );
+                (feature.get("messageCode") == "Olycka" || feature.get("iconId") == "roadClosed");
             },
           );
       }
@@ -1360,22 +1360,21 @@ document.getElementById("userName").value = localStorage.userName || "";
 document.getElementById("userName").addEventListener("change", function () {
   if (document.getElementById("userName").value == "") {
     userLocationLayer.getSource().clear();
-  } else {    
-    if (localStorage.userName) {
-      // remove old username by setting timeStamp to 0
-      const formData = new FormData();
-      formData.append("userName", localStorage.userName);
-      formData.append("timeStamp", 0);
-      formData.append("x", 0);
-      formData.append("y", 0);
-      formData.append("heading", 0);
-      formData.append("accuracy", 0);
-      formData.append("speed", 0);
-      fetch("https://jole84.se/locationHandler/sql-location-handler.php", {
-        method: "POST",
-        body: formData,
-      });
-    }
+  }
+  if (localStorage.userName) {
+    // remove old username by setting timeStamp to 0
+    const formData = new FormData();
+    formData.append("userName", localStorage.userName);
+    formData.append("timeStamp", 0);
+    formData.append("x", 0);
+    formData.append("y", 0);
+    formData.append("heading", 0);
+    formData.append("accuracy", 0);
+    formData.append("speed", 0);
+    fetch("https://jole84.se/locationHandler/sql-location-handler.php", {
+      method: "POST",
+      body: formData,
+    });
   }
   localStorage.userName = document.getElementById("userName").value.trim();
   updateUserPosition();
