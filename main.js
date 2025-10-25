@@ -189,6 +189,7 @@ preferredFontSizeDiv.addEventListener("change", function () {
 const view = new View({
   center: center,
   zoom: localStorage.defaultZoom,
+  minZoom: 6,
   maxZoom: 20,
   constrainRotation: false,
 });
@@ -705,7 +706,7 @@ function switchMap() {
   document.getElementById("map").style.backgroundColor = (localStorage.mapMode == 2) ? "#00263F" : "#bfe6ff";
   document.getElementById("infoGroup").style.color = (localStorage.mapMode == 2) ? "rgb(245, 245, 245)" : "rgb(32, 32, 32)";
   document.getElementById("infoGroup").style.backgroundColor = (localStorage.mapMode == 2) ? "rgba(0, 0, 0, 0.4)" : "rgba(255, 255, 255, 0.4)";
-  document.getElementById("optionButtons").style.filter = (localStorage.mapMode == 2) ? "invert(1) opacity(0.9) hue-rotate(180deg)" : "revert";
+  document.getElementById("optionButtons").style.filter = (localStorage.mapMode == 2) ? "invert(1) hue-rotate(180deg)" : "initial";
 
   if (localStorage.mapMode > 6) {
     localStorage.mapMode = 0;
@@ -808,23 +809,19 @@ async function saveLog() {
 }
 
 async function saveFile(data, fileName) {
-  try {
-    // create a new handle
-    const newHandle = await window.showSaveFilePicker({ suggestedName: fileName });
+  // create a new handle
+  const newHandle = await window.showSaveFilePicker({ suggestedName: fileName });
 
-    // create a FileSystemWritableFileStream to write to
-    const writableStream = await newHandle.createWritable();
+  // create a FileSystemWritableFileStream to write to
+  const writableStream = await newHandle.createWritable();
 
-    // write our file
-    await writableStream.write(data);
+  // write our file
+  await writableStream.write(data);
 
-    // close the file and write the contents to disk.
-    await writableStream.close();
+  // close the file and write the contents to disk.
+  await writableStream.close();
 
-    alert("GPX sparad!");
-  } catch (e) {
-    alert("Något gick snett :( \n" + e.message);
-  }
+  alert("GPX sparad!");
 }
 
 function setExtraInfo(infoText) {
@@ -1058,6 +1055,7 @@ if (searchParams.has("gpxFile")) {
 }
 switchMap();
 
+navigator.keyboard.lock(["Escape", "Enter"]);
 // add keyboard controls
 document.addEventListener("keydown", function (event) {
   if (menuDiv.checkVisibility()) {
