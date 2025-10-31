@@ -315,7 +315,7 @@ const trafficWarningTextLayer = new VectorLayer({
   source: trafficWarningSource,
   style: trafficWarningTextStyleFunction,
   declutter: true,
-  minZoom: 12,
+  minZoom: 13,
 });
 
 const trackPointLayer = new VectorLayer({
