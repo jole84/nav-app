@@ -308,13 +308,12 @@ const trafficWarningSource = new VectorSource();
 const trafficWarningIconLayer = new VectorLayer({
   source: trafficWarningSource,
   style: trafficWarningIconStyleFunction,
-  minZoom: 8,
+  minZoom: 6,
 });
 
 const trafficWarningTextLayer = new VectorLayer({
   source: trafficWarningSource,
   style: trafficWarningTextStyleFunction,
-  declutter: true,
   minZoom: 13,
 });
 
