@@ -33,7 +33,7 @@ export function trafficWarningIconStyleFunction(feature) {
                 anchor: [0.5, 0.5],
                 src:
                     "https://api.trafikinfo.trafikverket.se/v2/icons/" +
-                    feature.get("iconId") +
+                    feature.get("IconId") +
                     "?type=png32x32",
             }),
             scale: 0.8,

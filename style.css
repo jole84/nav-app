@@ -265,6 +265,58 @@ html:fullscreen .infoGroup {
   justify-content: space-between;
 }
 
+.ol-popup {
+  position: absolute;
+  background-color: rgb(252, 208, 30);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  padding: 5px;
+  /* border-radius: 10px; */
+  border: 4px solid rgb(238, 41, 61);
+  bottom: 12px;
+  left: -50px;
+  min-width: 280px;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.ol-popup:after,
+.ol-popup:before {
+  top: 100%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+}
+
+.ol-popup:after {
+  border-top-color: rgb(238, 41, 61);
+  border-width: 10px;
+  left: 48px;
+  margin-left: -10px;
+}
+
+.ol-popup:before {
+  border-top-color: rgb(238, 41, 61);
+  border-width: 11px;
+  left: 48px;
+  margin-left: -11px;
+}
+
+.ol-popup-closer {
+  text-decoration: none;
+  position: absolute;
+  top: 2px;
+  right: 8px;
+}
+
+.ol-popup-closer:after {
+  content: "✖";
+}
+
 @media (max-width: 550px) {
   #optionButtons {
     max-width: calc(100% - 10px);

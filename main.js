@@ -18,9 +18,9 @@ import VectorTileLayer from 'ol/layer/VectorTile.js';
 import VectorTileSource from 'ol/source/VectorTile.js';
 import MVT from 'ol/format/MVT.js';
 import XYZ from "ol/source/XYZ.js";
+import Overlay from 'ol/Overlay.js';
 import { styleStuff } from "./styleTileFunctions.js"
 import {
-  trafficWarningTextStyleFunction,
   trafficWarningIconStyleFunction,
   gpxStyleText,
   gpxStyle,
@@ -233,8 +233,6 @@ const newTileLayer = new VectorTileLayer({
   }),
   style: styleStuff,
   declutter: true,
-  updateWhileAnimating: true,
-  updateWhileInteracting: true,
 });
 
 const ortofoto = new TileLayer({
@@ -311,12 +309,12 @@ const trafficWarningIconLayer = new VectorLayer({
   minZoom: 8,
 });
 
-const trafficWarningTextLayer = new VectorLayer({
-  source: trafficWarningSource,
-  style: trafficWarningTextStyleFunction,
-  declutter: true,
-  minZoom: 12,
-});
+// const trafficWarningTextLayer = new VectorLayer({
+//   source: trafficWarningSource,
+//   style: trafficWarningTextStyleFunction,
+//   declutter: true,
+//   minZoom: 12,
+// });
 
 const trackPointLayer = new VectorLayer({
   source: new VectorSource(),
@@ -339,7 +337,7 @@ const map = new Map({
     trackPointLayer,
     userLocationLayer,
     trafficWarningIconLayer,
-    trafficWarningTextLayer,
+    // trafficWarningTextLayer,
   ],
   target: "map",
   view: view,
@@ -903,7 +901,33 @@ function routeMe() {
   });
 }
 
-map.on("singleclick", function (evt) {
+function openPopup(feature) {
+  // console.log(feature.getProperties());
+  console.log(feature.get("Deviation").Creator)
+
+  document.getElementById("popup-title").innerHTML = (feature.get("MessageCode") + " " + feature.get("RoadNumber")).trim() + ":";
+  document.getElementById("popup-endTime").innerHTML = "Sluttid: " + feature.get("EndTime");
+
+  content.innerHTML = feature.get("Message");
+  overlay.setPosition(feature.getGeometry().getCoordinates());
+}
+
+map.on("click", function (evt) {
+  let eventContent;
+  map.forEachFeatureAtPixel(evt.pixel, feature => {
+    if (feature.get("IconId")) {
+      eventContent = feature.get("Message");
+      openPopup(feature);
+      return false;
+    }
+  });
+
+  if (!eventContent) {
+    overlay.setPosition(undefined);
+    closer.blur();
+    return false;
+  }
+
   if (evt.originalEvent.ctrlKey) {
     const coordinate = toLonLat(evt.coordinate).reverse();
     window.open(
@@ -1170,16 +1194,16 @@ function getDeviations() {
             </ELEMENTMATCH>
           </OR>
         </FILTER>
-        <INCLUDE>Deviation.Message</INCLUDE>
-        <INCLUDE>Deviation.IconId</INCLUDE>
-        <INCLUDE>Deviation.Geometry.Point.WGS84</INCLUDE>
-        <INCLUDE>Deviation.RoadNumber</INCLUDE>
-        <INCLUDE>Deviation.EndTime</INCLUDE>
-        <INCLUDE>Deviation.MessageCode</INCLUDE>
-
-      </QUERY>
-    </REQUEST>
-  `;
+        
+        </QUERY>
+        </REQUEST>
+        `;
+  // <INCLUDE>Deviation.Message</INCLUDE>
+  // <INCLUDE>Deviation.IconId</INCLUDE>
+  // <INCLUDE>Deviation.Geometry.Point.WGS84</INCLUDE>
+  // <INCLUDE>Deviation.RoadNumber</INCLUDE>
+  // <INCLUDE>Deviation.EndTime</INCLUDE>
+  // <INCLUDE>Deviation.MessageCode</INCLUDE>
   fetch(apiUrl, {
     method: "POST",
     headers: {
@@ -1193,7 +1217,6 @@ function getDeviations() {
         trafficWarningSource.clear();
         const resultRoadSituation = result.RESPONSE.RESULT[0].Situation;
         resultRoadSituation.forEach(function (item) {
-
           // console.table(item.Deviation);
           let IconId = item.Deviation[0].IconId;
           item.Deviation.forEach(function (deviation) {
@@ -1208,16 +1231,22 @@ function getDeviations() {
             .transform("EPSG:4326", "EPSG:3857");
           const feature = new Feature({
             geometry: position,
-            name:
-              breakSentence(
-                (item.Deviation[0].RoadNumber ? item.Deviation[0].RoadNumber + ": " : "") +
-                (item.Deviation[0].Message || item.Deviation[0].MessageCode || "?"),
-              ) +
-              "\nSluttid: " +
-              new Date(item.Deviation[0].EndTime).toLocaleString("sv-SE", { year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric" }),
-            roadNumber: item.Deviation[0].RoadNumber || "väg",
-            iconId: IconId,
-            messageCode: item.Deviation[0].MessageCode || "Tillbud",
+            Deviation: item.Deviation[0],
+            EndTime: new Date(item.Deviation[0].EndTime).toLocaleString("sv-SE", { year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric" }),
+            IconId: item.Deviation[0].IconId,
+            Message: item.Deviation[0].Message || item.Deviation[0].MessageCode || "?",
+            MessageCode: item.Deviation[0].MessageCode || "Tillbud",
+            RoadNumber: item.Deviation[0].RoadNumber || "",
+            // name:
+            //   breakSentence(
+            //     (item.Deviation[0].RoadNumber ? item.Deviation[0].RoadNumber + ": " : "") +
+            //     (item.Deviation[0].Message || item.Deviation[0].MessageCode || "?"),
+            //   ) +
+            //   "\nSluttid: " +
+            //   new Date(item.Deviation[0].EndTime).toLocaleString("sv-SE", { year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric" }),
+            // roadNumber: item.Deviation[0].RoadNumber || "väg",
+            // iconId: IconId,
+            // messageCode: item.Deviation[0].MessageCode || "Tillbud",
           });
           trafficWarningSource.addFeature(feature);
         });
@@ -1235,6 +1264,7 @@ function focusTrafficWarning() {
   lastInteraction = Date.now();
   if (closestAccident != undefined) {
     closestAccidentPosition = closestAccident.getGeometry().getCoordinates();
+    openPopup(closestAccident);
   } else {
     closestAccidentPosition = currentPosition;
   }
@@ -1296,7 +1326,7 @@ function getClosestAccident() {
               return getDistance(
                 toLonLat(feature.getGeometry().getCoordinates()),
                 toLonLat(featureCoordinates[i])) < 100 &&
-                (feature.get("messageCode") == "Olycka" || feature.get("iconId") == "roadClosed");
+                (feature.get("MessageCode").toLowerCase().includes("olycka") || feature.get("IconId") == "roadClosed");
             },
           );
       }
@@ -1307,7 +1337,7 @@ function getClosestAccident() {
           return getDistance(
             toLonLat(feature.getGeometry().getCoordinates()),
             lonlat) < 30000 &&
-            feature.get("messageCode") == "Olycka";
+            feature.get("MessageCode").toLowerCase().includes("olycka");
         }
       );
       if (closestAccident) {
@@ -1319,8 +1349,10 @@ function getClosestAccident() {
     }
 
     if (!!closestAccident) {
-      const closestAccidentRoadNumber = closestAccident.get("roadNumber");
-      const messageCode = closestAccident.get("messageCode");
+      openPopup(closestAccident);
+
+      const closestAccidentRoadNumber = closestAccident.get("RoadNumber");
+      const messageCode = closestAccident.get("MessageCode");
 
       trafficWarningDiv.innerHTML =
         messageCode + ",<br>" +
@@ -1446,3 +1478,32 @@ document.getElementById("tripPointButton").addEventListener("click", function ()
   }
   menuDiv.style.display = "none";
 });
+
+const container = document.getElementById('popup');
+const content = document.getElementById('popup-content');
+const popupTitle = document.getElementById('popup-title');
+const closer = document.getElementById('popup-closer');
+
+/**
+ * Create an overlay to anchor the popup to the map.
+ */
+const overlay = new Overlay({
+  element: container,
+  autoPan: {
+    animation: {
+      duration: 250,
+    },
+  },
+});
+
+map.addOverlay(overlay);
+
+/**
+ * Add a click handler to hide the popup.
+ * @return {boolean} Don't follow the href.
+ */
+closer.onclick = function () {
+  overlay.setPosition(undefined);
+  closer.blur();
+  return false;
+};
