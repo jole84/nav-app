@@ -10,13 +10,10 @@ export function getPixelDistance(pixel, pixel2) {
   );
 }
 
-export function getFileFormat(fileExtention) {
-  const extentions = {
-    gpx: new GPX(),
-    kml: new KML({ extractStyles: false }),
-    geojson: new GeoJSON(),
-  }
-  return extentions[fileExtention];
+export const fileFormats = {
+  "gpx": new GPX(),
+  "kml": new KML({ extractStyles: false }),
+  "geojson": new GeoJSON(),
 }
 
 export function breakSentence(sentence) {

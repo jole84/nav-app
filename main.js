@@ -35,7 +35,7 @@ import {
   toHHMMSS,
   getRemainingDistance,
   toRemainingString,
-  getFileFormat,
+  fileFormats,
   findIndexOf,
 } from "./modules.js";
 
@@ -347,8 +347,8 @@ const map = new Map({
 
 function gpxSourceLoader(gpxFile) {
   const reader = new FileReader();
-  const fileExtention = gpxFile.name.replace(".gpx.txt", ".gpx").split(".").pop().toLowerCase();
-  const fileFormat = getFileFormat(fileExtention);
+  const fileExtention = gpxFile.name.toLowerCase().replace(".gpx.txt", ".gpx").split(".").pop();
+  const fileFormat = fileFormats[fileExtention];
   reader.readAsText(gpxFile, "UTF-8");
   reader.onload = function (evt) {
     const gpxFeatures = fileFormat.readFeatures(evt.target.result, {
