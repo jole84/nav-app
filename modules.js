@@ -44,6 +44,30 @@ export function toHHMMSS(milliSecondsInt) {
   return hours + ":" + minutes + ":" + seconds;
 }
 
+export function findNextStep(featureCoordinates, navigationSteps, lonlat) {
+  const newMultiPoint = new MultiPoint(featureCoordinates);
+  const closestPoint = newMultiPoint.getClosestPoint(fromLonLat(lonlat));
+  let startPos = 0;
+  let distanceToNextStep = 0;
+
+  // find start point
+  startPos = findIndexOf(closestPoint, featureCoordinates);
+
+  // start at closestPoint and stop at next step
+  for (var i = startPos; i < featureCoordinates.length - 1; i++) {
+    distanceToNextStep += getDistance(
+      toLonLat(featureCoordinates[i]),
+      toLonLat(featureCoordinates[i + 1])
+    );
+    for (var stepI = 0; stepI < navigationSteps.length; stepI++) {
+      if (featureCoordinates[i].toString() == fromLonLat(navigationSteps[stepI].maneuver.location).toString()) {
+        return [navigationSteps[stepI], Math.round(distanceToNextStep / 50) * 50];
+      }
+    }
+  }
+  return [navigationSteps[navigationSteps.length - 1], Math.round(distanceToNextStep / 50) * 50];
+}
+
 export function getRemainingDistance(featureCoordinates, lonlat) {
   const newMultiPoint = new MultiPoint(featureCoordinates.reverse());
   let remainingDistance = 0;

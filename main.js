@@ -34,6 +34,7 @@ import {
   msToTime,
   toHHMMSS,
   getRemainingDistance,
+  findNextStep,
   toRemainingString,
   fileFormats,
   findIndexOf,
@@ -531,6 +532,15 @@ geolocation.on("change", function () {
           routeRemainingDistance / ((speedKmh < 30 ? 75 : speedKmh) / 60 / 60),
         );
       }
+
+      const [nextStep, nextStepDistance] = findNextStep(featureCoordinates, navigationSteps, lonlat);
+      document.getElementById("navigationDiv").innerHTML = [
+        nextStep.maneuver.type,
+        nextStep.maneuver.modifier,
+        nextStep.name,
+        nextStep.destinations,
+        nextStepDistance + "m"
+      ].join("<br>");
     }
   }
 
@@ -869,6 +879,8 @@ function routeMeOSR() {
   });
 }
 
+let navigationSteps;
+
 // OSRM routing
 function routeMe() {
   const params = new URLSearchParams({
@@ -877,12 +889,13 @@ function routeMe() {
     continue_straight: false,
     generate_hints: false,
     // skip_waypoints: true,
-    steps: false,
+    steps: true,
   });
   fetch(`https://router.project-osrm.org/route/v1/driving/${destinationCoordinates.join(";")}?` + params).then(response => {
     return response.json();
   }).then(result => {
     console.log(result)
+    navigationSteps = result.routes[0].legs[0].steps;
     destinationCoordinates[destinationCoordinates.length - 1] = result.waypoints[destinationCoordinates.length - 1].location;
     const format = new GeoJSON();
     const newGeometry = format.readFeature(result.routes[0].geometry, {
@@ -911,6 +924,26 @@ map.on("singleclick", function (evt) {
     );
   }
 });
+
+// map.on("click", function (evt) {
+//   const featureCoordinates = routeLineString.getCoordinates();
+//   const [nextStep, nextStepDistance] = findNextStep(featureCoordinates, navigationSteps, toLonLat(evt.coordinate));
+//   document.getElementById("navigationDiv").innerHTML = [
+//     nextStep.maneuver.type,
+//     nextStep.maneuver.modifier,
+//     nextStep.name,
+//     nextStep.destinations,
+//     nextStepDistance + "m"
+//   ].join("<br>");
+//   console.log(nextStep);
+//   console.log(
+//     nextStep.maneuver.type,
+//     nextStep.maneuver.modifier,
+//     nextStep.name,
+//     nextStep.destinations,
+//     nextStepDistance
+//   );
+// });
 
 // right click/long press to route
 map.on("contextmenu", function (event) {
