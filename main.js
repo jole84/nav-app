@@ -535,8 +535,7 @@ geolocation.on("change", function () {
 
       const [nextStep, nextStepDistance] = findNextStep(featureCoordinates, navigationSteps, lonlat);
       document.getElementById("navigationDiv").innerHTML = [
-        nextStep.maneuver.type,
-        nextStep.maneuver.modifier,
+        nextStep.maneuver.type + " " + nextStep.maneuver.modifier,
         nextStep.name,
         nextStep.destinations,
         nextStepDistance + "m"
@@ -929,8 +928,7 @@ map.on("singleclick", function (evt) {
 //   const featureCoordinates = routeLineString.getCoordinates();
 //   const [nextStep, nextStepDistance] = findNextStep(featureCoordinates, navigationSteps, toLonLat(evt.coordinate));
 //   document.getElementById("navigationDiv").innerHTML = [
-//     nextStep.maneuver.type,
-//     nextStep.maneuver.modifier,
+//     nextStep.maneuver.type + " " + nextStep.maneuver.modifier,
 //     nextStep.name,
 //     nextStep.destinations,
 //     nextStepDistance + "m"
