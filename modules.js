@@ -45,6 +45,7 @@ export function toHHMMSS(milliSecondsInt) {
 }
 
 export function findNextStep(featureCoordinates, navigationSteps, lonlat) {
+  console.log(navigationSteps);
   const newMultiPoint = new MultiPoint(featureCoordinates);
   const closestPoint = newMultiPoint.getClosestPoint(fromLonLat(lonlat));
   let startPos = 0;
@@ -52,6 +53,10 @@ export function findNextStep(featureCoordinates, navigationSteps, lonlat) {
 
   // find start point
   startPos = findIndexOf(closestPoint, featureCoordinates);
+
+  // console.log(navigationSteps.filter(element => {
+  //   return element.maneuver.type != "arrive";
+  // }));
 
   // start at closestPoint and stop at next step
   for (var i = startPos; i < featureCoordinates.length - 1; i++) {
@@ -61,11 +66,102 @@ export function findNextStep(featureCoordinates, navigationSteps, lonlat) {
     );
     for (var stepI = 0; stepI < navigationSteps.length; stepI++) {
       if (featureCoordinates[i].toString() == fromLonLat(navigationSteps[stepI].maneuver.location).toString()) {
-        return [navigationSteps[stepI], Math.round(distanceToNextStep / 50) * 50];
+        return [
+          navigationSteps[stepI],
+          (
+            distanceToNextStep > 1000 ? ((distanceToNextStep / 1000).toFixed(1) + "km") :
+              ((Math.round(distanceToNextStep / 25) * 25) + "m"))];
       }
     }
   }
-  return [navigationSteps[navigationSteps.length - 1], Math.round(distanceToNextStep / 50) * 50];
+  return [navigationSteps[navigationSteps.length - 1], (
+    distanceToNextStep > 1000 ? ((distanceToNextStep / 1000).toFixed(1) + "km") :
+      ((Math.round(distanceToNextStep / 25) * 25) + "m"))];
+}
+
+const translateArray = {
+  "turn": "sväng",
+  // "new name": "nytt vägnamn", //?
+  // "depart": "start",
+  "arrive": "ankomst",
+  // "merge": "sammansätt?", //?
+  "on ramp": "påfart",
+  "off ramp": "avfart",
+  // "fork": "", //?
+  "end of road": "slutet av vägen sväng",
+  // "continue": "fortsätt",
+  "roundabout": "rondell",
+  "rotary": "rondell",
+  "roundabout turn": "i rondellen sväng",
+  // "notification": "", //?
+  "exit roundabout": "kör ut ur rondell",
+  "exit rotary": "kör ut ur rondell",
+  // turns
+  "uturn": "u-sväng",
+  "sharp right": "höger",
+  "right": "höger",
+  "slight right": "höger",
+  "straight": "rakt",
+  "slight left": "vänster",
+  "left": "vänster",
+  "sharp left": "vänster",
+  1: "första utfarten",
+  2: "andra utfarten",
+  3: "tredje utfarten",
+  4: "fjärde utfarten",
+  5: "femte utfarten",
+};
+
+export function createTurnHint(routeStep) {
+  console.log(routeStep);
+  const destinations = routeStep.destinations;
+  const maneuverType = routeStep.maneuver.type;
+  const maneuverModifier = routeStep.maneuver.modifier;
+  const roundaboutExit = routeStep.maneuver.exit;
+  const maneuverName = routeStep.name;
+  const rampExit = routeStep.exits;
+  const ref = routeStep.ref;
+
+  if (!translateArray.hasOwnProperty(maneuverType)) {
+    return
+  }
+
+  const turnString = [];
+
+  if (["exit roundabout", "exit rotary"].includes(maneuverType)) {
+    turnString.push(destinations);
+    turnString.push(translateArray[maneuverType]);
+    turnString.push(translateArray[roundaboutExit]);
+  }
+
+  if (["roundabout turn"].includes(maneuverType)) {
+    turnString.push(destinations);
+    turnString.push(translateArray[maneuverType]);
+    turnString.push(translateArray[maneuverModifier]);
+  }
+
+  if (["roundabout", "rotary"].includes(maneuverType)) {
+    turnString.push(translateArray[maneuverType]);
+    turnString.push(translateArray[roundaboutExit]);
+  }
+
+  if (["arrive"].includes(maneuverType)) {
+    turnString.unshift(translateArray[maneuverType]);
+  }
+
+  if (["turn", "end of road"].includes(maneuverType)) {
+    turnString.push(translateArray[maneuverType]);
+    turnString.push(translateArray[maneuverModifier]);
+  }
+
+  if (["on ramp", "off ramp"].includes(maneuverType)) {
+    turnString.push(translateArray[maneuverType]);
+    turnString.push(rampExit);
+    turnString.push(destinations);
+  }
+  turnString.push(maneuverName);
+
+  return turnString.join(" ");
 }
 
 export function getRemainingDistance(featureCoordinates, lonlat) {

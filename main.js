@@ -35,6 +35,7 @@ import {
   toHHMMSS,
   getRemainingDistance,
   findNextStep,
+  createTurnHint,
   toRemainingString,
   fileFormats,
   findIndexOf,
@@ -533,13 +534,11 @@ geolocation.on("change", function () {
         );
       }
 
-      const [nextStep, nextStepDistance] = findNextStep(featureCoordinates, navigationSteps, lonlat);
+      const [nextStep, nextStepDistance] = findNextStep(routeLineString.getCoordinates(), navigationSteps, lonlat);
       document.getElementById("navigationDiv").innerHTML = [
-        nextStep.maneuver.type + " " + nextStep.maneuver.modifier,
-        nextStep.name,
-        nextStep.destinations,
-        nextStepDistance + "m"
-      ].join("<br>");
+        createTurnHint(nextStep),
+        nextStepDistance
+      ].filter(element => element).join("<br>");
     }
   }
 
@@ -878,7 +877,7 @@ function routeMeOSR() {
   });
 }
 
-let navigationSteps;
+let navigationSteps = [];
 
 // OSRM routing
 function routeMe() {
@@ -893,8 +892,15 @@ function routeMe() {
   fetch(`https://router.project-osrm.org/route/v1/driving/${destinationCoordinates.join(";")}?` + params).then(response => {
     return response.json();
   }).then(result => {
-    console.log(result)
-    navigationSteps = result.routes[0].legs[0].steps;
+    navigationSteps = [];
+    result.routes[0].legs.forEach(leg => {
+      leg.steps.forEach(step => {
+        if (step.maneuver.type != "arrive" && step.maneuver.type != "depart") {
+          navigationSteps.push(step);
+        }
+      });
+    });
+    navigationSteps.push(result.routes[0].legs[result.routes[0].legs.length - 1].steps[result.routes[0].legs[result.routes[0].legs.length - 1].steps.length - 1]);
     destinationCoordinates[destinationCoordinates.length - 1] = result.waypoints[destinationCoordinates.length - 1].location;
     const format = new GeoJSON();
     const newGeometry = format.readFeature(result.routes[0].geometry, {
@@ -924,24 +930,14 @@ map.on("singleclick", function (evt) {
   }
 });
 
-// map.on("click", function (evt) {
-//   const featureCoordinates = routeLineString.getCoordinates();
-//   const [nextStep, nextStepDistance] = findNextStep(featureCoordinates, navigationSteps, toLonLat(evt.coordinate));
-//   document.getElementById("navigationDiv").innerHTML = [
-//     nextStep.maneuver.type + " " + nextStep.maneuver.modifier,
-//     nextStep.name,
-//     nextStep.destinations,
-//     nextStepDistance + "m"
-//   ].join("<br>");
-//   console.log(nextStep);
-//   console.log(
-//     nextStep.maneuver.type,
-//     nextStep.maneuver.modifier,
-//     nextStep.name,
-//     nextStep.destinations,
-//     nextStepDistance
-//   );
-// });
+map.on("click", function (evt) {
+  const [nextStep, nextStepDistance] = findNextStep(routeLineString.getCoordinates(), navigationSteps, toLonLat(evt.coordinate));
+  document.getElementById("navigationDiv").innerHTML = [
+    createTurnHint(nextStep),
+    nextStepDistance
+  ].filter(element => element).join("<br>");
+  // console.log("nextStep: " + JSON.stringify(nextStep));
+});
 
 // right click/long press to route
 map.on("contextmenu", function (event) {
