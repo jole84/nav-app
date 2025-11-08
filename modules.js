@@ -100,9 +100,5 @@ export function radToDeg(rad) {
 }
 
 export function findIndexOf(value, array) {
-  for (let i = 0; i < array.length; i++) {
-    if (array[i].toString() == value.toString()) {
-      return i;
-    }
-  }
+  return array.findIndex(element => element.toString() == value.toString())
 }
