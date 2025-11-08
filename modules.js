@@ -45,45 +45,26 @@ export function toHHMMSS(milliSecondsInt) {
 }
 
 export function findNextStep(featureCoordinates, navigationSteps, lonlat) {
-  console.log(navigationSteps);
+  // console.log(navigationSteps);
   const newMultiPoint = new MultiPoint(featureCoordinates);
   const closestPoint = newMultiPoint.getClosestPoint(fromLonLat(lonlat));
   let distanceToNextStep = 0;
   const startPos = featureCoordinates.findIndex(element => element.toString() == closestPoint.toString());
+  const nextStep = navigationSteps.find(element => element.stepIndex > startPos);
 
-  // featureCoordinates = featureCoordinates.slice(startPos);
-  // const mapped = navigationSteps.map(element => fromLonLat(element.maneuver.location).toString());
-  // const nextStepfeatureCoordinates = featureCoordinates.find(element => mapped.includes(element.toString()));
-  // const nextStepIndex = navigationSteps.findIndex(element => featureCoordinates.includes(nextStepfeatureCoordinates.toString()));
-
-  // console.log(mapped);
-  // console.log(navigationSteps);
-  // console.log(nextStepfeatureCoordinates);
-  // console.log(nextStepIndex)
-  // console.log(navigationSteps[nextStepIndex]);
-
-  // start at closestPoint and stop at next step
-  for (var i = startPos; i < featureCoordinates.length - 1; i++) {
+  // measure distance to next step
+  for (var i = startPos; i < nextStep.stepIndex; i++) {
     distanceToNextStep += getDistance(
       toLonLat(featureCoordinates[i]),
       toLonLat(featureCoordinates[i + 1])
     );
-
-    // determine which step is next
-    for (var stepI = 0; stepI < navigationSteps.length; stepI++) {
-      if (featureCoordinates[i].toString() == fromLonLat(navigationSteps[stepI].maneuver.location).toString()) {
-        return [
-          navigationSteps[stepI],
-          (distanceToNextStep > 1000 ?
-            ((distanceToNextStep / 1000).toFixed(1) + "km") :
-            ((Math.round(distanceToNextStep / 25) * 25) + "m")
-          )];
-      }
-    }
   }
-  return [navigationSteps[navigationSteps.length - 1], (
-    distanceToNextStep > 1000 ? ((distanceToNextStep / 1000).toFixed(1) + "km") :
-      ((Math.round(distanceToNextStep / 25) * 25) + "m"))];
+
+  return [nextStep, (
+    distanceToNextStep > 1000 ?
+      ((distanceToNextStep / 1000).toFixed(1) + '<font class="infoFormat">km</font>') :
+      ((Math.round(distanceToNextStep / 25) * 25) + '<font class="infoFormat">m</font>')
+  )];
 }
 
 const translateArray = {
@@ -91,7 +72,7 @@ const translateArray = {
   // "new name": "nytt vägnamn", //?
   // "depart": "start",
   "arrive": "ankomst",
-  // "merge": "sammansätt?", //?
+  "merge": "kör ut på", //?
   "on ramp": "påfart",
   "off ramp": "avfart",
   // "fork": "", //?
@@ -165,7 +146,20 @@ export function createTurnHint(routeStep) {
     turnString.push(translateArray[maneuverType]);
     turnString.push(rampExit);
     turnString.push(destinations);
+    turnString.push(ref);
   }
+
+  if (["merge"].includes(maneuverType)) {
+    turnString.push(translateArray[maneuverType]);
+    turnString.push(destinations);
+    turnString.push(ref);
+  }
+
+  if (["straight", "continue", "new name"].includes(maneuverType)) {
+    turnString.push(destinations);
+    turnString.push(ref);
+  }
+
   turnString.push(maneuverName);
 
   return turnString.join(" ");

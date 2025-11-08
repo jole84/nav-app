@@ -534,11 +534,13 @@ geolocation.on("change", function () {
         );
       }
 
-      const [nextStep, nextStepDistance] = findNextStep(routeLineString.getCoordinates(), navigationSteps, lonlat);
-      document.getElementById("navigationDiv").innerHTML = [
-        createTurnHint(nextStep),
-        nextStepDistance
-      ].filter(element => element).join("<br>");
+      if (currentTime - trackLog[trackLog.length - 1][2] > 3000) {
+        const [nextStep, nextStepDistance] = findNextStep(routeLineString.getCoordinates(), navigationSteps, lonlat);
+        document.getElementById("navigationDiv").innerHTML = [
+          createTurnHint(nextStep),
+          nextStepDistance
+        ].filter(element => element).join("<br>");
+      }
     }
   }
 
