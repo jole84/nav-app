@@ -905,6 +905,11 @@ function routeMe() {
       dataProjection: "EPSG:4326",
       featureProjection: "EPSG:3857"
     });
+    
+    navigationSteps.forEach(step => {
+      step["stepIndex"] = findIndexOf(fromLonLat(step.maneuver.location), newGeometry.getGeometry().getCoordinates());
+      // addTestMarker(fromLonLat(step.maneuver.location), routeLayer.getSource(), step.maneuver.type);
+    });
 
     const totalLength = result.routes[0].distance / 1000; // track-length in km
     const totalTime = result.routes[0].duration;
