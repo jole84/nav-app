@@ -894,11 +894,7 @@ function routeMe() {
   }).then(result => {
     navigationSteps = [];
     result.routes[0].legs.forEach(leg => {
-      leg.steps.forEach(step => {
-        if (step.maneuver.type != "arrive" && step.maneuver.type != "depart") {
-          navigationSteps.push(step);
-        }
-      });
+      navigationSteps = navigationSteps.concat(leg.steps.filter(element => !["arrive", "depart"].includes(element.maneuver.type)));
     });
     navigationSteps.push(result.routes[0].legs[result.routes[0].legs.length - 1].steps[result.routes[0].legs[result.routes[0].legs.length - 1].steps.length - 1]);
     destinationCoordinates[destinationCoordinates.length - 1] = result.waypoints[destinationCoordinates.length - 1].location;

@@ -48,15 +48,19 @@ export function findNextStep(featureCoordinates, navigationSteps, lonlat) {
   console.log(navigationSteps);
   const newMultiPoint = new MultiPoint(featureCoordinates);
   const closestPoint = newMultiPoint.getClosestPoint(fromLonLat(lonlat));
-  let startPos = 0;
   let distanceToNextStep = 0;
+  const startPos = featureCoordinates.findIndex(element => element.toString() == closestPoint.toString());
 
-  // find start point
-  startPos = findIndexOf(closestPoint, featureCoordinates);
+  // featureCoordinates = featureCoordinates.slice(startPos);
+  // const mapped = navigationSteps.map(element => fromLonLat(element.maneuver.location).toString());
+  // const nextStepfeatureCoordinates = featureCoordinates.find(element => mapped.includes(element.toString()));
+  // const nextStepIndex = navigationSteps.findIndex(element => featureCoordinates.includes(nextStepfeatureCoordinates.toString()));
 
-  // console.log(navigationSteps.filter(element => {
-  //   return element.maneuver.type != "arrive";
-  // }));
+  // console.log(mapped);
+  // console.log(navigationSteps);
+  // console.log(nextStepfeatureCoordinates);
+  // console.log(nextStepIndex)
+  // console.log(navigationSteps[nextStepIndex]);
 
   // start at closestPoint and stop at next step
   for (var i = startPos; i < featureCoordinates.length - 1; i++) {
@@ -64,13 +68,16 @@ export function findNextStep(featureCoordinates, navigationSteps, lonlat) {
       toLonLat(featureCoordinates[i]),
       toLonLat(featureCoordinates[i + 1])
     );
+
+    // determine which step is next
     for (var stepI = 0; stepI < navigationSteps.length; stepI++) {
       if (featureCoordinates[i].toString() == fromLonLat(navigationSteps[stepI].maneuver.location).toString()) {
         return [
           navigationSteps[stepI],
-          (
-            distanceToNextStep > 1000 ? ((distanceToNextStep / 1000).toFixed(1) + "km") :
-              ((Math.round(distanceToNextStep / 25) * 25) + "m"))];
+          (distanceToNextStep > 1000 ?
+            ((distanceToNextStep / 1000).toFixed(1) + "km") :
+            ((Math.round(distanceToNextStep / 25) * 25) + "m")
+          )];
       }
     }
   }
