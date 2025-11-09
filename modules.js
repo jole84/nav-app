@@ -115,7 +115,7 @@ export function getRemainingDistance(featureCoordinates, speedKmh, navigationSte
   returnString += `<div class="equalSpace"> <div>${nextStep ? (createTurnHint(nextStep) + distanceToNextStep) : ""} </div> <div>${ETA.getHours()}:${ETA.getMinutes().toString().padStart(2, "0")}<font class="infoFormat">ETA</font></div></div>`;
 
   // third row
-  nextStep ? (returnString += nextStep.destinations || "") : "";
+  nextStep ? (returnString += nextStep.destinations || nextStep.name ||"") : "";
   return returnString;
 }
 
