@@ -44,27 +44,75 @@ export function toHHMMSS(milliSecondsInt) {
   return hours + ":" + minutes + ":" + seconds;
 }
 
-export function findNextStep(featureCoordinates, navigationSteps, lonlat) {
-  // console.log(navigationSteps);
+export function getRemainingDistance(featureCoordinates, speedKmh, navigationSteps, currentPosition) {
+  // console.log(featureCoordinates, speedKmh, navigationSteps, currentPosition);
   const newMultiPoint = new MultiPoint(featureCoordinates);
-  const closestPoint = newMultiPoint.getClosestPoint(fromLonLat(lonlat));
+  const closestPoint = newMultiPoint.getClosestPoint(currentPosition);
+  const closeToRoute = getDistance(toLonLat(closestPoint), toLonLat(currentPosition)) < 500;
+  let nextStep;
   let distanceToNextStep = 0;
-  const startPos = featureCoordinates.findIndex(element => element.toString() == closestPoint.toString());
-  const nextStep = navigationSteps.find(element => element.stepIndex > startPos);
-
-  // measure distance to next step
-  for (var i = startPos; i < nextStep.stepIndex; i++) {
-    distanceToNextStep += getDistance(
-      toLonLat(featureCoordinates[i]),
-      toLonLat(featureCoordinates[i + 1])
-    );
+  let remainingDistance = 0;
+  if (!closeToRoute) {
+    return "";
   }
 
-  return [nextStep, (
-    distanceToNextStep > 1000 ?
+  const startPos = featureCoordinates.findIndex(element => element.toString() == closestPoint.toString());
+  // measure route remaining distance
+  for (let i = startPos; i < featureCoordinates.length - 1; i++) {
+    if (
+      featureCoordinates[0].toString() === closestPoint.toString() ||
+      featureCoordinates[i + 1].toString() === closestPoint.toString()
+    ) {
+      remainingDistance += getDistance(
+        toLonLat(featureCoordinates[i]),
+        toLonLat(currentPosition),
+      );
+      break;
+    } else {
+      remainingDistance += getDistance(
+        toLonLat(featureCoordinates[i]),
+        toLonLat(featureCoordinates[i + 1]),
+      );
+    }
+  }
+  // console.log((remainingDistance / 1000) + "km");
+  // console.log(remainingDistance + "m");
+
+  // calculate remaining time
+  const secondsInt = (remainingDistance / 1000) / ((speedKmh < 30 ? 75 : speedKmh) / 60 / 60);
+  const totalMinutes = Math.floor(secondsInt / 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  const ETA = new Date(new Date().getTime() + secondsInt * 1000);
+
+  // measure distance to next step
+  if (navigationSteps.length > 0) {
+    nextStep = navigationSteps.find(element => element.stepIndex > startPos);
+    // measure distance to next step
+    for (var i = startPos; i < nextStep.stepIndex; i++) {
+      distanceToNextStep += getDistance(
+        toLonLat(featureCoordinates[i]),
+        toLonLat(featureCoordinates[i + 1])
+      );
+    }
+  }
+
+  distanceToNextStep = distanceToNextStep > 1000 ?
       ((distanceToNextStep / 1000).toFixed(1) + '<font class="infoFormat">km</font>') :
-      ((Math.round(distanceToNextStep / 25) * 25) + '<font class="infoFormat">m</font>')
-  )];
+      ((Math.round(distanceToNextStep / 25) * 25) + '<font class="infoFormat">m</font>');
+
+  let returnString = `<div class="equalSpace"><div><font class="infoFormat">-></font> ${Number(remainingDistance / 1000).toFixed(1)}<font class="infoFormat">KM</font></div><div>`;
+  if (hours > 0) {
+    returnString += `${hours}<font class="infoFormat">H</font> `;
+  }
+  returnString += `${minutes}<font class="infoFormat">MIN</font></div></div>`
+
+  // second row
+  returnString += `<div class="equalSpace"> <div>${nextStep ? distanceToNextStep : ""}</div> <div>${ETA.getHours()}:${ETA.getMinutes().toString().padStart(2, "0")}<font class="infoFormat">ETA</font></div></div>`;
+  
+  // third row
+  nextStep ? (returnString += createTurnHint(nextStep)) : "";
+  return returnString;
 }
 
 const translateArray = {
@@ -162,53 +210,8 @@ export function createTurnHint(routeStep) {
 
   turnString.push(maneuverName);
 
-  return turnString.join(" ");
-}
-
-export function getRemainingDistance(featureCoordinates, lonlat) {
-  const newMultiPoint = new MultiPoint(featureCoordinates.reverse());
-  let remainingDistance = 0;
-  const closestPoint = newMultiPoint.getClosestPoint(fromLonLat(lonlat));
-  const closeToRoute = getDistance(toLonLat(closestPoint), lonlat) < 500;
-
-  if (closeToRoute) {
-    for (let i = 0; i < featureCoordinates.length - 1; i++) {
-      if (
-        featureCoordinates[0].toString() === closestPoint.toString() ||
-        featureCoordinates[i + 1].toString() === closestPoint.toString()
-      ) {
-        remainingDistance += getDistance(
-          toLonLat(featureCoordinates[i]),
-          lonlat,
-        );
-        break;
-      } else {
-        remainingDistance += getDistance(
-          toLonLat(featureCoordinates[i]),
-          toLonLat(featureCoordinates[i + 1]),
-        );
-      }
-    }
-    return remainingDistance / 1000;
-  }
-}
-
-export function toRemainingString(remainingDistance, secondsInt) {
-  const totalMinutes = Math.floor(secondsInt / 60);
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  const ETA = new Date(new Date().getTime() + secondsInt * 1000);
-
-  // first row
-  let returnString = `<div class="equalSpace"><div><font class="infoFormat">-></font> ${Number(remainingDistance).toFixed(1)}<font class="infoFormat">KM</font></div><div>`;
-  if (hours > 0) {
-    returnString += `${hours}<font class="infoFormat">H</font> `;
-  }
-  returnString += `${minutes}<font class="infoFormat">MIN</font></div></div>`
-
-  // second row
-  returnString += `<div class="equalSpace"> <div></div> <div>${ETA.getHours()}:${ETA.getMinutes().toString().padStart(2, "0")}<font class="infoFormat">ETA</font></div></div>`;
-  return returnString;
+  console.log(turnString);
+  return turnString.filter(element => element).join(" ");
 }
 
 // convert degrees to radians

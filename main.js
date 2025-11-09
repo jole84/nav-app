@@ -34,9 +34,6 @@ import {
   msToTime,
   toHHMMSS,
   getRemainingDistance,
-  findNextStep,
-  createTurnHint,
-  toRemainingString,
   fileFormats,
   findIndexOf,
 } from "./modules.js";
@@ -513,34 +510,24 @@ geolocation.on("change", function () {
       const featureType = feature.getGeometry().getType();
       if (featureType == "LineString" || featureType == "MultiLineString") {
         const featureCoordinates = featureType == "MultiLineString" ? feature.getGeometry().getLineString().getCoordinates() : feature.getGeometry().getCoordinates();
-        const gpxRemainingDistance = getRemainingDistance(featureCoordinates, lonlat);
-        if (gpxRemainingDistance != undefined) {
-          routeInfo.innerHTML += toRemainingString(
-            gpxRemainingDistance,
-            gpxRemainingDistance / ((speedKmh < 30 ? 75 : speedKmh) / 60 / 60),
-          );
-        }
+        routeInfo.innerHTML += getRemainingDistance(
+          featureCoordinates,
+          speedKmh,
+          [],
+          currentPosition
+        );
       }
     });
 
     // calculate remaing distance on route
     if (routeLineString.getCoordinates().length > 0) {
       const featureCoordinates = routeLineString.getCoordinates();
-      const routeRemainingDistance = getRemainingDistance(featureCoordinates, lonlat);
-      if (routeRemainingDistance != undefined) {
-        routeInfo.innerHTML += toRemainingString(
-          routeRemainingDistance,
-          routeRemainingDistance / ((speedKmh < 30 ? 75 : speedKmh) / 60 / 60),
-        );
-      }
-
-      if (currentTime - trackLog[trackLog.length - 1][2] > 3000) {
-        const [nextStep, nextStepDistance] = findNextStep(routeLineString.getCoordinates(), navigationSteps, lonlat);
-        document.getElementById("navigationDiv").innerHTML = [
-          createTurnHint(nextStep),
-          nextStepDistance
-        ].filter(element => element).join("<br>");
-      }
+      routeInfo.innerHTML += getRemainingDistance(
+        featureCoordinates,
+        speedKmh,
+        navigationSteps,
+        currentPosition
+      );
     }
   }
 
@@ -872,7 +859,7 @@ function routeMeOSR() {
 
     const totalLength = result.features[0].properties.summary.distance / 1000; // track-length in km
     const totalTime = result.features[0].properties.summary.duration;
-    routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
+    // routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
 
     routeLineString.setCoordinates(newGeometry.getGeometry().getCoordinates());
     endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
@@ -905,7 +892,7 @@ function routeMe() {
       dataProjection: "EPSG:4326",
       featureProjection: "EPSG:3857"
     });
-    
+
     navigationSteps.forEach(step => {
       step["stepIndex"] = findIndexOf(fromLonLat(step.maneuver.location), newGeometry.getGeometry().getCoordinates());
       // addTestMarker(fromLonLat(step.maneuver.location), routeLayer.getSource(), step.maneuver.type);
@@ -913,7 +900,7 @@ function routeMe() {
 
     const totalLength = result.routes[0].distance / 1000; // track-length in km
     const totalTime = result.routes[0].duration;
-    routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
+    // routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
 
     routeLineString.setCoordinates(newGeometry.getGeometry().getCoordinates());
     endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
@@ -934,12 +921,20 @@ map.on("singleclick", function (evt) {
 });
 
 map.on("click", function (evt) {
-  const [nextStep, nextStepDistance] = findNextStep(routeLineString.getCoordinates(), navigationSteps, toLonLat(evt.coordinate));
-  document.getElementById("navigationDiv").innerHTML = [
-    createTurnHint(nextStep),
-    nextStepDistance
-  ].filter(element => element).join("<br>");
-  // console.log("nextStep: " + JSON.stringify(nextStep));
+  currentPosition = evt.coordinate;
+  const speedKmh = 75;
+  routeInfo.innerHTML = getRemainingDistance(
+    routeLineString.getCoordinates() || gpxSource.getFeatures()[0].getGeometry().getCoordinates()[0],
+    speedKmh,
+    navigationSteps,
+    currentPosition
+  );
+  //   routeInfo.innerHTML = getRemainingDistance(
+  //   gpxSource.getFeatures()[0].getGeometry().getCoordinates()[0],
+  //   speedKmh,
+  //   navigationSteps, 
+  //   currentPosition
+  // );
 });
 
 // right click/long press to route
@@ -954,7 +949,6 @@ map.on("contextmenu", function (event) {
   } else {
     // set start position
     destinationCoordinates[0] = lonlat;
-
     const clickedOnCurrentPosition =
       getDistance(lonlat, eventLonLat) < 200 ||
       getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
@@ -979,6 +973,7 @@ map.on("contextmenu", function (event) {
         '<font class="infoFormat">M</font>',
       ]);
       endMarker.setCoordinates([]);
+      navigationSteps = [];
       routeLineString.setCoordinates([]);
       routeInfo.innerHTML = "";
       destinationCoordinates = [];
