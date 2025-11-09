@@ -115,7 +115,7 @@ export function getRemainingDistance(featureCoordinates, speedKmh, navigationSte
   returnString += `<div class="equalSpace"> <div>${nextStep ? (createTurnHint(nextStep) + distanceToNextStep) : ""} </div> <div>${ETA.getHours()}:${ETA.getMinutes().toString().padStart(2, "0")}<font class="infoFormat">ETA</font></div></div>`;
 
   // third row
-  nextStep ? (returnString += nextStep.destinations || nextStep.name ||"") : "";
+  nextStep ? (returnString += nextStep.destinations || nextStep.name || "") : "";
   return returnString;
 }
 
@@ -131,7 +131,7 @@ const translateArray = {
   "end of road right": "↱",
   "end of road left": "↰",
   "end of road": "slutet av vägen",
-  "continue": "",
+  "continue": "↑",
   "roundabout": "⟲",
   "rotary": "⟲",
   "roundabout turn": "⟲",
@@ -164,9 +164,9 @@ export function createTurnHint(routeStep) {
   const rampExit = routeStep.exits;
   const ref = routeStep.ref;
 
-  if (!translateArray.hasOwnProperty(maneuverType)) {
-    return
-  }
+  // if (!translateArray.hasOwnProperty(maneuverType)) {
+  //   return
+  // }
 
   const turnString = [];
 
@@ -189,7 +189,7 @@ export function createTurnHint(routeStep) {
     turnString.push(translateArray["end of road " + maneuverModifier]);
   }
 
-  if (["turn"].includes(maneuverType)) {
+  if (["turn", "fork", "continue"].includes(maneuverType)) {
     turnString.push(translateArray[maneuverModifier]);
   }
 
@@ -201,7 +201,7 @@ export function createTurnHint(routeStep) {
     turnString.push(translateArray[maneuverType]);
   }
 
-  if (["straight", "continue", "new name"].includes(maneuverType)) {
+  if (["straight", "new name"].includes(maneuverType)) {
     turnString.push(translateArray[maneuverType]);
   }
 
