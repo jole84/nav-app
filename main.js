@@ -859,6 +859,12 @@ function routeMeOSR() {
 
     const totalLength = result.features[0].properties.summary.distance / 1000; // track-length in km
     const totalTime = result.features[0].properties.summary.duration;
+    routeInfo.innerHTML = getRemainingDistance(
+      newGeometry.getGeometry().getCoordinates(),
+      speedKmh,
+      [],
+      currentPosition
+    );
     // routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
 
     routeLineString.setCoordinates(newGeometry.getGeometry().getCoordinates());
@@ -900,6 +906,12 @@ function routeMe() {
 
     const totalLength = result.routes[0].distance / 1000; // track-length in km
     const totalTime = result.routes[0].duration;
+    routeInfo.innerHTML = getRemainingDistance(
+      newGeometry.getGeometry().getCoordinates(),
+      speedKmh,
+      navigationSteps,
+      currentPosition
+    );
     // routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
 
     routeLineString.setCoordinates(newGeometry.getGeometry().getCoordinates());

@@ -117,18 +117,18 @@ export function getRemainingDistance(featureCoordinates, speedKmh, navigationSte
 
 const translateArray = {
   "turn": "sväng",
-  // "new name": "nytt vägnamn", //?
+  "new name": "", //?
   // "depart": "start",
   "arrive": "ankomst",
   "merge": "kör ut på", //?
   "on ramp": "påfart",
   "off ramp": "avfart",
   // "fork": "", //?
-  "end of road": "slutet av vägen sväng",
+  "end of road": "slutet av vägen",
   // "continue": "fortsätt",
   "roundabout": "rondell",
   "rotary": "rondell",
-  "roundabout turn": "i rondellen sväng",
+  "roundabout turn": "i rondellen",
   // "notification": "", //?
   "exit roundabout": "kör ut ur rondell",
   "exit rotary": "kör ut ur rondell",
@@ -193,8 +193,7 @@ export function createTurnHint(routeStep) {
   if (["on ramp", "off ramp"].includes(maneuverType)) {
     turnString.push(translateArray[maneuverType]);
     turnString.push(rampExit);
-    turnString.push(destinations);
-    turnString.push(ref);
+    turnString.push(destinations || ref);
   }
 
   if (["merge"].includes(maneuverType)) {
