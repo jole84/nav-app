@@ -46,8 +46,8 @@ body,
   cursor: pointer;
   font-weight: bold;
   margin-bottom: 5px;
-  padding-left: 3px;
-  padding-right: 3px;
+  padding-left: 2px;
+  padding-right: 1px;
   text-align: center;
 }
 
@@ -58,7 +58,6 @@ body,
 #optionButtons {
   bottom: 0px;
   display: flex;
-  filter: opacity(0.9);
   flex-wrap: wrap-reverse;
   gap: 5px;
   justify-content: space-between;
@@ -78,7 +77,7 @@ body,
 html:fullscreen div.ol-zoom {
   margin-top: max(env(safe-area-inset-top), .5em);
 }
-  
+
 #map .ol-rotate {
   display: none;
 }
@@ -281,5 +280,5 @@ html:fullscreen .fullscreenHide {
 }
 
 html:fullscreen #centerButton {
-  filter: opacity(0.6);
+  filter: opacity(0.5);
 }

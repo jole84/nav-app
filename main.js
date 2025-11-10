@@ -14,7 +14,11 @@ import TileLayer from "ol/layer/Tile.js";
 import TileWMS from "ol/source/TileWMS.js";
 import VectorSource from "ol/source/Vector.js";
 import WKT from "ol/format/WKT.js";
+import VectorTileLayer from 'ol/layer/VectorTile.js';
+import VectorTileSource from 'ol/source/VectorTile.js';
+import MVT from 'ol/format/MVT.js';
 import XYZ from "ol/source/XYZ.js";
+import { styleStuff } from "./styleTileFunctions.js"
 import {
   trafficWarningTextStyleFunction,
   trafficWarningIconStyleFunction,
@@ -30,8 +34,7 @@ import {
   msToTime,
   toHHMMSS,
   getRemainingDistance,
-  toRemainingString,
-  getFileFormat,
+  fileFormats,
   findIndexOf,
 } from "./modules.js";
 
@@ -171,7 +174,7 @@ document.getElementById("clearSettings").onclick = function () {
 localStorage.defaultZoom = prefferedZoomDiv.value =
   localStorage.defaultZoom || 14;
 prefferedZoomDiv.addEventListener("change", function () {
-  localStorage.defaultZoom = prefferedZoomDiv.value;
+  localStorage.defaultZoom = prefferedZoomDiv.value || 14;
   centerFunction();
 });
 
@@ -184,7 +187,8 @@ preferredFontSizeDiv.addEventListener("change", function () {
 
 const view = new View({
   center: center,
-  zoom: 6,
+  zoom: localStorage.defaultZoom,
+  minZoom: 6,
   maxZoom: 20,
   constrainRotation: false,
 });
@@ -193,16 +197,9 @@ const trackLineString = new LineString([]);
 
 const osm = new TileLayer({
   className: "saturated",
-  source: new OSM({
-    zDirection: 1,
-  }),
+  source: new OSM(),
   visible: false,
 });
-
-// const osm = new MapboxVectorLayer({
-//   styleUrl: "mapbox://styles/tryckluft/clqmovmf100pb01o9g1li1hxb",
-//   accessToken : "pk.eyJ1IjoidHJ5Y2tsdWZ0IiwiYSI6ImNrcTU1YTIzeTFlem8yd3A4MXRsMTZreWQifQ.lI612CDqRgWujJDv6zlBqw",
-// });
 
 const slitlagerkarta = new TileLayer({
   source: new XYZ({
@@ -220,10 +217,23 @@ const slitlagerkarta_nedtonad = new TileLayer({
     url: "https://jole84.se/slitlagerkarta_nedtonad/{z}/{x}/{y}.jpg",
     minZoom: 6,
     maxZoom: 14,
-    transition: 0,
   }),
   visible: false,
   useInterimTilesOnError: false,
+});
+
+const newTileLayer = new VectorTileLayer({
+  source: new VectorTileSource({
+    format: new MVT(),
+    url: 'https://jole84.se/tiles/{z}/{x}/{y}.pbf',
+    transition: 0,
+    minZoom: 6,
+    maxZoom: 14,
+  }),
+  style: styleStuff,
+  declutter: true,
+  updateWhileAnimating: true,
+  updateWhileInteracting: true,
 });
 
 const ortofoto = new TileLayer({
@@ -297,13 +307,13 @@ const trafficWarningSource = new VectorSource();
 const trafficWarningIconLayer = new VectorLayer({
   source: trafficWarningSource,
   style: trafficWarningIconStyleFunction,
+  minZoom: 6,
 });
 
 const trafficWarningTextLayer = new VectorLayer({
   source: trafficWarningSource,
   style: trafficWarningTextStyleFunction,
-  declutter: true,
-  minZoom: 10,
+  minZoom: 13,
 });
 
 const trackPointLayer = new VectorLayer({
@@ -316,6 +326,7 @@ const map = new Map({
   layers: [
     slitlagerkarta,
     slitlagerkarta_nedtonad,
+    newTileLayer,
     osm,
     ortofoto,
     topoweb,
@@ -335,8 +346,8 @@ const map = new Map({
 
 function gpxSourceLoader(gpxFile) {
   const reader = new FileReader();
-  const fileExtention = gpxFile.name.replace(".gpx.txt", ".gpx").split(".").pop().toLowerCase();
-  const fileFormat = getFileFormat(fileExtention);
+  const fileExtention = gpxFile.name.toLowerCase().replace(".gpx.txt", ".gpx").split(".").pop();
+  const fileFormat = fileFormats[fileExtention];
   reader.readAsText(gpxFile, "UTF-8");
   reader.onload = function (evt) {
     const gpxFeatures = fileFormat.readFeatures(evt.target.result, {
@@ -436,14 +447,14 @@ geolocation.once("change", function () {
   updateUserPosition();
 });
 
-const accuracyFeature = new Feature();
-geolocation.on('change:accuracyGeometry', function () {
-  if (accuracy < 20) {
-    accuracyFeature.setGeometry();
-  } else {
-    accuracyFeature.setGeometry(geolocation.getAccuracyGeometry());
-  }
-});
+// const accuracyFeature = new Feature();
+// geolocation.on('change:accuracyGeometry', function () {
+//   if (accuracy < 20) {
+//     accuracyFeature.setGeometry();
+//   } else {
+//     accuracyFeature.setGeometry(geolocation.getAccuracyGeometry());
+//   }
+// });
 
 // runs when position changes
 geolocation.on("change", function () {
@@ -456,6 +467,7 @@ geolocation.on("change", function () {
   localStorage.lastPosition = JSON.stringify(currentPosition);
   lonlat = toLonLat(currentPosition);
   const currentTime = Date.now();
+  const accuratePos = accuracy < 200 ? 1 : 0;
   positionMarkerPoint.setCoordinates(currentPosition);
 
   // measure distance and push log if position change > 5 meters and accuracy is good and more than 3 seconds
@@ -484,7 +496,7 @@ geolocation.on("change", function () {
     // change marker if speed
     positionMarkerHeading.getStyle().getImage().setRotation(heading);
     positionMarker.getStyle().getImage().setOpacity(0);
-    positionMarkerHeading.getStyle().getImage().setOpacity(1);
+    positionMarkerHeading.getStyle().getImage().setOpacity(accuratePos);
 
     // change view if no interaction occurred last 10 seconds
     if (currentTime - lastInteraction > interactionDelay) {
@@ -498,31 +510,29 @@ geolocation.on("change", function () {
       const featureType = feature.getGeometry().getType();
       if (featureType == "LineString" || featureType == "MultiLineString") {
         const featureCoordinates = featureType == "MultiLineString" ? feature.getGeometry().getLineString().getCoordinates() : feature.getGeometry().getCoordinates();
-        const gpxRemainingDistance = getRemainingDistance(featureCoordinates, lonlat);
-        if (gpxRemainingDistance != undefined) {
-          routeInfo.innerHTML += toRemainingString(
-            gpxRemainingDistance,
-            gpxRemainingDistance / ((speedKmh < 30 ? 75 : speedKmh) / 60 / 60),
-          );
-        }
+        routeInfo.innerHTML += getRemainingDistance(
+          featureCoordinates,
+          speedKmh,
+          [],
+          currentPosition
+        );
       }
     });
 
     // calculate remaing distance on route
     if (routeLineString.getCoordinates().length > 0) {
       const featureCoordinates = routeLineString.getCoordinates();
-      const routeRemainingDistance = getRemainingDistance(featureCoordinates, lonlat);
-      if (routeRemainingDistance != undefined) {
-        routeInfo.innerHTML += toRemainingString(
-          routeRemainingDistance,
-          routeRemainingDistance / ((speedKmh < 30 ? 75 : speedKmh) / 60 / 60),
-        );
-      }
+      routeInfo.innerHTML += getRemainingDistance(
+        featureCoordinates,
+        speedKmh,
+        navigationSteps,
+        currentPosition
+      );
     }
   }
 
   if (speed < 1) {
-    positionMarker.getStyle().getImage().setOpacity(1);
+    positionMarker.getStyle().getImage().setOpacity(accuratePos);
     positionMarkerHeading.getStyle().getImage().setOpacity(0);
   }
 
@@ -559,7 +569,7 @@ const positionMarkerHeading = new Feature({
 map.addLayer(
   new VectorLayer({
     source: new VectorSource({
-      features: [positionMarker, positionMarkerHeading, accuracyFeature],
+      features: [positionMarker, positionMarkerHeading],
     }),
   }),
 );
@@ -642,32 +652,17 @@ function centerFunction() {
   const padding = 50;
   if (speed > 1) {
     lastInteraction = Date.now() - interactionDelay;
-    if (!!accuracyFeature.getGeometry()) {
-      view.fit(accuracyFeature.getGeometry().getExtent(), {
-        padding: [padding, padding, padding, padding],
-        maxZoom: localStorage.defaultZoom,
-      });
-    } else {
-      view.setZoom(localStorage.defaultZoom);
-    }
+    view.setZoom(localStorage.defaultZoom);
     updateView();
   } else {
-    if (!!accuracyFeature.getGeometry()) {
-      view.fit(accuracyFeature.getGeometry().getExtent(), {
-        padding: [padding, padding, padding, padding],
-        duration: duration,
-        maxZoom: localStorage.defaultZoom,
-      });
-    } else {
-      view.animate({
-        center: currentPosition,
-        duration: duration,
-      });
-      view.animate({
-        zoom: localStorage.defaultZoom,
-        duration: duration,
-      });
-    }
+    view.animate({
+      center: currentPosition,
+      duration: duration,
+    });
+    view.animate({
+      zoom: localStorage.defaultZoom,
+      duration: duration,
+    });
     view.animate({
       rotation: 0,
       duration: duration,
@@ -699,40 +694,49 @@ if (!!window.chrome) {
 function switchMap() {
   slitlagerkarta.setVisible(false);
   slitlagerkarta_nedtonad.setVisible(false);
+  newTileLayer.setVisible(false);
   ortofoto.setVisible(false);
   topoweb.setVisible(false);
   osm.setVisible(false);
-  document.body.classList.remove("darkmode");
+  // document.body.classList.remove("darkmode");
+  document.getElementById("map").style.backgroundColor = (localStorage.mapMode == 2) ? "#00263F" : "#bfe6ff";
+  document.getElementById("infoGroup").style.color = (localStorage.mapMode == 2) ? "rgb(245, 245, 245)" : "rgb(32, 32, 32)";
+  document.getElementById("infoGroup").style.backgroundColor = (localStorage.mapMode == 2) ? "rgba(0, 0, 0, 0.4)" : "rgba(255, 255, 255, 0.4)";
+  document.getElementById("optionButtons").style.filter = (localStorage.mapMode == 2) ? "invert(1) hue-rotate(180deg)" : "initial";
 
-  if (localStorage.mapMode > 5) {
+  if (localStorage.mapMode > 6) {
     localStorage.mapMode = 0;
   }
 
   layerSelector.value = localStorage.mapMode;
 
   if (localStorage.mapMode == 0) {
-    // mapMode 0: slitlagerkarta
-    slitlagerkarta.setVisible(true);
+    // mapMode 0: MVT Tärräng
+    newTileLayer.setVisible(true);
+    newTileLayer.getSource().refresh({ force: true });
     ortofoto.setVisible(true);
-    slitlagerkarta.setMaxZoom(15.5);
-    ortofoto.setMinZoom(15.5);
+    newTileLayer.setMaxZoom(17);
+    ortofoto.setMinZoom(17);
   } else if (localStorage.mapMode == 1) {
-    // mapMode 1: slitlagerkarta_nedtonad
-    slitlagerkarta_nedtonad.setVisible(true);
+    // mapMode 1: MVT Vägkarta
+    newTileLayer.setVisible(true);
+    newTileLayer.getSource().refresh({ force: true });
     topoweb.setVisible(true);
     ortofoto.setVisible(true);
-    slitlagerkarta_nedtonad.setMaxZoom(15.5);
-    topoweb.setMinZoom(15.5);
+    newTileLayer.setMaxZoom(16);
+    topoweb.setMinZoom(16);
     topoweb.setMaxZoom(17.5);
     ortofoto.setMinZoom(17.5);
   } else if (localStorage.mapMode == 2) {
-    // mapMode 2: slitlagerkarta_nedtonad + night mode
-    slitlagerkarta_nedtonad.setVisible(true);
-    document.body.classList.add("darkmode");
-    topoweb.setVisible(true);
-    slitlagerkarta_nedtonad.setMaxZoom(15.5);
-    topoweb.setMinZoom(15.5);
-    topoweb.setMaxZoom(20);
+    // mapMode 2: MVT Vägkarta + night mode
+    newTileLayer.setVisible(true);
+    newTileLayer.getSource().refresh({ force: true });
+    newTileLayer.setMaxZoom(20);
+    // document.body.classList.add("darkmode");
+    // topoweb.setVisible(true);
+    // slitlagerkarta_nedtonad.setMaxZoom(15.5);
+    // topoweb.setMinZoom(15.5);
+    // topoweb.setMaxZoom(20);
   } else if (localStorage.mapMode == 3) {
     // mapMode 3: Openstreetmap
     osm.setVisible(true);
@@ -742,9 +746,13 @@ function switchMap() {
     topoweb.setMinZoom(0);
     topoweb.setMaxZoom(20);
   } else if (localStorage.mapMode == 5) {
-    // mapMode 4: orto
+    // mapMode 5: orto
     ortofoto.setVisible(true);
     ortofoto.setMinZoom(0);
+  } else if (localStorage.mapMode == 6) {
+    // mapMode 6: slitlagerkarta
+    slitlagerkarta.setVisible(true);
+    slitlagerkarta.setMaxZoom(20);
   }
   infoGroup.style.fontSize = localStorage.preferredFontSize;
 }
@@ -797,23 +805,19 @@ async function saveLog() {
 }
 
 async function saveFile(data, fileName) {
-  try {
-    // create a new handle
-    const newHandle = await window.showSaveFilePicker({ suggestedName: fileName });
+  // create a new handle
+  const newHandle = await window.showSaveFilePicker({ suggestedName: fileName });
 
-    // create a FileSystemWritableFileStream to write to
-    const writableStream = await newHandle.createWritable();
+  // create a FileSystemWritableFileStream to write to
+  const writableStream = await newHandle.createWritable();
 
-    // write our file
-    await writableStream.write(data);
+  // write our file
+  await writableStream.write(data);
 
-    // close the file and write the contents to disk.
-    await writableStream.close();
+  // close the file and write the contents to disk.
+  await writableStream.close();
 
-    alert("GPX sparad!");
-  } catch (e) {
-    alert("Något gick snett :( \n" + e.message);
-  }
+  alert("GPX sparad!");
 }
 
 function setExtraInfo(infoText) {
@@ -855,12 +859,19 @@ function routeMeOSR() {
 
     const totalLength = result.features[0].properties.summary.distance / 1000; // track-length in km
     const totalTime = result.features[0].properties.summary.duration;
-    routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
+    routeInfo.innerHTML = getRemainingDistance(
+      newGeometry.getGeometry().getCoordinates(),
+      speedKmh,
+      [],
+      currentPosition
+    );
 
     routeLineString.setCoordinates(newGeometry.getGeometry().getCoordinates());
     endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
   });
 }
+
+let navigationSteps = [];
 
 // OSRM routing
 function routeMe() {
@@ -870,12 +881,16 @@ function routeMe() {
     continue_straight: false,
     generate_hints: false,
     // skip_waypoints: true,
-    steps: false,
+    steps: true,
   });
   fetch(`https://router.project-osrm.org/route/v1/driving/${destinationCoordinates.join(";")}?` + params).then(response => {
     return response.json();
   }).then(result => {
-    console.log(result)
+    navigationSteps = [];
+    result.routes[0].legs.forEach(leg => {
+      navigationSteps = navigationSteps.concat(leg.steps.filter(element => !["arrive", "depart", "new name"].includes(element.maneuver.type)));
+    });
+    navigationSteps.push(result.routes[0].legs[result.routes[0].legs.length - 1].steps[result.routes[0].legs[result.routes[0].legs.length - 1].steps.length - 1]);
     destinationCoordinates[destinationCoordinates.length - 1] = result.waypoints[destinationCoordinates.length - 1].location;
     const format = new GeoJSON();
     const newGeometry = format.readFeature(result.routes[0].geometry, {
@@ -883,9 +898,18 @@ function routeMe() {
       featureProjection: "EPSG:3857"
     });
 
+    navigationSteps.forEach(step => {
+      step["stepIndex"] = findIndexOf(fromLonLat(step.maneuver.location), newGeometry.getGeometry().getCoordinates());
+    });
+
     const totalLength = result.routes[0].distance / 1000; // track-length in km
     const totalTime = result.routes[0].duration;
-    routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
+    routeInfo.innerHTML = getRemainingDistance(
+      newGeometry.getGeometry().getCoordinates(),
+      speedKmh,
+      navigationSteps,
+      currentPosition
+    );
 
     routeLineString.setCoordinates(newGeometry.getGeometry().getCoordinates());
     endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
@@ -905,55 +929,81 @@ map.on("singleclick", function (evt) {
   }
 });
 
+// map.on("click", function (evt) {
+//   currentPosition = evt.coordinate;
+//   const speedKmh = 75;
+//   routeInfo.innerHTML = getRemainingDistance(
+//     routeLineString.getCoordinates() || gpxSource.getFeatures()[0].getGeometry().getCoordinates()[0],
+//     speedKmh,
+//     navigationSteps,
+//     currentPosition
+//   );
+//   if(gpxSource.getFeatures().length > 0) {
+//     routeInfo.innerHTML = getRemainingDistance(
+//       gpxSource.getFeatures()[0].getGeometry().getCoordinates()[0],
+//       speedKmh,
+//       navigationSteps, 
+//       currentPosition
+//     );
+//   }
+// });
+
 // right click/long press to route
 map.on("contextmenu", function (event) {
   lastInteraction = Date.now();
   const eventLonLat = toLonLat(event.coordinate);
-  // set start position
-  destinationCoordinates[0] = lonlat;
-
-  const clickedOnCurrentPosition =
-    getDistance(lonlat, eventLonLat) < 200 ||
-    getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
-
-  const clickedOnEndMarker = getPixelDistance(
-    event.pixel,
-    map.getPixelFromCoordinate(endMarker.getCoordinates())
-  ) < 40;
-
-  const clickedOnWaypoint =
-    gpxSource.getClosestFeatureToCoordinate(
-      event.coordinate,
-      feature => {
-        return feature.getGeometry().getType() === "Point" &&
-          getPixelDistance(map.getPixelFromCoordinate(feature.getGeometry().getCoordinates()), event.pixel) < 40
-      },
-    );
-
-  if (clickedOnCurrentPosition || (clickedOnEndMarker && destinationCoordinates.length <= 2)) {
+  if (accuracy > 200) {
     setExtraInfo([
-      Math.round(getDistance(lonlat, eventLonLat)) +
-      '<font class="infoFormat">M</font>',
-    ]);
-    endMarker.setCoordinates([]);
-    routeLineString.setCoordinates([]);
-    routeInfo.innerHTML = "";
-    destinationCoordinates = [];
-  } else if (clickedOnEndMarker) {
-    destinationCoordinates.pop();
-  } else if (clickedOnWaypoint) {
-    setExtraInfo(["Navigerar till:", clickedOnWaypoint.get("name")]);
-    destinationCoordinates.push(toLonLat(clickedOnWaypoint.getGeometry().getCoordinates()).splice(0, 2));
-  } else {
-    setExtraInfo([
+      `${(eventLonLat[1]).toFixed(5)} ${(eventLonLat[0]).toFixed(5)}`,
       `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Streetview</a></div>`,
     ]);
-    destinationCoordinates.push(eventLonLat);
-  }
+  } else {
+    // set start position
+    destinationCoordinates[0] = lonlat;
+    const clickedOnCurrentPosition =
+      getDistance(lonlat, eventLonLat) < 200 ||
+      getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
 
-  // start routing
-  if (destinationCoordinates.length >= 2) {
-    routeMe();
+    const clickedOnEndMarker = getPixelDistance(
+      event.pixel,
+      map.getPixelFromCoordinate(endMarker.getCoordinates())
+    ) < 40;
+
+    const clickedOnWaypoint =
+      gpxSource.getClosestFeatureToCoordinate(
+        event.coordinate,
+        feature => {
+          return feature.getGeometry().getType() === "Point" &&
+            getPixelDistance(map.getPixelFromCoordinate(feature.getGeometry().getCoordinates()), event.pixel) < 40
+        },
+      );
+
+    if (clickedOnCurrentPosition || (clickedOnEndMarker && destinationCoordinates.length <= 2)) {
+      setExtraInfo([
+        Math.round(getDistance(lonlat, eventLonLat)) +
+        '<font class="infoFormat">M</font>',
+      ]);
+      endMarker.setCoordinates([]);
+      navigationSteps = [];
+      routeLineString.setCoordinates([]);
+      routeInfo.innerHTML = "";
+      destinationCoordinates = [];
+    } else if (clickedOnEndMarker) {
+      destinationCoordinates.pop();
+    } else if (clickedOnWaypoint) {
+      setExtraInfo(["Navigerar till:", clickedOnWaypoint.get("name")]);
+      destinationCoordinates.push(toLonLat(clickedOnWaypoint.getGeometry().getCoordinates()).splice(0, 2));
+    } else {
+      setExtraInfo([
+        `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Streetview</a></div>`,
+      ]);
+      destinationCoordinates.push(eventLonLat);
+    }
+
+    // start routing
+    if (destinationCoordinates.length >= 2) {
+      routeMe();
+    }
   }
 });
 
@@ -1040,6 +1090,7 @@ if (searchParams.has("gpxFile")) {
 }
 switchMap();
 
+navigator.keyboard.lock(["Escape", "Enter"]);
 // add keyboard controls
 document.addEventListener("keydown", function (event) {
   if (menuDiv.checkVisibility()) {
@@ -1048,7 +1099,7 @@ document.addEventListener("keydown", function (event) {
       closeMenuButton.click();
     }
   } else {
-    for (let i = 1; i < 7; i++) {
+    for (let i = 1; i < 9; i++) {
       if (event.key == i) {
         localStorage.mapMode = i - 1;
         switchMap();
@@ -1134,23 +1185,23 @@ function resetRotation() {
   }
 }
 // <GTE name="Deviation.SeverityCode" value="2" /> 
+// <EQ name="Deviation.MessageCodeValue" value="roadClosed" />
 function getDeviations() {
   let xmlRequest = `
     <REQUEST>
       <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
-      <QUERY objecttype='Situation' schemaversion='1.5'>
+      <QUERY objecttype='Situation' namespace="road.trafficinfo" schemaversion='1.6'>
         <FILTER>
+          <LTE name="Deviation.StartTime" value="$dateadd(0.01:00)"/>
+          <GTE name="Deviation.EndTime" value="$now"/>
+          <NE name="Deviation.Suspended" value="true" />
           <OR>
+            <EQ name='Deviation.MessageType' value='Olycka' />
+            <IN name="Deviation.MessageTypeValue" value="AnimalPresenceObstruction,EnvironmentalObstruction,EquipmentOrSystemFault,GeneralInstructionOrMessageToRoadUsers,NonWeatherRelatedRoadConditions,ReroutingManagement,RoadsideAssistance,VehicleObstruction"/>
+            <EQ name='Deviation.IconId' value='roadClosed'/>
             <ELEMENTMATCH>
-              <EQ name='Deviation.ManagedCause' value='true' />
-              <EQ name='Deviation.MessageType' value='Olycka' />
-              <GTE name='Deviation.EndTime' value='$now'/>
-            </ELEMENTMATCH>
-            <ELEMENTMATCH>
-              <EQ name='Deviation.ManagedCause' value='true'/>
-              <IN name='Deviation.MessageType' value='Trafikmeddelande,Traffic information'/>
-              <GTE name='Deviation.EndTime' value='$now'/>
-              <LTE name='Deviation.StartTime' value='$dateadd(0.01:00)'/>
+              <EQ name="Deviation.MessageTypeValue" value="MaintenanceWorks" />
+              <EQ name="Deviation.SeverityCode" value="5" />
             </ELEMENTMATCH>
           </OR>
         </FILTER>
@@ -1160,6 +1211,7 @@ function getDeviations() {
         <INCLUDE>Deviation.RoadNumber</INCLUDE>
         <INCLUDE>Deviation.EndTime</INCLUDE>
         <INCLUDE>Deviation.MessageCode</INCLUDE>
+
       </QUERY>
     </REQUEST>
   `;
@@ -1176,6 +1228,15 @@ function getDeviations() {
         trafficWarningSource.clear();
         const resultRoadSituation = result.RESPONSE.RESULT[0].Situation;
         resultRoadSituation.forEach(function (item) {
+
+          // console.table(item.Deviation);
+          let IconId = item.Deviation[0].IconId;
+          item.Deviation.forEach(function (deviation) {
+            if (deviation.IconId == "roadClosed") {
+              IconId = "roadClosed";
+            }
+          });
+
           const format = new WKT();
           const position = format
             .readGeometry(item.Deviation[0].Geometry.Point.WGS84)
@@ -1190,7 +1251,7 @@ function getDeviations() {
               "\nSluttid: " +
               new Date(item.Deviation[0].EndTime).toLocaleString("sv-SE", { year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric" }),
             roadNumber: item.Deviation[0].RoadNumber || "väg",
-            iconId: item.Deviation[0].IconId,
+            iconId: IconId,
             messageCode: item.Deviation[0].MessageCode || "Tillbud",
           });
           trafficWarningSource.addFeature(feature);
@@ -1218,7 +1279,7 @@ function focusTrafficWarning() {
     duration: duration,
   });
   view.animate({
-    zoom: 11,
+    zoom: 13.1,
     duration: duration,
   });
   view.animate({
@@ -1269,7 +1330,8 @@ function getClosestAccident() {
             function (feature) {
               return getDistance(
                 toLonLat(feature.getGeometry().getCoordinates()),
-                toLonLat(featureCoordinates[i])) < 200;
+                toLonLat(featureCoordinates[i])) < 100 &&
+                (feature.get("messageCode") == "Olycka" || feature.get("iconId") == "roadClosed");
             },
           );
       }
@@ -1279,7 +1341,8 @@ function getClosestAccident() {
         function (feature) {
           return getDistance(
             toLonLat(feature.getGeometry().getCoordinates()),
-            lonlat) < 30000;
+            lonlat) < 30000 &&
+            feature.get("messageCode") == "Olycka";
         }
       );
       if (closestAccident) {
@@ -1295,7 +1358,7 @@ function getClosestAccident() {
       const messageCode = closestAccident.get("messageCode");
 
       trafficWarningDiv.innerHTML =
-        messageCode + ", " +
+        messageCode + ",<br>" +
         closestAccidentRoadNumber.replace(/^V/, "v") +
         " (" + Math.round(distanceToAccident / 1000) + "km)";
     } else {
@@ -1320,7 +1383,7 @@ function recalculateRoute() {
       endMarker.setCoordinates([]);
       routeLineString.setCoordinates([]);
     } else {
-      destinationCoordinates[0] = lonlat;
+      destinationCoordinates = [lonlat, destinationCoordinates[destinationCoordinates.length - 1]];
       routeMe();
     }
   }
@@ -1330,6 +1393,21 @@ document.getElementById("userName").value = localStorage.userName || "";
 document.getElementById("userName").addEventListener("change", function () {
   if (document.getElementById("userName").value == "") {
     userLocationLayer.getSource().clear();
+  }
+  if (localStorage.userName) {
+    // remove old username by setting timeStamp to 0
+    const formData = new FormData();
+    formData.append("userName", localStorage.userName);
+    formData.append("timeStamp", 0);
+    formData.append("x", 0);
+    formData.append("y", 0);
+    formData.append("heading", 0);
+    formData.append("accuracy", 0);
+    formData.append("speed", 0);
+    fetch("https://jole84.se/locationHandler/sql-location-handler.php", {
+      method: "POST",
+      body: formData,
+    });
   }
   localStorage.userName = document.getElementById("userName").value.trim();
   updateUserPosition();
@@ -1358,9 +1436,9 @@ function updateUserPosition() {
             geometry: new Point([userList[i]["x"], userList[i]["y"]]),
             rotation: userList[i]["heading"],
             name: userList[i]["userName"]
-              + (userList[i]["accuracy"] > 50 ? "\nOSÄKER POSITION! (" + userList[i]["accuracy"] + "m)" : "")
+              + (userList[i]["accuracy"] > 50 ? "\nOSÄKER POSITION (" + userList[i]["accuracy"] + "m)" : "")
               + "\n" + msToTime(Date.now() - userList[i]["timeStamp"])
-              + (userList[i]["speed"] < 100 ? userList[i]["speed"] : "??") + "km/h",
+              + (userList[i]["speed"] < 100 ? userList[i]["speed"] : "?") + "km/h",
           });
           userLocationLayer.getSource().addFeature(marker);
         }

@@ -6,7 +6,7 @@ export function trafficWarningTextStyleFunction(feature) {
         new Style({
             text: new Text({
                 text: feature.get("name"),
-                font: "13px B612, sans-serif",
+                font: "13px Arial, Helvetica, sans-serif",
                 textAlign: "left",
                 textBaseline: "top",
                 offsetX: 20,
@@ -20,7 +20,7 @@ export function trafficWarningTextStyleFunction(feature) {
                     color: [238, 41, 61, 0.9],
                     width: 2,
                 }),
-                padding: [2, 2, 2, 2],
+                padding: [1, 1, 1, 1],
             }),
         }),
     ];
@@ -36,6 +36,7 @@ export function trafficWarningIconStyleFunction(feature) {
                     feature.get("iconId") +
                     "?type=png32x32",
             }),
+            scale: 0.8,
         }),
     ];
 };
@@ -46,7 +47,7 @@ export function gpxStyleText(feature) {
         return new Style({
             text: new Text({
                 text: feature.get("name"),
-                font: "13px B612, sans-serif",
+                font: "13px Arial, Helvetica, sans-serif",
                 placement: "line",
                 textAlign: "left",
                 textBaseline: "bottom",
@@ -100,7 +101,7 @@ export function gpxStyle(feature) {
             }),
             text: new Text({
                 text: feature.get("name"),
-                font: "13px B612, sans-serif",
+                font: "13px Arial, Helvetica, sans-serif",
                 overflow: true,
                 fill: new Fill({
                     color: "#b41412",
@@ -118,7 +119,7 @@ export function userLocationStyle(feature) {
     return new Style({
         text: new Text({
             text: feature.get("name"),
-            font: "12px B612, sans-serif",
+            font: "12px Arial, Helvetica, sans-serif",
             textAlign: "left",
             textBaseline: "top",
             offsetX: 17,
@@ -126,18 +127,18 @@ export function userLocationStyle(feature) {
             fill: new Fill({
                 color: "black",
             }),
-            stroke: new Stroke({
-                color: "white",
-                width: 4,
-            }),
+            // stroke: new Stroke({
+            //     color: "white",
+            //     width: 4,
+            // }),
             backgroundFill: new Fill({
-                color: [255, 255, 255, 0.9],
+                color: [255, 255, 255, 1],
             }),
             backgroundStroke: new Stroke({
-                color: [0, 0, 0, 0.9],
+                color: [0, 0, 0, 1],
                 width: 1.5,
             }),
-            padding: [0, 0, 0, 1],
+            padding: [1, 0, 0, 2],
         }),
         image: new Icon({
             rotation: feature.get("rotation"),

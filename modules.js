@@ -10,13 +10,10 @@ export function getPixelDistance(pixel, pixel2) {
   );
 }
 
-export function getFileFormat(fileExtention) {
-  const extentions = {
-    gpx: new GPX(),
-    kml: new KML({ extractStyles: false }),
-    geojson: new GeoJSON(),
-  }
-  return extentions[fileExtention];
+export const fileFormats = {
+  "gpx": new GPX(),
+  "kml": new KML({ extractStyles: false }),
+  "geojson": new GeoJSON(),
 }
 
 export function breakSentence(sentence) {
@@ -47,50 +44,174 @@ export function toHHMMSS(milliSecondsInt) {
   return hours + ":" + minutes + ":" + seconds;
 }
 
-export function getRemainingDistance(featureCoordinates, lonlat) {
-  const newMultiPoint = new MultiPoint(featureCoordinates.reverse());
+export function getRemainingDistance(featureCoordinates, speedKmh, navigationSteps, currentPosition) {
+  // console.log(featureCoordinates, speedKmh, navigationSteps, currentPosition);
+  const newMultiPoint = new MultiPoint(featureCoordinates);
+  const closestPoint = newMultiPoint.getClosestPoint(currentPosition);
+  const closeToRoute = getDistance(toLonLat(closestPoint), toLonLat(currentPosition)) < 500;
+  let nextStep;
+  let nextStepIndex = 0;
+  let distanceToNextStep = 0;
   let remainingDistance = 0;
-  const closestPoint = newMultiPoint.getClosestPoint(fromLonLat(lonlat));
-  const closeToRoute = getDistance(toLonLat(closestPoint), lonlat) < 500;
+  if (!closeToRoute) {
+    return "";
+  }
 
-  if (closeToRoute) {
-    for (let i = 0; i < featureCoordinates.length - 1; i++) {
-      if (
-        featureCoordinates[0].toString() === closestPoint.toString() ||
-        featureCoordinates[i + 1].toString() === closestPoint.toString()
-      ) {
-        remainingDistance += getDistance(
+  const startPos = featureCoordinates.findIndex(element => element.toString() == closestPoint.toString());
+  // measure route remaining distance
+  try {
+    const distanceToStartPos = getDistance(
+        toLonLat(currentPosition),
+        toLonLat(featureCoordinates[startPos + 1]),
+      );
+    remainingDistance += distanceToStartPos;
+    distanceToNextStep += distanceToStartPos;
+    if (navigationSteps.length > 0) {
+      nextStep = navigationSteps.find(element => element.stepIndex > startPos);
+      nextStepIndex = nextStep.stepIndex;
+    }
+
+    for (let i = startPos + 1; i < featureCoordinates.length - 1; i++) {
+      remainingDistance += getDistance(
+        toLonLat(featureCoordinates[i]),
+        toLonLat(featureCoordinates[i + 1]),
+      );
+
+      if (i < nextStepIndex) {
+        distanceToNextStep += getDistance(
           toLonLat(featureCoordinates[i]),
-          lonlat,
-        );
-        break;
-      } else {
-        remainingDistance += getDistance(
-          toLonLat(featureCoordinates[i]),
-          toLonLat(featureCoordinates[i + 1]),
+          toLonLat(featureCoordinates[i + 1])
         );
       }
     }
-    return remainingDistance / 1000;
+  } catch (error) {
+    console.log(error);
+    // measure distance if past the last featureCoordinates
+    remainingDistance += getDistance(
+      toLonLat(currentPosition),
+      toLonLat(featureCoordinates[featureCoordinates.length - 1]),
+    );
   }
-}
+  // console.log((remainingDistance / 1000) + "km");
+  // console.log(remainingDistance + "m");
 
-export function toRemainingString(remainingDistance, secondsInt) {
+  // calculate remaining time
+  const secondsInt = (remainingDistance / 1000) / ((speedKmh < 30 ? 75 : speedKmh) / 60 / 60);
   const totalMinutes = Math.floor(secondsInt / 60);
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   const ETA = new Date(new Date().getTime() + secondsInt * 1000);
 
-  // first row
-  let returnString = `<div class="equalSpace"><div><font class="infoFormat">-></font> ${Number(remainingDistance).toFixed(1)}<font class="infoFormat">KM</font></div><div>`;
+  distanceToNextStep = distanceToNextStep > 1000 ?
+    ((distanceToNextStep / 1000).toFixed(1) + '<font class="infoFormat">km</font>') :
+    ((Math.round(distanceToNextStep / 25) * 25) + '<font class="infoFormat">m</font>');
+
+  let returnString = `<div class="equalSpace"><div><font class="infoFormat">-></font> ${Number(remainingDistance / 1000).toFixed(1)}<font class="infoFormat">KM</font></div><div>`;
   if (hours > 0) {
     returnString += `${hours}<font class="infoFormat">H</font> `;
   }
   returnString += `${minutes}<font class="infoFormat">MIN</font></div></div>`
 
   // second row
-  returnString += `<div class="equalSpace"> <div></div> <div>${ETA.getHours()}:${ETA.getMinutes().toString().padStart(2, "0")}<font class="infoFormat">ETA</font></div></div>`;
+  returnString += `<div class="equalSpace"> <div>${nextStep ? (createTurnHint(nextStep) + distanceToNextStep) : ""} </div> <div>${ETA.getHours()}:${ETA.getMinutes().toString().padStart(2, "0")}<font class="infoFormat">ETA</font></div></div>`;
+
+  // third row
+  nextStep ? (returnString += nextStep.destinations || nextStep.name || "") : "";
   return returnString;
+}
+
+const translateArray = {
+  "turn": "sväng",
+  "new name": "↑", //?
+  // "depart": "start",
+  "arrive": "🏁",
+  "merge": "⇈↖", //?
+  "on ramp": "⇈↖",
+  "off ramp": "⇈↗",
+  // "fork": "", //?
+  "end of road right": "↱",
+  "end of road left": "↰",
+  "end of road slight right": "↱",
+  "end of road slight left": "↰",
+  "end of road sharp right": "↱",
+  "end of road sharp left": "↰",
+  "end of road": "slutet av vägen",
+  "continue": "↑",
+  "roundabout": "⟲",
+  "rotary": "⟲",
+  "roundabout turn": "⟲",
+  // "notification": "", //?
+  "exit roundabout": "⟲",
+  "exit rotary": "⟲",
+  // turns
+  "uturn": "↶",
+  "sharp right": "⟶",
+  "right": "⟶",
+  "slight right": "⟶",
+  "straight": "↑",
+  "slight left": "⟵",
+  "left": "⟵",
+  "sharp left": "⟵",
+  1: "➊",
+  2: "➋",
+  3: "➌",
+  4: "➍",
+  5: "➎",
+};
+
+export function createTurnHint(routeStep) {
+  const destinations = routeStep.destinations;
+  const maneuverType = routeStep.maneuver.type;
+  const maneuverModifier = routeStep.maneuver.modifier;
+  const roundaboutExit = routeStep.maneuver.exit;
+  const maneuverName = routeStep.name;
+  const rampExit = routeStep.exits;
+  const ref = routeStep.ref;
+
+  // if (!translateArray.hasOwnProperty(maneuverType)) {
+  //   return
+  // }
+
+  const turnString = [];
+
+  if (["roundabout turn"].includes(maneuverType)) {
+    // turnString.push(destinations);
+    turnString.push(translateArray[maneuverType]);
+    turnString.push(translateArray[maneuverModifier]);
+  }
+
+  if (["roundabout", "rotary", "exit roundabout", "exit rotary"].includes(maneuverType)) {
+    turnString.push(translateArray[maneuverType]);
+    turnString.push(translateArray[roundaboutExit]);
+  }
+
+  if (["arrive"].includes(maneuverType)) {
+    turnString.unshift(translateArray[maneuverType]);
+  }
+
+  if (maneuverType == "end of road") {
+    turnString.push(translateArray["end of road " + maneuverModifier]);
+  }
+
+  if (["turn", "fork", "continue"].includes(maneuverType)) {
+    turnString.push(translateArray[maneuverModifier]);
+  }
+
+  if (["on ramp", "off ramp"].includes(maneuverType)) {
+    turnString.push(translateArray[maneuverType]);
+  }
+
+  if (["merge"].includes(maneuverType)) {
+    turnString.push(translateArray[maneuverType]);
+  }
+
+  if (["straight", "new name"].includes(maneuverType)) {
+    turnString.push(translateArray[maneuverType]);
+  }
+
+  // console.log(routeStep);
+  // console.log(turnString);
+  return turnString.filter(element => element).join("");
 }
 
 // convert degrees to radians
@@ -103,9 +224,5 @@ export function radToDeg(rad) {
 }
 
 export function findIndexOf(value, array) {
-  for (let i = 0; i < array.length; i++) {
-    if (array[i].toString() == value.toString()) {
-      return i;
-    }
-  }
+  return array.findIndex(element => element.toString() == value.toString())
 }
