@@ -938,12 +938,14 @@ map.on("singleclick", function (evt) {
 //     navigationSteps,
 //     currentPosition
 //   );
-  //   routeInfo.innerHTML = getRemainingDistance(
-  //   gpxSource.getFeatures()[0].getGeometry().getCoordinates()[0],
-  //   speedKmh,
-  //   navigationSteps, 
-  //   currentPosition
-  // );
+//   if(gpxSource.getFeatures().length > 0) {
+//     routeInfo.innerHTML = getRemainingDistance(
+//       gpxSource.getFeatures()[0].getGeometry().getCoordinates()[0],
+//       speedKmh,
+//       navigationSteps, 
+//       currentPosition
+//     );
+//   }
 // });
 
 // right click/long press to route

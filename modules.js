@@ -50,6 +50,7 @@ export function getRemainingDistance(featureCoordinates, speedKmh, navigationSte
   const closestPoint = newMultiPoint.getClosestPoint(currentPosition);
   const closeToRoute = getDistance(toLonLat(closestPoint), toLonLat(currentPosition)) < 500;
   let nextStep;
+  let nextStepIndex = 0;
   let distanceToNextStep = 0;
   let remainingDistance = 0;
   if (!closeToRoute) {
@@ -59,33 +60,33 @@ export function getRemainingDistance(featureCoordinates, speedKmh, navigationSte
   const startPos = featureCoordinates.findIndex(element => element.toString() == closestPoint.toString());
   // measure route remaining distance
   try {
-    remainingDistance += getDistance(
-      toLonLat(currentPosition),
-      toLonLat(featureCoordinates[startPos + 1]),
-    );
+    const distanceToStartPos = getDistance(
+        toLonLat(currentPosition),
+        toLonLat(featureCoordinates[startPos + 1]),
+      );
+    remainingDistance += distanceToStartPos;
+    distanceToNextStep += distanceToStartPos;
+    if (navigationSteps.length > 0) {
+      nextStep = navigationSteps.find(element => element.stepIndex > startPos);
+      nextStepIndex = nextStep.stepIndex;
+    }
+
     for (let i = startPos + 1; i < featureCoordinates.length - 1; i++) {
       remainingDistance += getDistance(
         toLonLat(featureCoordinates[i]),
         toLonLat(featureCoordinates[i + 1]),
       );
-    }
 
-    // measure distance to next step
-    if (navigationSteps.length > 0) {
-      nextStep = navigationSteps.find(element => element.stepIndex > startPos);
-      // measure distance to next step
-      distanceToNextStep += getDistance(
-        toLonLat(currentPosition),
-        toLonLat(featureCoordinates[startPos + 1]),
-      );
-      for (var i = startPos + 1; i < nextStep.stepIndex; i++) {
+      if (i < nextStepIndex) {
         distanceToNextStep += getDistance(
           toLonLat(featureCoordinates[i]),
           toLonLat(featureCoordinates[i + 1])
         );
       }
     }
-  } catch {
+  } catch (error) {
+    console.log(error);
+    // measure distance if past the last featureCoordinates
     remainingDistance += getDistance(
       toLonLat(currentPosition),
       toLonLat(featureCoordinates[featureCoordinates.length - 1]),
@@ -207,7 +208,7 @@ export function createTurnHint(routeStep) {
   if (["straight", "new name"].includes(maneuverType)) {
     turnString.push(translateArray[maneuverType]);
   }
-  
+
   // console.log(routeStep);
   // console.log(turnString);
   return turnString.filter(element => element).join("");
