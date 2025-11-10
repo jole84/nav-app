@@ -865,7 +865,6 @@ function routeMeOSR() {
       [],
       currentPosition
     );
-    // routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
 
     routeLineString.setCoordinates(newGeometry.getGeometry().getCoordinates());
     endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
@@ -901,7 +900,6 @@ function routeMe() {
 
     navigationSteps.forEach(step => {
       step["stepIndex"] = findIndexOf(fromLonLat(step.maneuver.location), newGeometry.getGeometry().getCoordinates());
-      // addTestMarker(fromLonLat(step.maneuver.location), routeLayer.getSource(), step.maneuver.type);
     });
 
     const totalLength = result.routes[0].distance / 1000; // track-length in km
@@ -912,7 +910,6 @@ function routeMe() {
       navigationSteps,
       currentPosition
     );
-    // routeInfo.innerHTML = toRemainingString(totalLength, totalTime);
 
     routeLineString.setCoordinates(newGeometry.getGeometry().getCoordinates());
     endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
@@ -932,22 +929,22 @@ map.on("singleclick", function (evt) {
   }
 });
 
-map.on("click", function (evt) {
-  currentPosition = evt.coordinate;
-  const speedKmh = 75;
-  routeInfo.innerHTML = getRemainingDistance(
-    routeLineString.getCoordinates() || gpxSource.getFeatures()[0].getGeometry().getCoordinates()[0],
-    speedKmh,
-    navigationSteps,
-    currentPosition
-  );
+// map.on("click", function (evt) {
+//   currentPosition = evt.coordinate;
+//   const speedKmh = 75;
+//   routeInfo.innerHTML = getRemainingDistance(
+//     routeLineString.getCoordinates() || gpxSource.getFeatures()[0].getGeometry().getCoordinates()[0],
+//     speedKmh,
+//     navigationSteps,
+//     currentPosition
+//   );
   //   routeInfo.innerHTML = getRemainingDistance(
   //   gpxSource.getFeatures()[0].getGeometry().getCoordinates()[0],
   //   speedKmh,
   //   navigationSteps, 
   //   currentPosition
   // );
-});
+// });
 
 // right click/long press to route
 map.on("contextmenu", function (event) {
