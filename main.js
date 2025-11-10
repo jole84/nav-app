@@ -930,22 +930,23 @@ map.on("singleclick", function (evt) {
 });
 
 // map.on("click", function (evt) {
-//   currentPosition = evt.coordinate;
+//   routeInfo.innerHTML = "";
 //   const speedKmh = 75;
-//   routeInfo.innerHTML = getRemainingDistance(
+//   routeInfo.innerHTML += getRemainingDistance(
 //     routeLineString.getCoordinates() || gpxSource.getFeatures()[0].getGeometry().getCoordinates()[0],
 //     speedKmh,
 //     navigationSteps,
-//     currentPosition
+//     evt.coordinate
 //   );
-//   if(gpxSource.getFeatures().length > 0) {
-//     routeInfo.innerHTML = getRemainingDistance(
-//       gpxSource.getFeatures()[0].getGeometry().getCoordinates()[0],
+
+//   gpxSource.getFeatures().forEach(feature => {
+//     routeInfo.innerHTML += getRemainingDistance(
+//       feature.getGeometry().getCoordinates()[0],
 //       speedKmh,
-//       navigationSteps, 
-//       currentPosition
+//       [],
+//       evt.coordinate
 //     );
-//   }
+//   });
 // });
 
 // right click/long press to route
