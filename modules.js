@@ -130,6 +130,10 @@ const translateArray = {
   // "fork": "", //?
   "end of road right": "↱",
   "end of road left": "↰",
+  "end of road slight right": "↱",
+  "end of road slight left": "↰",
+  "end of road sharp right": "↱",
+  "end of road sharp left": "↰",
   "end of road": "slutet av vägen",
   "continue": "↑",
   "roundabout": "⟲",
@@ -155,7 +159,6 @@ const translateArray = {
 };
 
 export function createTurnHint(routeStep) {
-  // console.log(routeStep);
   const destinations = routeStep.destinations;
   const maneuverType = routeStep.maneuver.type;
   const maneuverModifier = routeStep.maneuver.modifier;
@@ -204,7 +207,8 @@ export function createTurnHint(routeStep) {
   if (["straight", "new name"].includes(maneuverType)) {
     turnString.push(translateArray[maneuverType]);
   }
-
+  
+  // console.log(routeStep);
   // console.log(turnString);
   return turnString.filter(element => element).join("");
 }
