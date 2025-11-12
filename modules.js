@@ -106,11 +106,11 @@ export function getRemainingDistance(featureCoordinates, speedKmh, navigationSte
     ((distanceToNextStep / 1000).toFixed(1) + '<font class="infoFormat">km</font>') :
     ((Math.round(distanceToNextStep / 25) * 25) + '<font class="infoFormat">m</font>');
 
-  let returnString = `<div class="equalSpace"><div><font class="infoFormat">-></font> ${Number(remainingDistance / 1000).toFixed(1)}<font class="infoFormat">KM</font></div><div>`;
+  let returnString = `<div class="equalSpace"><div><font class="infoFormat">-></font> ${Number(remainingDistance / 1000).toFixed(1)}<font class="infoFormat">km</font></div><div>`;
   if (hours > 0) {
-    returnString += `${hours}<font class="infoFormat">H</font> `;
+    returnString += `${hours}<font class="infoFormat">h</font> `;
   }
-  returnString += `${minutes}<font class="infoFormat">MIN</font></div></div>`
+  returnString += `${minutes}<font class="infoFormat">min</font></div></div>`
 
   // second row
   returnString += `<div class="equalSpace"> <div>${nextStep ? (createTurnHint(nextStep) + distanceToNextStep) : ""} </div> <div>${ETA.getHours()}:${ETA.getMinutes().toString().padStart(2, "0")}<font class="infoFormat">ETA</font></div></div>`;
