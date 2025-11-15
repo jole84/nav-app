@@ -930,80 +930,74 @@ map.on("singleclick", function (evt) {
 });
 
 // map.on("click", function (evt) {
-//   currentPosition = evt.coordinate;
+//   routeInfo.innerHTML = "";
 //   const speedKmh = 75;
-//   routeInfo.innerHTML = getRemainingDistance(
+//   routeInfo.innerHTML += getRemainingDistance(
 //     routeLineString.getCoordinates() || gpxSource.getFeatures()[0].getGeometry().getCoordinates()[0],
 //     speedKmh,
 //     navigationSteps,
-//     currentPosition
+//     evt.coordinate
 //   );
-//   if(gpxSource.getFeatures().length > 0) {
-//     routeInfo.innerHTML = getRemainingDistance(
-//       gpxSource.getFeatures()[0].getGeometry().getCoordinates()[0],
+
+//   gpxSource.getFeatures().forEach(feature => {
+//     routeInfo.innerHTML += getRemainingDistance(
+//       feature.getGeometry().getCoordinates()[0],
 //       speedKmh,
-//       navigationSteps, 
-//       currentPosition
+//       [],
+//       evt.coordinate
 //     );
-//   }
+//   });
 // });
 
 // right click/long press to route
 map.on("contextmenu", function (event) {
   lastInteraction = Date.now();
   const eventLonLat = toLonLat(event.coordinate);
-  if (accuracy > 200) {
+  // set start position
+  destinationCoordinates[0] = lonlat;
+  const clickedOnCurrentPosition =
+    getDistance(lonlat, eventLonLat) < 200 ||
+    getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
+
+  const clickedOnEndMarker = getPixelDistance(
+    event.pixel,
+    map.getPixelFromCoordinate(endMarker.getCoordinates())
+  ) < 40;
+
+  const clickedOnWaypoint =
+    gpxSource.getClosestFeatureToCoordinate(
+      event.coordinate,
+      feature => {
+        return feature.getGeometry().getType() === "Point" &&
+          getPixelDistance(map.getPixelFromCoordinate(feature.getGeometry().getCoordinates()), event.pixel) < 40
+      },
+    );
+
+  if (clickedOnCurrentPosition || (clickedOnEndMarker && destinationCoordinates.length <= 2)) {
     setExtraInfo([
-      `${(eventLonLat[1]).toFixed(5)} ${(eventLonLat[0]).toFixed(5)}`,
+      Math.round(getDistance(lonlat, eventLonLat)) +
+      '<font class="infoFormat">m</font>',
+    ]);
+    endMarker.setCoordinates([]);
+    navigationSteps = [];
+    routeLineString.setCoordinates([]);
+    routeInfo.innerHTML = "";
+    destinationCoordinates = [];
+  } else if (clickedOnEndMarker) {
+    destinationCoordinates.pop();
+  } else if (clickedOnWaypoint) {
+    setExtraInfo(["Navigerar till:", clickedOnWaypoint.get("name")]);
+    destinationCoordinates.push(toLonLat(clickedOnWaypoint.getGeometry().getCoordinates()).splice(0, 2));
+  } else {
+    setExtraInfo([
       `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Streetview</a></div>`,
     ]);
-  } else {
-    // set start position
-    destinationCoordinates[0] = lonlat;
-    const clickedOnCurrentPosition =
-      getDistance(lonlat, eventLonLat) < 200 ||
-      getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
+    destinationCoordinates.push(eventLonLat);
+  }
 
-    const clickedOnEndMarker = getPixelDistance(
-      event.pixel,
-      map.getPixelFromCoordinate(endMarker.getCoordinates())
-    ) < 40;
-
-    const clickedOnWaypoint =
-      gpxSource.getClosestFeatureToCoordinate(
-        event.coordinate,
-        feature => {
-          return feature.getGeometry().getType() === "Point" &&
-            getPixelDistance(map.getPixelFromCoordinate(feature.getGeometry().getCoordinates()), event.pixel) < 40
-        },
-      );
-
-    if (clickedOnCurrentPosition || (clickedOnEndMarker && destinationCoordinates.length <= 2)) {
-      setExtraInfo([
-        Math.round(getDistance(lonlat, eventLonLat)) +
-        '<font class="infoFormat">M</font>',
-      ]);
-      endMarker.setCoordinates([]);
-      navigationSteps = [];
-      routeLineString.setCoordinates([]);
-      routeInfo.innerHTML = "";
-      destinationCoordinates = [];
-    } else if (clickedOnEndMarker) {
-      destinationCoordinates.pop();
-    } else if (clickedOnWaypoint) {
-      setExtraInfo(["Navigerar till:", clickedOnWaypoint.get("name")]);
-      destinationCoordinates.push(toLonLat(clickedOnWaypoint.getGeometry().getCoordinates()).splice(0, 2));
-    } else {
-      setExtraInfo([
-        `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Streetview</a></div>`,
-      ]);
-      destinationCoordinates.push(eventLonLat);
-    }
-
-    // start routing
-    if (destinationCoordinates.length >= 2) {
-      routeMe();
-    }
+  // start routing
+  if (destinationCoordinates.length >= 2) {
+    routeMe();
   }
 });
 
