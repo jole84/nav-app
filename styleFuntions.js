@@ -123,7 +123,7 @@ export function userLocationStyle(feature) {
             textAlign: "left",
             textBaseline: "top",
             offsetX: 17,
-            offsetY: 5,
+            // offsetY: 5,
             fill: new Fill({
                 color: "black",
             }),
@@ -143,9 +143,8 @@ export function userLocationStyle(feature) {
         image: new Icon({
             rotation: feature.get("rotation"),
             rotateWithView: true,
-            anchor: [0.5, 0.67],
-            color: "red",
-            src: "https://openlayers.org/en/latest/examples/data/geolocation_marker_heading.png",
+            color: "rgba(255, 0, 0, 0.8)",
+            src: "https://jole84.se/geolocation_marker.svg",
         }),
     });
 }

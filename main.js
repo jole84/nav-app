@@ -307,7 +307,7 @@ const trafficWarningSource = new VectorSource();
 const trafficWarningIconLayer = new VectorLayer({
   source: trafficWarningSource,
   style: trafficWarningIconStyleFunction,
-  minZoom: 6,
+  minZoom: 7,
 });
 
 const trafficWarningTextLayer = new VectorLayer({
@@ -467,7 +467,6 @@ geolocation.on("change", function () {
   localStorage.lastPosition = JSON.stringify(currentPosition);
   lonlat = toLonLat(currentPosition);
   const currentTime = Date.now();
-  const accuratePos = accuracy < 200 ? 1 : 0;
   positionMarkerPoint.setCoordinates(currentPosition);
 
   // measure distance and push log if position change > 5 meters and accuracy is good and more than 3 seconds
@@ -494,9 +493,7 @@ geolocation.on("change", function () {
 
   if (speed > 1) {
     // change marker if speed
-    positionMarkerHeading.getStyle().getImage().setRotation(heading);
-    positionMarker.getStyle().getImage().setOpacity(0);
-    positionMarkerHeading.getStyle().getImage().setOpacity(accuratePos);
+    positionMarker.getStyle().getImage().setRotation(heading);
 
     // change view if no interaction occurred last 10 seconds
     if (currentTime - lastInteraction > interactionDelay) {
@@ -531,11 +528,6 @@ geolocation.on("change", function () {
     }
   }
 
-  if (speed < 1) {
-    positionMarker.getStyle().getImage().setOpacity(accuratePos);
-    positionMarkerHeading.getStyle().getImage().setOpacity(0);
-  }
-
   if (speedKmh > maxSpeed && accuracy < 25) {
     maxSpeed = speedKmh;
   }
@@ -562,14 +554,11 @@ const positionMarkerPoint = new Point({});
 const positionMarker = new Feature({
   geometry: positionMarkerPoint,
 });
-const positionMarkerHeading = new Feature({
-  geometry: positionMarkerPoint,
-});
 
 map.addLayer(
   new VectorLayer({
     source: new VectorSource({
-      features: [positionMarker, positionMarkerHeading],
+      features: [positionMarker],
     }),
   }),
 );
@@ -577,18 +566,8 @@ map.addLayer(
 positionMarker.setStyle(
   new Style({
     image: new Icon({
-      anchor: [0.5, 0.5],
-      src: "https://openlayers.org/en/latest/examples/data/geolocation_marker.png",
-    }),
-  }),
-);
-
-positionMarkerHeading.setStyle(
-  new Style({
-    image: new Icon({
-      opacity: 0,
-      anchor: [0.5, 0.67],
-      src: "https://openlayers.org/en/latest/examples/data/geolocation_marker_heading.png",
+      src: "https://jole84.se/geolocation_marker.svg",
+      color: "rgba(0, 255, 0, 0.8)",
       rotateWithView: true,
     }),
   }),
