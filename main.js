@@ -201,28 +201,7 @@ const osm = new TileLayer({
   visible: false,
 });
 
-const slitlagerkarta = new TileLayer({
-  source: new XYZ({
-    url: "https://jole84.se/slitlagerkarta/{z}/{x}/{y}.jpg",
-    minZoom: 6,
-    maxZoom: 14,
-    transition: 0,
-  }),
-  visible: false,
-  useInterimTilesOnError: false,
-});
-
-const slitlagerkarta_nedtonad = new TileLayer({
-  source: new XYZ({
-    url: "https://jole84.se/slitlagerkarta_nedtonad/{z}/{x}/{y}.jpg",
-    minZoom: 6,
-    maxZoom: 14,
-  }),
-  visible: false,
-  useInterimTilesOnError: false,
-});
-
-const newTileLayer = new VectorTileLayer({
+const jole84TileLayer = new VectorTileLayer({
   source: new VectorTileSource({
     format: new MVT(),
     url: 'https://jole84.se/tiles/{z}/{x}/{y}.pbf',
@@ -324,9 +303,7 @@ const trackPointLayer = new VectorLayer({
 
 const map = new Map({
   layers: [
-    slitlagerkarta,
-    slitlagerkarta_nedtonad,
-    newTileLayer,
+    jole84TileLayer,
     osm,
     ortofoto,
     topoweb,
@@ -671,9 +648,7 @@ if (!!window.chrome) {
 
 // switch map logic
 function switchMap() {
-  slitlagerkarta.setVisible(false);
-  slitlagerkarta_nedtonad.setVisible(false);
-  newTileLayer.setVisible(false);
+  jole84TileLayer.setVisible(false);
   ortofoto.setVisible(false);
   topoweb.setVisible(false);
   osm.setVisible(false);
@@ -683,7 +658,7 @@ function switchMap() {
   document.getElementById("infoGroup").style.backgroundColor = (localStorage.mapMode == 2) ? "rgba(0, 0, 0, 0.4)" : "rgba(255, 255, 255, 0.4)";
   document.getElementById("optionButtons").style.filter = (localStorage.mapMode == 2) ? "invert(1) hue-rotate(180deg)" : "initial";
 
-  if (localStorage.mapMode > 6) {
+  if (localStorage.mapMode > 5) {
     localStorage.mapMode = 0;
   }
 
@@ -691,29 +666,28 @@ function switchMap() {
 
   if (localStorage.mapMode == 0) {
     // mapMode 0: MVT Tärräng
-    newTileLayer.setVisible(true);
-    newTileLayer.getSource().refresh({ force: true });
+    jole84TileLayer.setVisible(true);
+    jole84TileLayer.getSource().refresh({ force: true });
     ortofoto.setVisible(true);
-    newTileLayer.setMaxZoom(17);
+    jole84TileLayer.setMaxZoom(17);
     ortofoto.setMinZoom(17);
   } else if (localStorage.mapMode == 1) {
     // mapMode 1: MVT Vägkarta
-    newTileLayer.setVisible(true);
-    newTileLayer.getSource().refresh({ force: true });
+    jole84TileLayer.setVisible(true);
+    jole84TileLayer.getSource().refresh({ force: true });
     topoweb.setVisible(true);
     ortofoto.setVisible(true);
-    newTileLayer.setMaxZoom(16);
+    jole84TileLayer.setMaxZoom(16);
     topoweb.setMinZoom(16);
     topoweb.setMaxZoom(17.5);
     ortofoto.setMinZoom(17.5);
   } else if (localStorage.mapMode == 2) {
     // mapMode 2: MVT Vägkarta + night mode
-    newTileLayer.setVisible(true);
-    newTileLayer.getSource().refresh({ force: true });
-    newTileLayer.setMaxZoom(20);
+    jole84TileLayer.setVisible(true);
+    jole84TileLayer.getSource().refresh({ force: true });
+    jole84TileLayer.setMaxZoom(20);
     // document.body.classList.add("darkmode");
     // topoweb.setVisible(true);
-    // slitlagerkarta_nedtonad.setMaxZoom(15.5);
     // topoweb.setMinZoom(15.5);
     // topoweb.setMaxZoom(20);
   } else if (localStorage.mapMode == 3) {
@@ -728,10 +702,6 @@ function switchMap() {
     // mapMode 5: orto
     ortofoto.setVisible(true);
     ortofoto.setMinZoom(0);
-  } else if (localStorage.mapMode == 6) {
-    // mapMode 6: slitlagerkarta
-    slitlagerkarta.setVisible(true);
-    slitlagerkarta.setMaxZoom(20);
   }
   infoGroup.style.fontSize = localStorage.preferredFontSize;
 }
