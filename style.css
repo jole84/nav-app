@@ -245,8 +245,8 @@ html:fullscreen .infoGroup {
 }
 
 .infoFormat {
-  font-size: 60%;
-  text-transform: lowercase;
+  font-size: 50%;
+  text-transform: uppercase;
 }
 
 #maxSpeedDiv {
