@@ -33,7 +33,7 @@ export function breakSentence(sentence) {
 }
 
 export function msToTime(milliseconds) {
-  return milliseconds > 120000 ? (Math.ceil(milliseconds / 1000 / 60) + " min sedan\n") : "";
+  return Math.ceil(milliseconds / 1000 / 60) + " min sedan";
 }
 
 export function toHHMMSS(milliSecondsInt) {

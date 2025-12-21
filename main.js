@@ -1375,13 +1375,24 @@ function updateUserPosition() {
         userLocationLayer.getSource().clear();
         for (let i = 0; i < userList.length; i++) {
           // add the other users
+          const name = [
+            userList[i]["userName"],
+          ];
+
+          if (userList[i]["accuracy"] > 50) {
+            name.push("Osäker position (" + userList[i]["accuracy"] + "m)");
+          }
+
+          if (Date.now() - userList[i]["timeStamp"] > 120000 ) {
+            name.push(msToTime(Date.now() - userList[i]["timeStamp"]));
+          }
+          
+          name.push((userList[i]["speed"] < 100 ? userList[i]["speed"] : "--") + "km/h");
+
           const marker = new Feature({
             geometry: new Point([userList[i]["x"], userList[i]["y"]]),
             rotation: userList[i]["heading"],
-            name: userList[i]["userName"]
-              + (userList[i]["accuracy"] > 50 ? "\nOSÄKER POSITION (" + userList[i]["accuracy"] + "m)" : "")
-              + "\n" + msToTime(Date.now() - userList[i]["timeStamp"])
-              + (userList[i]["speed"] < 100 ? userList[i]["speed"] : "?") + "km/h",
+            name: name.join("\n"),
           });
           userLocationLayer.getSource().addFeature(marker);
         }
