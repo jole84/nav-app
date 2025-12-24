@@ -1270,7 +1270,7 @@ function getClosestAccident() {
 
         closestAccident =
           trafficWarningSource.getClosestFeatureToCoordinate(featureCoordinates[i],
-            function (feature) {
+            feature => {
               return getDistance(
                 toLonLat(feature.getGeometry().getCoordinates()),
                 toLonLat(featureCoordinates[i])) < 100 &&
@@ -1281,11 +1281,11 @@ function getClosestAccident() {
     } else {
       closestAccident = trafficWarningSource.getClosestFeatureToCoordinate(
         currentPosition,
-        function (feature) {
+        feature => {
           return getDistance(
             toLonLat(feature.getGeometry().getCoordinates()),
             lonlat) < 30000 &&
-            feature.get("messageCode") == "Olycka";
+            (feature.get("messageCode") == "Olycka" || feature.get("iconId") == "roadClosed");
         }
       );
       if (closestAccident) {
