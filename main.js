@@ -543,7 +543,7 @@ map.addLayer(
 positionMarker.setStyle(
   new Style({
     image: new Icon({
-      src: "https://jole84.se/geolocation_marker.svg",
+      src: "https://jole84.se/images/geolocation_marker.svg",
       color: "rgba(0, 255, 0, 0.8)",
       rotateWithView: true,
     }),

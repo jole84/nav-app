@@ -74,7 +74,7 @@ export function gpxStyle(feature) {
         return new Style({
             image: new Icon({
                 anchor: [0.5, 1],
-                src: "https://jole84.se/poi-marker.svg",
+                src: "https://jole84.se/images/poi-marker.svg",
                 opacity: 0.8,
                 scale: 0.8,
             }),
@@ -144,7 +144,7 @@ export function userLocationStyle(feature) {
             rotation: feature.get("rotation"),
             rotateWithView: true,
             color: "rgba(255, 0, 0, 0.8)",
-            src: "https://jole84.se/geolocation_marker.svg",
+            src: "https://jole84.se/images/geolocation_marker.svg",
         }),
     });
 }
@@ -172,7 +172,7 @@ export function routeStyle(feature) {
         return new Style({
             image: new Icon({
                 anchor: [0.5, 1],
-                src: "https://jole84.se/end-marker.svg",
+                src: "https://jole84.se/images/end-marker.svg",
                 opacity: 0.8,
                 scale: 0.8,
             }),
