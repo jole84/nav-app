@@ -27,6 +27,7 @@ import {
   trackStyle,
   userLocationStyle,
   routeStyle,
+  styleRoadCondition,
 } from "./styleFuntions.js";
 import {
   getPixelDistance,
@@ -295,6 +296,12 @@ const trafficWarningTextLayer = new VectorLayer({
   minZoom: 13,
 });
 
+const roadConditionLayer = new VectorLayer({
+  source: new VectorSource(),
+  style: styleRoadCondition,
+  maxZoom: 11,
+})
+
 const trackPointLayer = new VectorLayer({
   source: new VectorSource(),
   style: gpxStyleText,
@@ -312,6 +319,7 @@ const map = new Map({
     trackLayer,
     gpxLayerLabels,
     trackPointLayer,
+    roadConditionLayer,
     userLocationLayer,
     trafficWarningIconLayer,
     trafficWarningTextLayer,
@@ -1382,10 +1390,10 @@ function updateUserPosition() {
             name.push("Osäker position (" + userList[i]["accuracy"] + "m)");
           }
 
-          if (Date.now() - userList[i]["timeStamp"] > 120000 ) {
+          if (Date.now() - userList[i]["timeStamp"] > 120000) {
             name.push(msToTime(Date.now() - userList[i]["timeStamp"]));
           }
-          
+
           name.push((userList[i]["speed"] < 100 ? userList[i]["speed"] : "--") + "km/h");
 
           const marker = new Feature({
@@ -1434,3 +1442,44 @@ document.getElementById("tripPointButton").addEventListener("click", function ()
   }
   menuDiv.style.display = "none";
 });
+
+function fetchRoadCondition() {
+  const xmlRequest = `<REQUEST>
+        <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
+        <QUERY objecttype='RoadCondition' schemaversion='1.2' >
+        <FILTER>
+          <GTE name="ConditionCode" value="2" />
+          <NEAR name="Geometry.WGS84" value="${lonlat.join(" ")}" maxdistance="300000" />
+        </FILTER>
+        <INCLUDE>Geometry.WGS84</INCLUDE>
+        <INCLUDE>ConditionCode</INCLUDE>
+        </QUERY>
+        </REQUEST>`;
+  fetch(apiUrl, {
+    method: "Post",
+    headers: {
+      "Content-Type": "text/xml",
+    },
+    body: xmlRequest,
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(result => {
+      const resultRoadCondition = result.RESPONSE.RESULT[0].RoadCondition;
+      var format = new WKT();
+      resultRoadCondition.forEach(function (item, index) {
+        var feature = new Feature({
+          geometry: format.readGeometry(item.Geometry.WGS84).transform("EPSG:4326", "EPSG:3857").simplify(1000),
+          conditionCode: item.ConditionCode
+        });
+        roadConditionLayer.getSource().addFeature(feature);
+      });
+    });
+}
+
+fetchRoadCondition();
+setInterval(fetchRoadCondition, 1800000); // fetch every 30 min (30 * 60 * 1000)

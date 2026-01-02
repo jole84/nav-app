@@ -179,3 +179,19 @@ export function routeStyle(feature) {
         })
     }
 }
+
+const roadColor = {
+    1: [0, 255, 0, 0.8], // "green",
+    2: [255, 255, 0, 0.8], // "yellow",
+    3: [255, 0, 0, 0.8], // "red",
+    4: [0, 0, 255, 0.8], // "blue"
+}
+
+export function styleRoadCondition(feature) {
+    return new Style({
+        stroke: new Stroke({
+            color: roadColor[feature.get("conditionCode")] || "white",
+            width: 8,
+        }),
+    })
+}
