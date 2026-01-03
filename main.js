@@ -1473,7 +1473,7 @@ function fetchRoadCondition() {
       var format = new WKT();
       resultRoadCondition.forEach(function (item, index) {
         var feature = new Feature({
-          geometry: format.readGeometry(item.Geometry.WGS84).transform("EPSG:4326", "EPSG:3857").simplify(1000),
+          geometry: format.readGeometry(item.Geometry.WGS84).transform("EPSG:4326", "EPSG:3857").simplify(500),
           conditionCode: item.ConditionCode
         });
         roadConditionLayer.getSource().addFeature(feature);
