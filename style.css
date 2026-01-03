@@ -234,6 +234,8 @@ kbd {
   top: 5px;
   word-wrap: break-word;
   z-index: 10;
+  user-select: none;
+  cursor: pointer;
 }
 
 html:fullscreen .infoGroup {
@@ -260,6 +262,12 @@ html:fullscreen .infoGroup {
 
 #extraInfo {
   font-weight: 700;
+  padding-top: 0.25rem;
+  text-align: right;
+}
+
+#extraInfo:empty {
+  display: none;
 }
 
 .equalSpace {

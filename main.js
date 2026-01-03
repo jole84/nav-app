@@ -143,6 +143,12 @@ infoGroup.addEventListener("dblclick", function () {
   }
 });
 
+infoGroup.addEventListener("click", function () {
+  setExtraInfo([
+    `${altitude}<font class="infoFormat">möh</font>`,
+  ]);
+});
+
 // localStorage.enableLnt = enableLntDiv.checked = JSON.parse(localStorage.enableLnt || "true");
 // enableLntDiv.addEventListener("change", function () {
 //   localStorage.enableLnt = enableLntDiv.checked;
@@ -782,7 +788,7 @@ function setExtraInfo(infoText) {
   document.getElementById("extraInfo").innerHTML = extraInfo;
   timeOut = setTimeout(function () {
     document.getElementById("extraInfo").innerHTML = "";
-  }, 15000);
+  }, 10000);
 }
 
 // Open Route Service routing
@@ -942,7 +948,7 @@ map.on("contextmenu", function (event) {
   } else if (clickedOnEndMarker) {
     destinationCoordinates.pop();
   } else if (clickedOnWaypoint) {
-    setExtraInfo(["Navigerar till:", clickedOnWaypoint.get("name")]);
+    setExtraInfo(["<font style='float: left;'>Navigerar till:</font>", "<font style='float: left;font-weight: normal;'>" + clickedOnWaypoint.get("name") + "</font>"]);
     destinationCoordinates.push(toLonLat(clickedOnWaypoint.getGeometry().getCoordinates()).splice(0, 2));
   } else {
     setExtraInfo([
