@@ -55,6 +55,7 @@ const saveLogButton = document.getElementById("saveLogButton");
 const selectFile = document.getElementById("selectFile");
 const startTime = Date.now();
 const trafficWarningDiv = document.getElementById("trafficWarning");
+const tripPointButton = document.getElementById("tripPointButton");
 let accuracy = 5000;
 let altitude = 0;
 let closestAccident;
@@ -125,6 +126,7 @@ document.addEventListener("visibilitychange", async () => {
 
 centerButton.onclick = centerFunction;
 customFileButton.addEventListener("change", handleFileSelect, false);
+tripPointButton.addEventListener("click", showTripPoints);
 saveLogButton.onclick = saveLog;
 trafficWarningDiv.onclick = focusTrafficWarning;
 document.getElementById("clearTripButton").onclick = clearTrip;
@@ -144,6 +146,8 @@ infoGroup.addEventListener("dblclick", function () {
 });
 
 infoGroup.addEventListener("click", function () {
+  // tripPointButton.checked = !tripPointButton.checked;
+  // showTripPoints();
   setExtraInfo([
     `${altitude}<font class="infoFormat">möh</font>`,
   ]);
@@ -1423,11 +1427,8 @@ function addTestMarker(coordinate, sourceLayer, name = "") {
   sourceLayer.addFeature(marker);
 }
 
-let showTripPoints = false;
-document.getElementById("tripPointButton").addEventListener("click", function () {
-  showTripPoints = !showTripPoints;
-  if (showTripPoints) {
-    this.innerHTML = "Dölj spårpunktsdata";
+function showTripPoints() {
+  if (tripPointButton.checked) {
     let totalDistance = 0;
     for (let i = 1; i < trackLog.length; i++) {
       const segmentDistanceM = getDistance(trackLog[i - 1][0], trackLog[i][0]);
@@ -1443,11 +1444,10 @@ document.getElementById("tripPointButton").addEventListener("click", function ()
       );
     }
   } else {
-    this.innerHTML = "Visa spårpunktsdata";
     trackPointLayer.getSource().clear();
   }
-  menuDiv.style.display = "none";
-});
+  // menuDiv.style.display = "none";
+};
 
 function fetchRoadCondition() {
   const xmlRequest = `<REQUEST>
