@@ -471,7 +471,9 @@ geolocation.on("change", function () {
     accuracy < 25 &&
     currentTime - trackLog[trackLog.length - 1][2] > 3000
   ) {
-    addTripPoint(lonlat, trackLog[trackLog.length - 1][0], altitude, currentTime, trackLog[trackLog.length - 1][2])
+    if (tripPointButton.checked) {
+      addTripPoint(lonlat, trackLog[trackLog.length - 1][0], altitude, currentTime, trackLog[trackLog.length - 1][2])
+    }
     trackLog.push([lonlat, altitude, currentTime]);
     trackLineString.appendCoordinate(currentPosition);
     if (currentTime - startTime > 300000) { // wait 5 minutes before log backup
@@ -585,7 +587,6 @@ function restoreTrip() {
       distanceTraveled += getDistance(lonlat, oldRoute[i][0]);
       trackLineString.appendCoordinate(currentPosition);
     } else {
-      addTripPoint(oldRoute[i][0], oldRoute[i + 1][0], oldRoute[i][1], oldRoute[i + 1][2], oldRoute[i][2]);
       distanceTraveled += getDistance(oldRoute[i][0], oldRoute[i + 1][0]);
     }
   }
@@ -1445,7 +1446,11 @@ function addTripPoint(lonlat, lastPosition, altitude, timeStamp, lastTimeStamp) 
 }
 
 function showTripLayer() {
+  trackPointLayer.getSource().clear();
   trackPointLayer.setVisible(tripPointButton.checked);
+  for (var i = 0; i < trackLog.length - 1; i++) {
+    addTripPoint(trackLog[i][0], trackLog[i + 1][0], trackLog[i][1], trackLog[i + 1][2], trackLog[i][2]);
+  }
 }
 
 
