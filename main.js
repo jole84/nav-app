@@ -471,7 +471,7 @@ geolocation.on("change", function () {
     accuracy < 25 &&
     currentTime - trackLog[trackLog.length - 1][2] > 3000
   ) {
-    addTripPoint(lonlat, trackLog[trackLog.length - 1][0], currentTime, trackLog[trackLog.length - 1][2])
+    addTripPoint(lonlat, trackLog[trackLog.length - 1][0], altitude, currentTime, trackLog[trackLog.length - 1][2])
     trackLog.push([lonlat, altitude, currentTime]);
     trackLineString.appendCoordinate(currentPosition);
     if (currentTime - startTime > 300000) { // wait 5 minutes before log backup
@@ -585,7 +585,7 @@ function restoreTrip() {
       distanceTraveled += getDistance(lonlat, oldRoute[i][0]);
       trackLineString.appendCoordinate(currentPosition);
     } else {
-      addTripPoint(oldRoute[i][0], oldRoute[i + 1][0], oldRoute[i + 1][2], oldRoute[i][2]);
+      addTripPoint(oldRoute[i][0], oldRoute[i + 1][0], oldRoute[i][1], oldRoute[i + 1][2], oldRoute[i][2]);
       distanceTraveled += getDistance(oldRoute[i][0], oldRoute[i + 1][0]);
     }
   }
@@ -1431,7 +1431,7 @@ function addPoiMarker(coordinate, sourceLayer, name = "") {
   sourceLayer.addFeature(marker);
 }
 
-function addTripPoint(lonlat, lastPosition, timeStamp, lastTimeStamp) {
+function addTripPoint(lonlat, lastPosition, altitude, timeStamp, lastTimeStamp) {
   const segmentDistanceM = getDistance(lastPosition, lonlat);
   const segmentTimeMS = new Date(timeStamp) - new Date(lastTimeStamp);
   const speedKmh = (segmentDistanceM / segmentTimeMS) * 3600;
@@ -1440,7 +1440,7 @@ function addTripPoint(lonlat, lastPosition, timeStamp, lastTimeStamp) {
     trackPointLayer.getSource(),
     String(
       new Date(timeStamp).toLocaleTimeString() + " " + Math.round(speedKmh) + "km/h\n" +
-      (distanceTraveled / 1000).toFixed(1) + "km")
+      (distanceTraveled / 1000).toFixed(1) + "km ") + altitude + "möh"
   );
 }
 
