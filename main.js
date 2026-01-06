@@ -577,7 +577,6 @@ function restoreTrip() {
   const oldRoute = JSON.parse(localStorage.trackLog);
   distanceTraveled = 0;
   trackLineString.setCoordinates([]);
-  trackPointLayer.getSource().clear();
 
   // restore line geometry
   for (let i = 0; i < oldRoute.length; i++) {
