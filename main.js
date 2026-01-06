@@ -146,8 +146,6 @@ infoGroup.addEventListener("dblclick", function () {
 });
 
 infoGroup.addEventListener("click", function () {
-  // tripPointButton.checked = !tripPointButton.checked;
-  // showTripPoints();
   setExtraInfo([
     `${altitude}<font class="infoFormat">möh</font>`,
   ]);
@@ -472,7 +470,7 @@ geolocation.on("change", function () {
     currentTime - trackLog[trackLog.length - 1][2] > 3000
   ) {
     if (tripPointButton.checked) {
-      addTripPoint(lonlat, trackLog[trackLog.length - 1][0], altitude, currentTime, trackLog[trackLog.length - 1][2])
+      addTripPoint(lonlat, trackLog[trackLog.length - 1][0], altitude, distanceTraveled, currentTime, trackLog[trackLog.length - 1][2])
     }
     trackLog.push([lonlat, altitude, currentTime]);
     trackLineString.appendCoordinate(currentPosition);
@@ -1431,7 +1429,7 @@ function addPoiMarker(coordinate, sourceLayer, name = "") {
   sourceLayer.addFeature(marker);
 }
 
-function addTripPoint(lonlat, lastPosition, altitude, timeStamp, lastTimeStamp) {
+function addTripPoint(lonlat, lastPosition, altitude, distanceTraveled, timeStamp, lastTimeStamp) {
   const segmentDistanceM = getDistance(lastPosition, lonlat);
   const segmentTimeMS = new Date(timeStamp) - new Date(lastTimeStamp);
   const speedKmh = (segmentDistanceM / segmentTimeMS) * 3600;
@@ -1447,33 +1445,14 @@ function addTripPoint(lonlat, lastPosition, altitude, timeStamp, lastTimeStamp) 
 function showTripLayer() {
   trackPointLayer.getSource().clear();
   trackPointLayer.setVisible(tripPointButton.checked);
-  for (var i = 0; i < trackLog.length - 1; i++) {
-    addTripPoint(trackLog[i][0], trackLog[i + 1][0], trackLog[i][1], trackLog[i + 1][2], trackLog[i][2]);
+  if (tripPointButton.checked) {
+    let newDistanceTraveled = 0;
+    for (var i = 0; i < trackLog.length - 1; i++) {
+      newDistanceTraveled += getDistance(trackLog[i][0], trackLog[i + 1][0]);
+      addTripPoint(trackLog[i][0], trackLog[i + 1][0], trackLog[i][1], newDistanceTraveled, trackLog[i + 1][2], trackLog[i][2]);
+    }
   }
 }
-
-
-function showTripPoints() {
-  if (tripPointButton.checked) {
-    let totalDistance = 0;
-    for (let i = 1; i < trackLog.length; i++) {
-      const segmentDistanceM = getDistance(trackLog[i - 1][0], trackLog[i][0]);
-      const segmentTimeMS = new Date(trackLog[i][2]) - new Date(trackLog[i - 1][2]);
-      const speedKmh = (segmentDistanceM / segmentTimeMS) * 3600;
-      totalDistance += segmentDistanceM;
-      addPoiMarker(
-        fromLonLat(trackLog[i][0]),
-        trackPointLayer.getSource(),
-        String(
-          new Date(trackLog[i][2]).toLocaleTimeString() + " " + Math.round(speedKmh) + "km/h\n" +
-          (totalDistance / 1000).toFixed(1) + "km")
-      );
-    }
-  } else {
-    trackPointLayer.getSource().clear();
-  }
-  // menuDiv.style.display = "none";
-};
 
 function fetchRoadCondition() {
   const xmlRequest = `<REQUEST>
