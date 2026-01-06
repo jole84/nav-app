@@ -126,7 +126,7 @@ document.addEventListener("visibilitychange", async () => {
 
 centerButton.onclick = centerFunction;
 customFileButton.addEventListener("change", handleFileSelect, false);
-tripPointButton.addEventListener("click", showTripPoints);
+tripPointButton.addEventListener("click", showTripLayer);
 saveLogButton.onclick = saveLog;
 trafficWarningDiv.onclick = focusTrafficWarning;
 document.getElementById("clearTripButton").onclick = clearTrip;
@@ -316,6 +316,7 @@ const trackPointLayer = new VectorLayer({
   source: new VectorSource(),
   style: gpxStyleText,
   declutter: true,
+  visible: false,
 });
 
 const map = new Map({
@@ -470,6 +471,9 @@ geolocation.on("change", function () {
     accuracy < 25 &&
     currentTime - trackLog[trackLog.length - 1][2] > 3000
   ) {
+    if (tripPointButton.checked) {
+      addTripPoint(lonlat, trackLog[trackLog.length - 1][0], altitude, currentTime, trackLog[trackLog.length - 1][2])
+    }
     trackLog.push([lonlat, altitude, currentTime]);
     trackLineString.appendCoordinate(currentPosition);
     if (currentTime - startTime > 300000) { // wait 5 minutes before log backup
@@ -1419,13 +1423,35 @@ function updateUserPosition() {
   }
 }
 
-function addTestMarker(coordinate, sourceLayer, name = "") {
+function addPoiMarker(coordinate, sourceLayer, name = "") {
   const marker = new Feature({
     geometry: new Point(coordinate),
     name: String(name),
   });
   sourceLayer.addFeature(marker);
 }
+
+function addTripPoint(lonlat, lastPosition, altitude, timeStamp, lastTimeStamp) {
+  const segmentDistanceM = getDistance(lastPosition, lonlat);
+  const segmentTimeMS = new Date(timeStamp) - new Date(lastTimeStamp);
+  const speedKmh = (segmentDistanceM / segmentTimeMS) * 3600;
+  addPoiMarker(
+    fromLonLat(lonlat),
+    trackPointLayer.getSource(),
+    String(
+      new Date(timeStamp).toLocaleTimeString() + " " + Math.round(speedKmh) + "km/h\n" +
+      (distanceTraveled / 1000).toFixed(1) + "km ") + altitude + "möh"
+  );
+}
+
+function showTripLayer() {
+  trackPointLayer.getSource().clear();
+  trackPointLayer.setVisible(tripPointButton.checked);
+  for (var i = 0; i < trackLog.length - 1; i++) {
+    addTripPoint(trackLog[i][0], trackLog[i + 1][0], trackLog[i][1], trackLog[i + 1][2], trackLog[i][2]);
+  }
+}
+
 
 function showTripPoints() {
   if (tripPointButton.checked) {
@@ -1435,7 +1461,7 @@ function showTripPoints() {
       const segmentTimeMS = new Date(trackLog[i][2]) - new Date(trackLog[i - 1][2]);
       const speedKmh = (segmentDistanceM / segmentTimeMS) * 3600;
       totalDistance += segmentDistanceM;
-      addTestMarker(
+      addPoiMarker(
         fromLonLat(trackLog[i][0]),
         trackPointLayer.getSource(),
         String(
