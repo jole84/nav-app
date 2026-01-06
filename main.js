@@ -126,7 +126,7 @@ document.addEventListener("visibilitychange", async () => {
 
 centerButton.onclick = centerFunction;
 customFileButton.addEventListener("change", handleFileSelect, false);
-tripPointButton.addEventListener("click", showTripPoints);
+tripPointButton.addEventListener("click", showTripLayer);
 saveLogButton.onclick = saveLog;
 trafficWarningDiv.onclick = focusTrafficWarning;
 document.getElementById("clearTripButton").onclick = clearTrip;
@@ -316,6 +316,7 @@ const trackPointLayer = new VectorLayer({
   source: new VectorSource(),
   style: gpxStyleText,
   declutter: true,
+  visible: false,
 });
 
 const map = new Map({
@@ -470,6 +471,7 @@ geolocation.on("change", function () {
     accuracy < 25 &&
     currentTime - trackLog[trackLog.length - 1][2] > 3000
   ) {
+    addTripPoint(lonlat, trackLog[trackLog.length - 1][0], currentTime, trackLog[trackLog.length - 1][2])
     trackLog.push([lonlat, altitude, currentTime]);
     trackLineString.appendCoordinate(currentPosition);
     if (currentTime - startTime > 300000) { // wait 5 minutes before log backup
@@ -573,6 +575,7 @@ function restoreTrip() {
   const oldRoute = JSON.parse(localStorage.trackLog);
   distanceTraveled = 0;
   trackLineString.setCoordinates([]);
+  trackPointLayer.getSource().clear();
 
   // restore line geometry
   for (let i = 0; i < oldRoute.length; i++) {
@@ -582,6 +585,7 @@ function restoreTrip() {
       distanceTraveled += getDistance(lonlat, oldRoute[i][0]);
       trackLineString.appendCoordinate(currentPosition);
     } else {
+      addTripPoint(oldRoute[i][0], oldRoute[i + 1][0], oldRoute[i + 1][2], oldRoute[i][2]);
       distanceTraveled += getDistance(oldRoute[i][0], oldRoute[i + 1][0]);
     }
   }
@@ -1419,13 +1423,31 @@ function updateUserPosition() {
   }
 }
 
-function addTestMarker(coordinate, sourceLayer, name = "") {
+function addPoiMarker(coordinate, sourceLayer, name = "") {
   const marker = new Feature({
     geometry: new Point(coordinate),
     name: String(name),
   });
   sourceLayer.addFeature(marker);
 }
+
+function addTripPoint(lonlat, lastPosition, timeStamp, lastTimeStamp) {
+  const segmentDistanceM = getDistance(lastPosition, lonlat);
+  const segmentTimeMS = new Date(timeStamp) - new Date(lastTimeStamp);
+  const speedKmh = (segmentDistanceM / segmentTimeMS) * 3600;
+  addPoiMarker(
+    fromLonLat(lonlat),
+    trackPointLayer.getSource(),
+    String(
+      new Date(timeStamp).toLocaleTimeString() + " " + Math.round(speedKmh) + "km/h\n" +
+      (distanceTraveled / 1000).toFixed(1) + "km")
+  );
+}
+
+function showTripLayer() {
+  trackPointLayer.setVisible(tripPointButton.checked);
+}
+
 
 function showTripPoints() {
   if (tripPointButton.checked) {
@@ -1435,7 +1457,7 @@ function showTripPoints() {
       const segmentTimeMS = new Date(trackLog[i][2]) - new Date(trackLog[i - 1][2]);
       const speedKmh = (segmentDistanceM / segmentTimeMS) * 3600;
       totalDistance += segmentDistanceM;
-      addTestMarker(
+      addPoiMarker(
         fromLonLat(trackLog[i][0]),
         trackPointLayer.getSource(),
         String(
