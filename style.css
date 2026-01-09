@@ -48,7 +48,6 @@ body,
   margin-bottom: 5px;
   padding-left: 2px;
   padding-right: 1px;
-  text-align: center;
 }
 
 #trafficWarning:empty {
@@ -128,11 +127,29 @@ html:fullscreen div.ol-zoom {
   float: right;
 }
 
-table.table td,
+/* table.table td,
 table.table th {
   padding-bottom: .2rem;
   padding-top: .2rem;
   width: 50%;
+} */
+
+#infoTable {
+  border-collapse: collapse;
+}
+
+#infoTable th, #infoTable td {
+  /* border: 1px solid black; */
+  padding: 0;
+  margin: 0;
+}
+
+.alignCellRight {
+  text-align: right;
+}
+
+.alignCellCenter {
+  text-align: center;
 }
 
 .saturated {
@@ -263,17 +280,10 @@ html:fullscreen .infoGroup {
 #extraInfo {
   font-weight: 700;
   padding-top: 0.25rem;
-  text-align: right;
 }
 
 #extraInfo:empty {
   display: none;
-}
-
-.equalSpace {
-  align-items: end;
-  display: flex;
-  justify-content: space-between;
 }
 
 @media (max-width: 550px) {

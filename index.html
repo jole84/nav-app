@@ -27,22 +27,63 @@
   <div id="map"></div>
 
   <div class="infoGroup shadowed" id="infoGroup">
-    <div id="coordinatesDiv"></div>
-    <div class="equalSpace">
-      <div><span id="distanceTraveledDiv">0.00</span><span class="infoFormat">KM</span></div>
-      <div id="batteryDiv"><span id="batteryCharging"></span><span id="batteryLevel"></span><span
-          class="infoFormat">%</span></div>
-    </div>
-    <div class="equalSpace">
-      <div>
-        <span id="speedDiv">0</span> (<span id="maxSpeedDiv">0</span>)<span class="infoFormat">KM/H</span>
-      </div>
-      <div><span id="accuracyDiv">-</span><span class="infoFormat">M</span></div>
-    </div>
-    <div id="routeInfo"></div>
-    <div id="extraInfo"></div>
-    <div id="trafficWarning"></div>
-    <button class="btn btn-danger btn-lg" id="restoreTripButton">Återställ tripp</button>
+    <table id="infoTable">
+      <tr>
+        <td colspan="2">
+          <div id="coordinatesDiv"></div>
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          <div><span id="distanceTraveledDiv">0.00</span><span class="infoFormat">KM</span></div>
+        </td>
+        <td class="alignCellRight">
+          <div id="batteryDiv"><span id="batteryCharging"></span><span id="batteryLevel"></span><span
+              class="infoFormat">%</span></div>
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          <span id="speedDiv">0</span> (<span id="maxSpeedDiv">0</span>)<span class="infoFormat">KM/H</span>
+        </td>
+        <td class="alignCellRight">
+          <span id="accuracyDiv">-</span><span class="infoFormat">M</span>
+        </td>
+      </tr>
+      
+      <!-- routeInfo -->
+      <tr>
+        <td id="routeInfoRemainingDistance"></td>
+        <td id="routeInfoRemainingTime" class="alignCellRight"></td>
+      </tr>
+      <tr>
+        <td id="routeInfoTurnHint"></td>
+        <td id="routeInfoETA" class="alignCellRight"></td>
+      </tr>
+      <tr>
+        <td id="routeInfoDestinations" colspan="2"></td>
+      </tr>
+
+      <tr>
+        <td colspan="2" class="alignCellCenter">
+          <div id="extraInfo"></div>
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan="2" class="alignCellCenter">
+          <div id="trafficWarning"></div>
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan="2">
+          <button class="btn btn-danger btn-lg" id="restoreTripButton">Återställ tripp</button>
+        </td>
+      </tr>
+    </table>
   </div>
 
   <div id="optionButtons">

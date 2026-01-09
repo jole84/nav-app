@@ -61,9 +61,9 @@ export function getRemainingDistance(featureCoordinates, speedKmh, navigationSte
   // measure route remaining distance
   try {
     const distanceToStartPos = getDistance(
-        toLonLat(currentPosition),
-        toLonLat(featureCoordinates[startPos + 1]),
-      );
+      toLonLat(currentPosition),
+      toLonLat(featureCoordinates[startPos + 1]),
+    );
     remainingDistance += distanceToStartPos;
     distanceToNextStep += distanceToStartPos;
     if (navigationSteps.length > 0) {
@@ -92,8 +92,6 @@ export function getRemainingDistance(featureCoordinates, speedKmh, navigationSte
       toLonLat(featureCoordinates[featureCoordinates.length - 1]),
     );
   }
-  // console.log((remainingDistance / 1000) + "km");
-  // console.log(remainingDistance + "m");
 
   // calculate remaining time
   const secondsInt = (remainingDistance / 1000) / ((speedKmh < 30 ? 75 : speedKmh) / 60 / 60);
@@ -102,22 +100,35 @@ export function getRemainingDistance(featureCoordinates, speedKmh, navigationSte
   const minutes = totalMinutes % 60;
   const ETA = new Date(new Date().getTime() + secondsInt * 1000);
 
+  // const infoTable = document.getElementById("infoTable");
+  // const testRow = infoTable.insertRow(3);
+  // var cell1 = testRow.insertCell(0);
+  // var cell2 = testRow.insertCell(1);
+  // cell1.innerHTML = "1";
+  // cell1.colSpan = 2;
+  // cell2.innerHTML = "NEW CELL2";
+  // testRow.remove()
+  // testRow.deleteCell(1);
+  // infoTable.deleteRow(3)
+
+  // first row
+  routeInfoRemainingDistance.innerHTML = `<font class="infoFormat">-></font>${Number(remainingDistance / 1000).toFixed(1)}<font class="infoFormat">km</font>`;
+
+  let remainingTime = ``;
+  if (hours > 0) {
+    remainingTime += `${hours}<font class="infoFormat">h</font> `;
+  }
+  remainingTime += `${minutes}<font class="infoFormat">min</font>`
+  routeInfoRemainingTime.innerHTML = remainingTime;
+  
+  // second row
   distanceToNextStep = distanceToNextStep > 1000 ?
     ((distanceToNextStep / 1000).toFixed(1) + '<font class="infoFormat">km</font>') :
     ((Math.round(distanceToNextStep / 25) * 25) + '<font class="infoFormat">m</font>');
-
-  let returnString = `<div class="equalSpace"><div><font class="infoFormat">-></font> ${Number(remainingDistance / 1000).toFixed(1)}<font class="infoFormat">km</font></div><div>`;
-  if (hours > 0) {
-    returnString += `${hours}<font class="infoFormat">h</font> `;
-  }
-  returnString += `${minutes}<font class="infoFormat">min</font></div></div>`
-
-  // second row
-  returnString += `<div class="equalSpace"> <div>${nextStep ? (createTurnHint(nextStep) + distanceToNextStep) : ""} </div> <div>${ETA.getHours()}:${ETA.getMinutes().toString().padStart(2, "0")}<font class="infoFormat">ETA</font></div></div>`;
-
+  routeInfoTurnHint.innerHTML = `${nextStep ? (createTurnHint(nextStep) + distanceToNextStep) : ""}`;
+  routeInfoETA.innerHTML = `${ETA.getHours()}:${ETA.getMinutes().toString().padStart(2, "0")}<font class="infoFormat">ETA</font>`;
   // third row
-  nextStep ? (returnString += nextStep.destinations || nextStep.name || "") : "";
-  return returnString;
+  routeInfoDestinations.innerHTML = nextStep ? (nextStep.destinations || nextStep.name || "") : "";
 }
 
 const translateArray = {

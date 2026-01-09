@@ -50,12 +50,18 @@ const menuDiv = document.getElementById("menuDiv");
 const openMenuButton = document.getElementById("openMenu");
 const preferredFontSizeDiv = document.getElementById("preferredFontSize");
 const prefferedZoomDiv = document.getElementById("prefferedZoom");
-const routeInfo = document.getElementById("routeInfo");
 const saveLogButton = document.getElementById("saveLogButton");
 const selectFile = document.getElementById("selectFile");
 const startTime = Date.now();
 const trafficWarningDiv = document.getElementById("trafficWarning");
 const tripPointButton = document.getElementById("tripPointButton");
+
+const routeInfoRemainingDistance = document.getElementById("routeInfoRemainingDistance");
+const routeInfoRemainingTime = document.getElementById("routeInfoRemainingTime");
+const routeInfoTurnHint = document.getElementById("routeInfoTurnHint");
+const routeInfoETA = document.getElementById("routeInfoETA");
+const routeInfoDestinations = document.getElementById("routeInfoDestinations");
+
 let accuracy = 5000;
 let altitude = 0;
 let closestAccident;
@@ -97,14 +103,14 @@ if (navigator.getBattery) {
         : "-";
       setExtraInfo([
         battery.charging
-          ? '<div style="color:green;text-align: center;">+++ laddar batteri +++</div>'
-          : '<div style="color:red;text-align: center;">⚠ laddare urkopplad ⚠</div>',
+          ? '<div style="color:green;">🔋 laddar batteri 🔋</div>'
+          : '<div style="color:red;">⚠ laddare urkopplad ⚠</div>',
       ]);
     };
   });
 }
 setExtraInfo([
-  '<div style="text-align:center;font-size: 0.4em;">Build: INSERTDATEHERE</div>',
+  '<div style="font-size: 0.4em;">Build: INSERTDATEHERE</div>',
 ]);
 
 let wakeLock;
@@ -499,12 +505,12 @@ geolocation.on("change", function () {
     distanceTraveled += getDistance(lonlat, prevLonlat);
 
     // calculate remaing distance on gpx
-    routeInfo.innerHTML = "";
+    clearRouteInfo();
     gpxSource.forEachFeature(function (feature) {
       const featureType = feature.getGeometry().getType();
       if (featureType == "LineString" || featureType == "MultiLineString") {
         const featureCoordinates = featureType == "MultiLineString" ? feature.getGeometry().getLineString().getCoordinates() : feature.getGeometry().getCoordinates();
-        routeInfo.innerHTML += getRemainingDistance(
+        getRemainingDistance(
           featureCoordinates,
           speedKmh,
           [],
@@ -516,7 +522,7 @@ geolocation.on("change", function () {
     // calculate remaing distance on route
     if (routeLineString.getCoordinates().length > 0) {
       const featureCoordinates = routeLineString.getCoordinates();
-      routeInfo.innerHTML += getRemainingDistance(
+      getRemainingDistance(
         featureCoordinates,
         speedKmh,
         navigationSteps,
@@ -607,6 +613,14 @@ function clearTrip() {
   setExtraInfo(["Tripp nollställd"]);
   trackLog = [[lonlat, altitude, Date.now()]];
   trackPointLayer.getSource().clear();
+}
+
+function clearRouteInfo() {
+  routeInfoRemainingDistance.innerHTML = "";
+  routeInfoRemainingTime.innerHTML = "";
+  routeInfoTurnHint.innerHTML = "";
+  routeInfoETA.innerHTML = "";
+  routeInfoDestinations.innerHTML = "";
 }
 
 // recenters the view by putting the given coordinates at 3/4 from the top of the screen
@@ -827,7 +841,7 @@ function routeMeOSR() {
 
     const totalLength = result.features[0].properties.summary.distance / 1000; // track-length in km
     const totalTime = result.features[0].properties.summary.duration;
-    routeInfo.innerHTML = getRemainingDistance(
+    getRemainingDistance(
       newGeometry.getGeometry().getCoordinates(),
       speedKmh,
       [],
@@ -872,7 +886,7 @@ function routeMe() {
 
     const totalLength = result.routes[0].distance / 1000; // track-length in km
     const totalTime = result.routes[0].duration;
-    routeInfo.innerHTML = getRemainingDistance(
+    getRemainingDistance(
       newGeometry.getGeometry().getCoordinates(),
       speedKmh,
       navigationSteps,
@@ -896,26 +910,6 @@ map.on("singleclick", function (evt) {
     );
   }
 });
-
-// map.on("click", function (evt) {
-//   routeInfo.innerHTML = "";
-//   const speedKmh = 75;
-//   routeInfo.innerHTML += getRemainingDistance(
-//     routeLineString.getCoordinates() || gpxSource.getFeatures()[0].getGeometry().getCoordinates()[0],
-//     speedKmh,
-//     navigationSteps,
-//     evt.coordinate
-//   );
-
-//   gpxSource.getFeatures().forEach(feature => {
-//     routeInfo.innerHTML += getRemainingDistance(
-//       feature.getGeometry().getCoordinates()[0],
-//       speedKmh,
-//       [],
-//       evt.coordinate
-//     );
-//   });
-// });
 
 // right click/long press to route
 map.on("contextmenu", function (event) {
@@ -949,7 +943,7 @@ map.on("contextmenu", function (event) {
     endMarker.setCoordinates([]);
     navigationSteps = [];
     routeLineString.setCoordinates([]);
-    routeInfo.innerHTML = "";
+    clearRouteInfo();
     destinationCoordinates = [];
   } else if (clickedOnEndMarker) {
     destinationCoordinates.pop();
@@ -958,7 +952,7 @@ map.on("contextmenu", function (event) {
     destinationCoordinates.push(toLonLat(clickedOnWaypoint.getGeometry().getCoordinates()).splice(0, 2));
   } else {
     setExtraInfo([
-      `<div class="equalSpace"><a href="http://maps.google.com/maps?q=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Streetview</a></div>`,
+      `<a href="http://maps.google.com/maps?q=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Gmap</a> <a href="http://maps.google.com/maps?layer=c&cbll=${eventLonLat[1]},${eventLonLat[0]}" target="_blank">Streetview</a>`,
     ]);
     destinationCoordinates.push(eventLonLat);
   }
@@ -1241,7 +1235,7 @@ function focusTrafficWarning() {
     duration: duration,
   });
   view.animate({
-    zoom: 13.1,
+    zoom: closestAccident ? 13.1 : 10,
     duration: duration,
   });
   view.animate({
@@ -1339,7 +1333,7 @@ function recalculateRoute() {
         destinationCoordinates[destinationCoordinates.length - 1],
       ) < 1000
     ) {
-      routeInfo.innerHTML = "";
+      clearRouteInfo();
       document.getElementById("extraInfo").innerHTML = "";
       destinationCoordinates = [];
       endMarker.setCoordinates([]);
@@ -1494,3 +1488,4 @@ function fetchRoadCondition() {
 
 fetchRoadCondition();
 setInterval(fetchRoadCondition, 1800000); // fetch every 30 min (30 * 60 * 1000)
+

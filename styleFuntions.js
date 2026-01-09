@@ -191,7 +191,7 @@ export function styleRoadCondition(feature) {
     return new Style({
         stroke: new Stroke({
             color: roadColor[feature.get("conditionCode")] || "white",
-            width: 10,
+            width: 12,
         }),
     })
 }
