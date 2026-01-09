@@ -220,14 +220,14 @@ const jole84TileLayer = new VectorTileLayer({
   source: new VectorTileSource({
     format: new MVT(),
     url: 'https://jole84.se/tiles/{z}/{x}/{y}.pbf',
-    transition: 0,
+    // transition: 0,
     minZoom: 6,
     maxZoom: 14,
   }),
   style: styleStuff,
   declutter: true,
-  updateWhileAnimating: true,
-  updateWhileInteracting: true,
+  // updateWhileAnimating: true,
+  // updateWhileInteracting: true,
 });
 
 const ortofoto = new TileLayer({
@@ -1046,7 +1046,7 @@ if (searchParams.has("gpxFile")) {
 }
 switchMap();
 
-navigator.keyboard.lock(["Escape", "Enter"]);
+// navigator.keyboard.lock(["Escape", "Enter"]);
 // add keyboard controls
 document.addEventListener("keydown", function (event) {
   if (menuDiv.checkVisibility()) {
