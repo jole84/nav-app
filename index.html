@@ -26,7 +26,7 @@
 <body oncontextmenu="return false;">
   <div id="map"></div>
 
-  <div class="infoGroup shadowed" id="infoGroup">
+  <div class="infoGroup" id="infoGroup">
     <table id="infoTable">
       <tr>
         <td colspan="2">
@@ -87,10 +87,10 @@
   </div>
 
   <div id="optionButtons">
-    <button class="btn btn-danger shadowed" id="centerButton">Center</button>
-    <button class="btn btn-primary shadowed fullscreenHide" id="saveLogButton">Spara spår</button>
-    <button class="btn btn-info shadowed fullscreenHide" id="clickFileButton">Ladda GPX</button>
-    <select class="form-select shadowed fullscreenHide" id="layerSelector">
+    <button class="btn btn-danger" id="centerButton">Center</button>
+    <button class="btn btn-primary fullscreenHide" id="saveLogButton">Spara spår</button>
+    <button class="btn btn-info fullscreenHide" id="clickFileButton">Ladda GPX</button>
+    <select class="form-select fullscreenHide" id="layerSelector">
       <option value="0">Jole84 Terrängkarta</option>
       <option value="1">Jole84 Vägkarta</option>
       <option value="2">Jole84 Nattläge</option>
@@ -98,11 +98,11 @@
       <option value="4">Lantmäteriet Topo</option>
       <option value="5">Lantmäteriet Orto</option>
     </select>
-    <button class="btn btn-success shadowed fullscreenHide" id="openMenu">Meny</button>
+    <button class="btn btn-success fullscreenHide" id="openMenu">Meny</button>
   </div>
   <div class="menuContainer">
 
-    <div id="menuDiv" class="shadowed">
+    <div id="menuDiv">
       <div class="menuContentContainer">
         <div>
           Navigationsapp med <a

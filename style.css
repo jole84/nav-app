@@ -259,10 +259,6 @@ html:fullscreen .infoGroup {
   margin-top: env(safe-area-inset-top);
 }
 
-.shadowed {
-  box-shadow: 0px 0px 5px rgb(32, 32, 32);
-}
-
 .infoFormat {
   font-size: 50%;
   text-transform: uppercase;
