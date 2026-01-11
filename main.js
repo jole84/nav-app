@@ -380,7 +380,7 @@ selectFile.addEventListener("change", function () {
   gpxSource.clear();
   console.log(selectFile.value)
   if (selectFile.value !== "välj gpxfil") {
-    fetch(selectFile.value, { mode: "cors" })
+    fetch("https://jole84.se/phpReadFile.php?url=" + selectFile.value, { mode: "cors" })
       .then((response) => {
         return response.text();
       })
