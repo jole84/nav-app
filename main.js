@@ -1165,6 +1165,7 @@ function getDeviations() {
         <INCLUDE>Deviation.IconId</INCLUDE>
         <INCLUDE>Deviation.Geometry.Point.WGS84</INCLUDE>
         <INCLUDE>Deviation.RoadNumber</INCLUDE>
+        <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
         <INCLUDE>Deviation.EndTime</INCLUDE>
         <INCLUDE>Deviation.MessageCode</INCLUDE>
 
@@ -1201,7 +1202,8 @@ function getDeviations() {
             geometry: position,
             name:
               breakSentence(
-                (item.Deviation[0].RoadNumber ? item.Deviation[0].RoadNumber + ": " : "") +
+                (item.Deviation[0].LocationDescriptor || item.Deviation[0].RoadNumber) + ": " +
+                // (item.Deviation[0].RoadNumber ? item.Deviation[0].RoadNumber + ": " : "") +
                 (item.Deviation[0].Message || item.Deviation[0].MessageCode || "?"),
               ) +
               "\nSluttid: " +
@@ -1449,6 +1451,7 @@ function showTripLayer() {
 }
 
 function fetchRoadCondition() {
+  roadConditionLayer.getSource().clear();
   const xmlRequest = `<REQUEST>
         <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
         <QUERY objecttype='RoadCondition' schemaversion='1.2' >
