@@ -1,24 +1,25 @@
 import "./style.css";
 import { Feature, Map, View } from "ol";
 import { fromLonLat, toLonLat } from "ol/proj.js";
+import { GeoJSON } from "ol/format.js";
 import { getDistance } from "ol/sphere";
 import { Style, Icon } from "ol/style.js";
+import { styleStuff } from "./styleTileFunctions.js"
 import { Vector as VectorLayer } from "ol/layer.js";
 import Geolocation from "ol/Geolocation.js";
-import { GeoJSON } from "ol/format.js";
+import KeyboardZoom from 'ol/interaction/KeyboardZoom.js';
 import LineString from "ol/geom/LineString";
 import MultiPoint from "ol/geom/MultiPoint.js";
+import MVT from 'ol/format/MVT.js';
 import OSM from "ol/source/OSM.js";
 import Point from "ol/geom/Point.js";
 import TileLayer from "ol/layer/Tile.js";
 import TileWMS from "ol/source/TileWMS.js";
 import VectorSource from "ol/source/Vector.js";
-import WKT from "ol/format/WKT.js";
 import VectorTileLayer from 'ol/layer/VectorTile.js';
 import VectorTileSource from 'ol/source/VectorTile.js';
-import MVT from 'ol/format/MVT.js';
+import WKT from "ol/format/WKT.js";
 import XYZ from "ol/source/XYZ.js";
-import { styleStuff } from "./styleTileFunctions.js"
 import {
   trafficWarningTextStyleFunction,
   trafficWarningIconStyleFunction,
@@ -685,11 +686,7 @@ function switchMap() {
   ortofoto.setVisible(false);
   topoweb.setVisible(false);
   osm.setVisible(false);
-  // document.body.classList.remove("darkmode");
-  document.getElementById("map").style.backgroundColor = (localStorage.mapMode == 2) ? "#00263F" : "#bfe6ff";
-  document.getElementById("infoGroup").style.color = (localStorage.mapMode == 2) ? "rgb(245, 245, 245)" : "rgb(32, 32, 32)";
-  document.getElementById("infoGroup").style.backgroundColor = (localStorage.mapMode == 2) ? "rgba(0, 0, 0, 0.4)" : "rgba(255, 255, 255, 0.4)";
-  document.getElementById("optionButtons").style.filter = (localStorage.mapMode == 2) ? "invert(1) hue-rotate(180deg)" : "initial";
+  document.body.classList.remove("darkMode");
 
   if (localStorage.mapMode > 5) {
     localStorage.mapMode = 0;
@@ -716,13 +713,10 @@ function switchMap() {
     ortofoto.setMinZoom(17.5);
   } else if (localStorage.mapMode == 2) {
     // mapMode 2: MVT Vägkarta + night mode
+    document.body.classList.add("darkMode");
     jole84TileLayer.setVisible(true);
     jole84TileLayer.getSource().refresh({ force: true });
     jole84TileLayer.setMaxZoom(20);
-    // document.body.classList.add("darkmode");
-    // topoweb.setVisible(true);
-    // topoweb.setMinZoom(15.5);
-    // topoweb.setMaxZoom(20);
   } else if (localStorage.mapMode == 3) {
     // mapMode 3: Openstreetmap
     osm.setVisible(true);
@@ -1129,6 +1123,11 @@ document.addEventListener("keydown", function (event) {
     resetRotation();
   }
 });
+
+map.addInteraction(new KeyboardZoom({
+  duration: 0,
+  // delta: 0.5,
+}));
 
 const apiUrl = "https://api.trafikinfo.trafikverket.se/v2/data.json";
 
