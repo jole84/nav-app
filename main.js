@@ -179,7 +179,7 @@ closeMenuButton.onclick = function () {
 };
 
 openMenuButton.onclick = function () {
-  menuDiv.style.display = menuDiv.checkVisibility() ? "none" : "unset";
+  menuDiv.style.display = menuDiv.checkVisibility() ? "none" : "flex";
 };
 
 document.getElementById("clearSettings").onclick = function () {

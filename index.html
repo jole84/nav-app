@@ -52,7 +52,7 @@
           <span id="accuracyDiv">-</span><span class="infoFormat">M</span>
         </td>
       </tr>
-      
+
       <!-- routeInfo -->
       <tr>
         <td id="routeInfoRemainingDistance"></td>
@@ -101,98 +101,94 @@
     <button class="btn btn-success fullscreenHide" id="openMenu">Meny</button>
   </div>
   <div class="menuContainer">
-
     <div id="menuDiv">
-      <div class="menuContentContainer">
-        <div>
-          Navigationsapp med <a
-            href="https://github.com/jole84/nav-app">öppen källkod</a>, baserad på <a
-            href="https://openlayers.org">Openlayers</a>. Navigation från <a href="https://project-osrm.org//">OSRM</a>.
-          Karta
-          skapad av öppna data från Lantmäteriet och Trafikverket.
-          <table class="table">
-            <tr>
-              <td colspan="2">
-                <select class="form-select" id="selectFile">
-                  <option>välj gpxfil</option>
-                  <option
-                    value="https://transeurotrail.org/wp-content/uploads/gpxsync/S.gpx">
-                    TET Sverige</option>
-                </select>
-              </td>
-            </tr>
+      <div id="menuContent">
+        Navigationsapp med <a href="https://github.com/jole84/nav-app">öppen källkod</a>, baserad på <a
+          href="https://openlayers.org">Openlayers</a>. Navigation från <a href="https://project-osrm.org//">OSRM</a>.
+        Karta
+        skapad av öppna data från Lantmäteriet och Trafikverket.
+        <table class="table">
+          <tr>
+            <td colspan="2">
+              <select class="form-select" id="selectFile">
+                <option>välj gpxfil</option>
+                <option value="https://transeurotrail.org/wp-content/uploads/gpxsync/S.gpx">
+                  TET Sverige</option>
+              </select>
+            </td>
+          </tr>
 
-            <tr>
-              <td>
-                Användarnamn (för Glympse-liknande funktion, tomt avaktiverar):
-              </td>
-              <td>
-                <input style="width: 8rem;" class="form-control" type="text" id="userName"
-                  placeholder="användarnamn"><br>
-              </td>
-            </tr>
+          <tr>
+            <td>
+              Användarnamn (för Glympse-liknande funktion, tomt avaktiverar):
+            </td>
+            <td>
+              <input style="width: 8rem;" class="form-control" type="text" id="userName" placeholder="användarnamn"><br>
+            </td>
+          </tr>
 
-            <tr>
-              <td>
-                Förvald zoom:
-              </td>
-              <td>
-                <input class="form-control" type="number" id="prefferedZoom" value="14" min="6" max="20" step="0.1"
-                  required placeholder="14"><br>
-              </td>
-            </tr>
+          <tr>
+            <td>
+              Förvald zoom:
+            </td>
+            <td>
+              <input class="form-control" type="number" id="prefferedZoom" value="14" min="6" max="20" step="0.1"
+                required placeholder="14"><br>
+            </td>
+          </tr>
 
-            <tr>
-              <td>
-                Storlek på infotext:
-              </td>
-              <td>
-                <select class="form-select" id="preferredFontSize">
-                  <option value="20px">mindre</option>
-                  <option value="25px">normal</option>
-                  <option value="30px">större</option>
-                </select>
-              </td>
-            </tr>
+          <tr>
+            <td>
+              Storlek på infotext:
+            </td>
+            <td>
+              <select class="form-select" id="preferredFontSize">
+                <option value="20px">mindre</option>
+                <option value="25px">normal</option>
+                <option value="30px">större</option>
+              </select>
+            </td>
+          </tr>
 
-            <tr>
-              <td><kbd>A/+</kbd> zooma in</td>
-              <td><kbd>Esc/-</kbd> zooma ut</td>
-            </tr>
+          <tr>
+            <td><kbd>A/+</kbd> zooma in</td>
+            <td><kbd>Esc/-</kbd> zooma ut</td>
+          </tr>
 
-            <tr>
-              <td><kbd>C/Enter</kbd> centrera vy</td>
-              <td><kbd>V</kbd> växla karta</td>
-            </tr>
+          <tr>
+            <td><kbd>C/Enter</kbd> centrera vy</td>
+            <td><kbd>V</kbd> växla karta</td>
+          </tr>
 
-            <tr>
-              <td><kbd>D</kbd> focusera destination</td>
-              <td><kbd>Space</kbd> översikt</td>
-            </tr>
+          <tr>
+            <td><kbd>D</kbd> focusera destination</td>
+            <td><kbd>Space</kbd> översikt</td>
+          </tr>
 
-            <tr>
-              <td><kbd>R</kbd> räkna om rutt</td>
-              <td><kbd>högerklick/långtryck</kbd> navigera till punkt</td>
-            </tr>
+          <tr>
+            <td><kbd>R</kbd> räkna om rutt</td>
+            <td><kbd>högerklick/långtryck</kbd> navigera till punkt</td>
+          </tr>
 
-            <tr>
-              <td>
-                <!-- <button class="btn btn-primary" id="tripPointButton">Visa spårpunktsdata</button> -->
-                <input type="checkbox" id="tripPointButton" name="tripPointButton" />
-                <label for="tripPointButton">Visa spårpunktsdata</label>
-              </td>
-              <td>
-                <button class="btn btn-danger" id="clearTripButton">Nollställ tripp</button>
-              </td>
-            </tr>
+          <tr>
+            <td>
+              <!-- <button class="btn btn-primary" id="tripPointButton">Visa spårpunktsdata</button> -->
+              <input type="checkbox" id="tripPointButton" name="tripPointButton" />
+              <label for="tripPointButton">Visa spårpunktsdata</label>
+            </td>
+            <td>
+              <button class="btn btn-danger" id="clearTripButton">Nollställ tripp</button>
+            </td>
+          </tr>
 
-          </table>
-        </div>
+        </table>
+      </div>
 
-        <div><br></div>
-
+      <div id="bottomMenuButtons">
         <div>
           <button class="btn btn-danger" id="clearSettings">Återställ inställningar</button>
+        </div>
+        <div>
           <button class="btn btn-success" id="closeMenu">Stäng</button>
         </div>
       </div>
