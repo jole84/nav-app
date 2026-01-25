@@ -347,7 +347,7 @@ const map = new Map({
 
 function gpxSourceLoader(gpxFile) {
   const reader = new FileReader();
-  const fileExtention = gpxFile.name.toLowerCase().replace(".gpx.txt", ".gpx").split(".").pop();
+  const fileExtention = gpxFile.name.toLowerCase().replace(".gpx.txt", ".gpx").replace(".kml.xml", ".kml").split(".").pop();
   const fileFormat = fileFormats[fileExtention];
   reader.readAsText(gpxFile, "UTF-8");
   reader.onload = function (evt) {
