@@ -1098,7 +1098,7 @@ document.addEventListener("keydown", function (event) {
     if (event.key == "d") {
       focusDestination();
     }
-    if (event.key == "Escape" || event.key == "§") {
+    if (event.key == "Escape" || event.key == "§" || event.key == "PageUp") {
       event.preventDefault();
       // carpe iter adventure controller minus button
       if (view.getZoom() >= 17) {
@@ -1106,7 +1106,7 @@ document.addEventListener("keydown", function (event) {
       }
       view.adjustZoom(-zoomStep);
     }
-    if (event.key == "a") {
+    if (event.key == "a" || event.key == "PageDown") {
       // carpe iter adventure controller plus button
       if (view.getZoom() >= 17) {
         lastInteraction = Date.now();
