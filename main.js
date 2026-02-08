@@ -212,8 +212,12 @@ const view = new View({
 const trackLineString = new LineString([]);
 
 const osm = new TileLayer({
-  className: "saturated",
-  source: new OSM(),
+  // className: "saturated",
+  // source: new OSM(),
+  source: new OSM({
+    url: "https://tile.opentopomap.org/{z}/{x}/{y}.png",
+    maxZoom: 17,
+  }),
   visible: false,
 });
 
