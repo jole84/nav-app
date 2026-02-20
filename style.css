@@ -100,7 +100,7 @@ html:fullscreen div.ol-zoom {
   background-attachment: fixed;
   justify-content: space-between;
   background-color: rgba(251, 251, 251, 1);
-  background-image: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95)), url("https://jole84.se/84.svg");
+  background-image: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95)), url("https://jole84.se/images/84.svg");
   background-position: center;
   background-repeat: no-repeat;
   background-size: 90%;
@@ -123,7 +123,24 @@ html:fullscreen div.ol-zoom {
 
 #selectFile {
   width: 100%;
-  background-color: #ebebeb;
+  /* background-color: #ebebeb; */
+}
+
+select,
+::picker(select) {
+  appearance: base-select;
+}
+
+select::picker-icon {
+  color: #999999;
+}
+
+option:checked {
+  font-weight: bold;
+}
+
+#selectUpload{
+  width: 100%;
 }
 
 #closeMenu {
@@ -270,6 +287,10 @@ html:fullscreen .infoGroup {
   font-weight: 700;
 }
 
+.invisible {
+  display: none;
+}
+
 #extraInfo {
   font-weight: 700;
   padding-top: 0.25rem;
@@ -277,6 +298,11 @@ html:fullscreen .infoGroup {
 
 #extraInfo:empty {
   display: none;
+}
+
+.public {
+  color: green;
+  font-weight: bold;
 }
 
 @media (max-width: 550px) {

@@ -180,6 +180,10 @@ closeMenuButton.onclick = function () {
 
 openMenuButton.onclick = function () {
   menuDiv.style.display = menuDiv.checkVisibility() ? "none" : "flex";
+  if (localStorage.getItem("token")) {
+    showApp(localStorage.getItem("username"));
+  }
+  loadData();
 };
 
 document.getElementById("clearSettings").onclick = function () {
@@ -1495,3 +1499,173 @@ function fetchRoadCondition() {
 fetchRoadCondition();
 setInterval(fetchRoadCondition, 1800000); // fetch every 30 min (30 * 60 * 1000)
 
+
+// load from storage
+
+document.getElementById("loginButton").onclick = login;
+document.getElementById("logoutButton").onclick = logout;
+
+const selectUpload = document.getElementById("selectUpload");
+
+async function api(action, data = {}) {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch("https://jole84.se/routeStorage/api.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action, token, ...data })
+  });
+
+  return res.json();
+}
+
+async function loadData() {
+  const r = await api("list");
+
+  const el = document.createElement("option");
+  el.textContent = "Välj uppladdning";
+  selectUpload.replaceChildren(el);
+
+  // document.getElementById("uploads").replaceChildren();
+  r.uploads.forEach(u => {
+    const is_public = u.is_public == 1;
+
+    // const elementText = document.createElement("strong");
+    // elementText.innerHTML = u.item_name + " " + (u.is_public ? '<span class="public">(Publik)</span>' : "(Privat)");
+    // document.getElementById("uploads").appendChild(elementText);
+
+    // const creatorText = document.createElement("small");
+    // creatorText.innerHTML = `By ${u.username} — ${new Date(u.created_at).toLocaleString()}<br>`;
+    // document.getElementById("uploads").appendChild(creatorText);
+
+    // selector
+    const el = document.createElement("option");
+    el.textContent = u.item_name + " " + (u.is_public ? '(Publik)' : "(Privat)");
+    el.value = u.id;
+    el.title = `By ${u.username} — ${new Date(u.created_at).toLocaleString()}`;
+    selectUpload.appendChild(el);
+
+    if (u.id == selectedUpload) selectUpload.value = u.id;
+    // ladda knapp
+    // const loadButton = document.createElement("button");
+    // loadButton.addEventListener("click", () => { loadItem(u.id) });
+    // loadButton.innerHTML = "ladda";
+    // elementText.appendChild(loadButton);
+    // if (!!localStorage.token && u.username == localStorage.username) {
+    //   // växla privat knapp
+    //   const makePublicButton = document.createElement("button");
+    //   makePublicButton.addEventListener("click", () => {
+    //     is_public ? makePrivate(u.id) : makePublic(u.id);
+    //   });
+    //   makePublicButton.innerHTML = is_public ? "Gör privat" : "Gör publik";
+    //   elementText.appendChild(makePublicButton);
+    // }
+
+  });
+}
+
+let selectedUpload;
+selectUpload.addEventListener("change", () => {
+  selectedUpload = selectUpload.value;
+  if (selectUpload.value > 0) {
+    loadItem(selectUpload.value);
+  } else {
+    gpxLayer.getSource().clear();
+  }
+});
+
+function showApp(username) {
+  try {
+    if (localStorage.token) {
+      document.getElementById("loginView").classList.add("invisible");
+      document.getElementById("appView").classList.remove("invisible");
+      document.getElementById("userLabel").textContent = username;
+    } else {
+      document.getElementById("loginView").classList.remove("invisible");
+      document.getElementById("appView").classList.add("invisible");
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+// document.getElementById("uploadButton").onclick = upload;
+async function upload() {
+  const name = prompt("Ange ruttnamn");
+
+  const newFeature = new Feature({
+    geometry: routeLineString
+  });
+  newFeature.set("routeLineString", true);
+  if (!name) return;
+  const geoJsonFile = new GeoJSON().writeFeature(newFeature, {
+    dataProjection: "EPSG:4326",
+    featureProjection: "EPSG:3857",
+    decimals: 5,
+  });
+  const text = btoa(encodeURIComponent(geoJsonFile));
+
+  await api("upload", { name, text });
+
+  const r = await api("list");
+  r.uploads.forEach(u => {
+    if (name == u.item_name) makePublic(u.id);
+  });
+}
+
+async function makePublic(id) {
+  await api("make_public", { id });
+}
+
+async function makePrivate(id) {
+  await api("make_private", { id });
+}
+
+async function loadItem(id) {
+  const r = await api("get_item", { id });
+
+  if (r.error) {
+    alert(r.error);
+    return;
+  }
+
+  const format = new GeoJSON();
+  const newGeometry = format.readFeatures(decodeURIComponent(atob(r.item.item_text)), {
+    dataProjection: "EPSG:4326",
+    featureProjection: "EPSG:3857",
+  });
+
+  gpxLayer.getSource().clear();
+  newGeometry.forEach(element => {
+    // console.log(element.getProperties())
+    if (!!element.get("routeLineString")) {
+      gpxLayer.getSource().addFeature(element);
+    } else if (!!element.get("poi")) {
+      gpxLayer.getSource().addFeature(element);
+    }
+  });
+}
+
+async function login() {
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  const r = await api("login", { username, password });
+
+  console.log(r);
+  if (r.success) {
+    localStorage.setItem("token", r.token);
+    localStorage.setItem("username", r.username);
+    showApp(username);
+    loadData();
+  } else {
+    alert(r.error);
+  }
+}
+
+function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("username");
+  showApp("");
+  loadData();
+}

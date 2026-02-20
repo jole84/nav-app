@@ -150,7 +150,7 @@
             </td>
           </tr>
 
-          <tr>
+          <!-- <tr>
             <td><kbd>A/+</kbd> zooma in</td>
             <td><kbd>Esc/-</kbd> zooma ut</td>
           </tr>
@@ -168,31 +168,58 @@
           <tr>
             <td><kbd>R</kbd> räkna om rutt</td>
             <td><kbd>högerklick/långtryck</kbd> navigera till punkt</td>
+          </tr> -->
+
+          <tr>
+            <td>
+              <select class="form-select" id="selectUpload"></select>
+              <!-- <div id="uploads"></div> -->
+            </td>
+
+            <td>
+              <div id="appView" class="invisible">
+                Inloggad som <strong id="userLabel"></strong><br>
+                <button id="logoutButton">Logout</button>
+                <!-- <button id="uploadButton" class="btn btn-primary">Dela rutt</button> -->
+              </div>
+            </td>
           </tr>
 
           <tr>
             <td>
-              <!-- <button class="btn btn-primary" id="tripPointButton">Visa spårpunktsdata</button> -->
-              <input type="checkbox" id="tripPointButton" name="tripPointButton" />
-              <label for="tripPointButton">Visa spårpunktsdata</label>
-            </td>
-            <td>
-              <button class="btn btn-danger" id="clearTripButton">Nollställ tripp</button>
+              <div id="loginView">
+                <h2>Login (auto-register)</h2>
+                <input id="username" placeholder="Username"><br><br>
+                <input id="password" type="password" placeholder="Password"><br>
+                <button id="loginButton">Login</button>
+              </div>
             </td>
           </tr>
-
-        </table>
       </div>
 
-      <div id="bottomMenuButtons">
-        <div>
-          <button class="btn btn-danger" id="clearSettings">Återställ inställningar</button>
-        </div>
-        <div>
-          <button class="btn btn-success" id="closeMenu">Stäng</button>
-        </div>
+      <tr>
+        <td>
+          <!-- <button class="btn btn-primary" id="tripPointButton">Visa spårpunktsdata</button> -->
+          <input type="checkbox" id="tripPointButton" name="tripPointButton" />
+          <label for="tripPointButton">Visa spårpunktsdata</label>
+        </td>
+        <td>
+          <button class="btn btn-danger" id="clearTripButton">Nollställ tripp</button>
+        </td>
+      </tr>
+
+      </table>
+    </div>
+
+    <div id="bottomMenuButtons">
+      <div>
+        <button class="btn btn-danger" id="clearSettings">Återställ inställningar</button>
+      </div>
+      <div>
+        <button class="btn btn-success" id="closeMenu">Stäng</button>
       </div>
     </div>
+  </div>
   </div>
 
 
