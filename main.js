@@ -1046,6 +1046,11 @@ if (searchParams.has("gpxFile")) {
       gpxSourceLoader(new File([response], gpxFile, { type: "application/gpx" }));
     });
 }
+
+if (searchParams.has("getId")) {
+  let getId = searchParams.get("getId");
+  loadItem(getId);
+}
 switchMap();
 
 // navigator.keyboard.lock(["Escape", "Enter"]);

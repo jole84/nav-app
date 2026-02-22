@@ -112,7 +112,7 @@ export function getRemainingDistance(featureCoordinates, speedKmh, navigationSte
   // infoTable.deleteRow(3)
 
   // first row
-  routeInfoRemainingDistance.innerHTML = `<font class="infoFormat">-></font>${Number(remainingDistance / 1000).toFixed(1)}<font class="infoFormat">km</font>`;
+  routeInfoRemainingDistance.innerHTML = `<font class="">⩡</font>${Number(remainingDistance / 1000).toFixed(1)}<font class="infoFormat">km</font>`;
 
   let remainingTime = ``;
   if (hours > 0) {
