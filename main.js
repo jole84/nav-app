@@ -1158,6 +1158,7 @@ function getDeviations() {
           <LTE name="Deviation.StartTime" value="$dateadd(0.01:00)"/>
           <GTE name="Deviation.EndTime" value="$now"/>
           <NE name="Deviation.Suspended" value="true" />
+          <NEAR name="Deviation.Geometry.WGS84" value="${lonlat.join(" ")}" maxdistance="300000" />
           <OR>
             <EQ name='Deviation.MessageType' value='Olycka' />
             <IN name="Deviation.MessageTypeValue" value="AnimalPresenceObstruction,EnvironmentalObstruction,EquipmentOrSystemFault,GeneralInstructionOrMessageToRoadUsers,NonWeatherRelatedRoadConditions,ReroutingManagement,RoadsideAssistance,VehicleObstruction"/>
@@ -1540,7 +1541,7 @@ async function loadData() {
 
     // selector
     const el = document.createElement("option");
-    el.textContent = u.item_name + " " + (u.is_public ? '(Publik)' : "(Privat)");
+    el.textContent = u.item_name + " " + (u.is_public ? '(Publik)' : "(Privat)") + ` (${u.username} ${new Date(u.created_at).toLocaleDateString()})`;
     el.value = u.id;
     el.title = `By ${u.username} — ${new Date(u.created_at).toLocaleString()}`;
     selectUpload.appendChild(el);
@@ -1647,7 +1648,7 @@ async function loadItem(id) {
 }
 
 async function login() {
-  const username = document.getElementById("username").value;
+  const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value;
 
   const r = await api("login", { username, password });
