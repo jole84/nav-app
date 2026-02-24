@@ -244,6 +244,7 @@ kbd {
   color: rgb(32, 32, 32);
   /* font-family: "B612"; */
   /*  font-family: Arial, Helvetica, sans-serif; */
+  font-weight: 500;
   font-size: 25px;
   max-height: calc(100% - 10px);
   max-width: min(20rem, calc(100% - 20px));
@@ -279,6 +280,7 @@ html:fullscreen .infoGroup {
 }
 
 #maxSpeedDiv {
+  font-weight: 700;
   color: #e60000;
 }
 
