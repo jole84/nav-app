@@ -104,7 +104,8 @@ body,
   width: 100%;
 }
 
-th, td {
+th,
+td {
   padding-top: 5px;
 }
 
@@ -126,7 +127,7 @@ option:checked {
   font-weight: bold;
 }
 
-#selectUpload{
+#selectUpload {
   width: 100%;
 }
 
@@ -151,6 +152,11 @@ option:checked {
 .alignCellCenter {
   text-align: center;
 }
+
+.alignCellBottom {
+  vertical-align: bottom;
+}
+
 
 .saturated {
   filter: saturate(2);
@@ -284,7 +290,7 @@ html:fullscreen .infoGroup {
 }
 
 .invisible {
-  display: none !important; 
+  display: none !important;
 }
 
 #extraInfo {
