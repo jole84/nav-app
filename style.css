@@ -93,9 +93,9 @@ html:fullscreen div.ol-zoom {
 }
 
 .textbox {
-  max-height: calc(100% - 22px);
+  max-height: calc(100% - 30px);
   max-width: min(calc(100% - 30px), 40rem);
-  min-width: 400px;
+  min-width: min(calc(100% - 30px), 400px);
   background-attachment: fixed;
   background-color: rgba(251, 251, 251, 1);
   background-image: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95)), url("https://jole84.se/images/84.svg");
@@ -308,17 +308,6 @@ html:fullscreen .infoGroup {
 @media (max-width: 550px) {
   #optionButtons {
     max-width: calc(100% - 10px);
-  }
-
-  #menuDiv {
-    height: calc(100% - 30px);
-  }
-}
-
-@media (max-height: 450px) {
-  #menuDiv {
-    height: calc(100% - 30px);
-    flex-direction: row;
   }
 }
 
