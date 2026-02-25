@@ -16,10 +16,6 @@ body {
   width: 100%;
 }
 
-.darkMode #map {
-  background-color: #00263F;
-}
-
 :root {
   height: 100%;
   touch-action: pan-x pan-y;
@@ -38,7 +34,9 @@ body,
   display: none;
 }
 
-#batteryDiv:has(#batteryLevel:empty) {
+#batteryDiv:has(#batteryLevel:empty),
+#trafficWarning:empty,
+#extraInfo:empty {
   display: none;
 }
 
@@ -50,10 +48,6 @@ body,
   cursor: pointer;
   font-weight: bold;
   margin-bottom: 5px;
-}
-
-#trafficWarning:empty {
-  display: none;
 }
 
 #optionButtons {
@@ -73,10 +67,6 @@ body,
   display: none;
   margin-bottom: 5px;
   width: 100%;
-}
-
-html:fullscreen div.ol-zoom {
-  margin-top: max(env(safe-area-inset-top), .5em);
 }
 
 #map .ol-rotate {
@@ -112,7 +102,6 @@ html:fullscreen div.ol-zoom {
 
 .textbox table {
   width: 100%;
-  /* border-spacing: 5px; */
 }
 
 th, td {
@@ -240,8 +229,6 @@ kbd {
   border-radius: 5px;
   border: 1px solid rgb(32, 32, 32);
   color: rgb(32, 32, 32);
-  /* font-family: "B612"; */
-  /*  font-family: Arial, Helvetica, sans-serif; */
   font-weight: 500;
   font-size: 25px;
   max-height: calc(100% - 10px);
@@ -258,14 +245,23 @@ kbd {
   cursor: pointer;
 }
 
+.darkMode #map {
+  background-color: #00263F;
+}
+
 .darkMode #infoGroup {
   background-color: rgba(0, 0, 0, 0.4);
   color: rgb(245, 245, 245);
 }
 
+.darkMode .ol-zoom,
 .darkMode #optionButtons,
 .darkMode #menuDiv {
   filter: invert(1) hue-rotate(180deg);
+}
+
+html:fullscreen div.ol-zoom {
+  margin-top: max(env(safe-area-inset-top), .5em);
 }
 
 html:fullscreen .infoGroup {
@@ -294,10 +290,6 @@ html:fullscreen .infoGroup {
 #extraInfo {
   font-weight: 700;
   padding-top: 0.25rem;
-}
-
-#extraInfo:empty {
-  display: none;
 }
 
 .public {
