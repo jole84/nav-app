@@ -89,7 +89,7 @@
   <div id="optionButtons">
     <button class="btn btn-danger" id="centerButton">Center</button>
     <button class="btn btn-primary fullscreenHide" id="saveLogButton">Spara spår</button>
-    <button class="btn btn-info fullscreenHide" id="clickFileButton">Ladda GPX</button>
+    <button class="btn btn-info fullscreenHide" id="loadGpxMenuButton">Ladda GPX</button>
     <select class="form-select fullscreenHide" id="layerSelector">
       <option value="0">Jole84 Terrängkarta</option>
       <option value="1">Jole84 Vägkarta</option>
@@ -100,24 +100,16 @@
     </select>
     <button class="btn btn-success fullscreenHide" id="openMenu">Meny</button>
   </div>
+
+
   <div class="menuContainer">
-    <div id="menuDiv">
-      <div id="menuContent">
+    <div id="menuDiv" class="textbox invisible">
+      <div>
         Navigationsapp med <a href="https://github.com/jole84/nav-app">öppen källkod</a>, baserad på <a
           href="https://openlayers.org">Openlayers</a>. Navigation från <a href="https://project-osrm.org//">OSRM</a>.
         Karta
         skapad av öppna data från Lantmäteriet och Trafikverket.
         <table class="table">
-          <tr>
-            <td colspan="2">
-              <select class="form-select" id="selectFile">
-                <option>välj gpxfil</option>
-                <option value="https://transeurotrail.org/wp-content/uploads/gpxsync/S.gpx">
-                  TET Sverige</option>
-              </select>
-            </td>
-          </tr>
-
           <tr>
             <td>
               Användarnamn (för Glympse-liknande funktion, tomt avaktiverar):
@@ -150,7 +142,7 @@
             </td>
           </tr>
 
-          <!-- <tr>
+          <tr>
             <td><kbd>A/+</kbd> zooma in</td>
             <td><kbd>Esc/-</kbd> zooma ut</td>
           </tr>
@@ -168,63 +160,96 @@
           <tr>
             <td><kbd>R</kbd> räkna om rutt</td>
             <td><kbd>högerklick/långtryck</kbd> navigera till punkt</td>
-          </tr> -->
+          </tr>
 
           <tr>
             <td>
-              <select class="form-select" id="selectUpload"></select>
-              <!-- <div id="uploads"></div> -->
+              <input type="checkbox" id="tripPointButton" name="tripPointButton" />
+              <label for="tripPointButton">Visa spårpunktsdata</label>
             </td>
-
             <td>
-              <div id="appView" class="invisible">
-                Inloggad som <strong id="userLabel"></strong><br>
-                <button id="logoutButton">Logout</button>
-                <!-- <button id="uploadButton" class="btn btn-primary">Dela rutt</button> -->
-              </div>
+              <button class="btn btn-danger" id="clearTripButton">Nollställ tripp</button>
             </td>
           </tr>
 
           <tr>
             <td>
-              <div id="loginView">
-                <h2>Login (auto-register)</h2>
-                <input id="username" placeholder="Username"><br><br>
-                <input id="password" type="password" placeholder="Password"><br>
-                <button id="loginButton">Login</button>
-              </div>
+              <button class="btn btn-danger" id="clearSettings">Återställ inställningar</button>
+            </td>
+
+            <td style="text-align: right;">
+              <button class="btn btn-success" id="closeMenuButton">Stäng</button>
             </td>
           </tr>
+
+        </table>
       </div>
+    </div>
 
-      <tr>
-        <td>
-          <!-- <button class="btn btn-primary" id="tripPointButton">Visa spårpunktsdata</button> -->
-          <input type="checkbox" id="tripPointButton" name="tripPointButton" />
-          <label for="tripPointButton">Visa spårpunktsdata</label>
-        </td>
-        <td>
-          <button class="btn btn-danger" id="clearTripButton">Nollställ tripp</button>
-        </td>
-      </tr>
+    <!-- loadGpxMenu -->
+    <div id="loadGpxMenu" class="textbox invisible">
+      <table>
 
+        <tr>
+          <td colspan="2">
+            <select class="form-select" id="selectFile">
+              <option value="0">välj gpxfil</option>
+              <option value="https://transeurotrail.org/wp-content/uploads/gpxsync/S.gpx">
+                TET Sverige</option>
+            </select>
+          </td>
+        </tr>
+
+        <tr>
+          <td colspan="2">
+            <select class="form-select" id="selectUpload"></select>
+          </td>
+        </tr>
+
+        <tr id="appView" class="invisible">
+          <td>
+            <h3>
+              Inloggad som <strong id="userLabel"></strong>
+            </h3>
+            <!-- <button id="uploadButton" class="btn btn-primary">Dela rutt</button> -->
+          </td>
+          <td style="text-align: right;">
+            <button id="logoutButton" class="btn btn-info">Logout</button>
+          </td>
+        </tr>
+
+        <tr id="loginView">
+          <td>
+            <h3>Login (auto-register)</h3 >
+            <input id="username" class="form-control" placeholder="Username"><br><br>
+            <input id="password" class="form-control" type="password" placeholder="Password">
+          </td>
+          <td style="text-align: right;">
+            <button id="loginButton" class="btn btn-info">Login</button>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <button class="btn btn-danger" id="clearGpxSourceButton">Rensa GPX lager</button>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <button class="btn btn-info" id="clickFileButton">Ladda GPX/KML fil</button>
+          </td>
+          <td style="text-align: right;">
+            <button class="btn btn-success" id="closeloadGpxMenu">Stäng</button>
+          </td>
+        </tr>
       </table>
     </div>
-
-    <div id="bottomMenuButtons">
-      <div>
-        <button class="btn btn-danger" id="clearSettings">Återställ inställningar</button>
-      </div>
-      <div>
-        <button class="btn btn-success" id="closeMenu">Stäng</button>
-      </div>
-    </div>
-  </div>
   </div>
 
 
-  <input type="file" id="customFileButton" multiple accept=".gpx,.gpx.txt,application/gpx+xml,.kml,.geojson"
-    style="display: none;" />
+  <input id="customFileButton" class="invisible" type="file" multiple
+    accept=".gpx,.gpx.txt,application/gpx+xml,.kml,.geojson" />
 </body>
 
 </html>

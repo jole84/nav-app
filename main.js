@@ -43,11 +43,12 @@ import {
 localStorage.mapMode = localStorage.mapMode || 0;
 const center = JSON.parse(localStorage.lastPosition || "[1600000, 8000000]");
 const centerButton = document.getElementById("centerButton");
-const closeMenuButton = document.getElementById("closeMenu");
+const closeMenuButton = document.getElementById("closeMenuButton");
 const customFileButton = document.getElementById("customFileButton");
 const infoGroup = document.getElementById("infoGroup");
 const interactionDelay = 15000;
 const menuDiv = document.getElementById("menuDiv");
+const loadGpxMenu = document.getElementById("loadGpxMenu");
 const openMenuButton = document.getElementById("openMenu");
 const preferredFontSizeDiv = document.getElementById("preferredFontSize");
 const prefferedZoomDiv = document.getElementById("prefferedZoom");
@@ -138,10 +139,7 @@ saveLogButton.onclick = saveLog;
 trafficWarningDiv.onclick = focusTrafficWarning;
 document.getElementById("clearTripButton").onclick = clearTrip;
 document.getElementById("restoreTripButton").onclick = restoreTrip;
-document.getElementById("clickFileButton").onclick = function () {
-  gpxSource.clear();
-  customFileButton.click();
-};
+document.getElementById("clickFileButton").onclick = () => customFileButton.click();
 setTimeout(function () { document.getElementById("restoreTripButton").style.display = "none" }, 30000);
 
 infoGroup.addEventListener("dblclick", function () {
@@ -175,15 +173,36 @@ infoGroup.addEventListener("click", function () {
 // }
 
 closeMenuButton.onclick = function () {
-  menuDiv.style.display = "none";
+  menuDiv.classList.add("invisible");
+};
+
+document.getElementById("closeloadGpxMenu").onclick = function () {
+  loadGpxMenu.classList.add("invisible");
+};
+
+document.getElementById("clearGpxSourceButton").onclick = function () {
+  gpxLayer.getSource().clear();
+  selectedUpload = "";
+  selectFile.value = "0"
+  selectUpload.value = "0";
+};
+
+document.getElementById("loadGpxMenuButton").onclick = function () {
+  if (loadGpxMenu.checkVisibility()) {
+    loadGpxMenu.classList.add("invisible");
+  } else {
+    loadGpxMenu.classList.remove("invisible");
+    if (localStorage.getItem("token")) {
+      showApp(localStorage.getItem("username"));
+    }
+    loadData();
+  }
+  document.getElementById("loadGpxMenuButton").blur();
 };
 
 openMenuButton.onclick = function () {
-  menuDiv.style.display = menuDiv.checkVisibility() ? "none" : "flex";
-  if (localStorage.getItem("token")) {
-    showApp(localStorage.getItem("username"));
-  }
-  loadData();
+  menuDiv.style.display = menuDiv.checkVisibility() ? menuDiv.classList.add("invisible") : menuDiv.classList.remove("invisible");
+  openMenuButton.blur();
 };
 
 document.getElementById("clearSettings").onclick = function () {
@@ -619,7 +638,7 @@ function clearTrip() {
   trackLineString.setCoordinates([]);
   localStorage.removeItem("trackLog");
   maxSpeed = 0;
-  menuDiv.style.display = "none";
+  menuDiv.classList.add("ivisible");
   setExtraInfo(["Tripp nollställd"]);
   trackLog = [[lonlat, altitude, Date.now()]];
   trackPointLayer.getSource().clear();
@@ -1060,7 +1079,12 @@ document.addEventListener("keydown", function (event) {
   if (menuDiv.checkVisibility()) {
     if (event.key == "Escape" || event.key == "§") {
       event.preventDefault();
-      closeMenuButton.click();
+      menuDiv.classList.add("invisible");
+    }
+  } else if (loadGpxMenu.checkVisibility()) {
+    if (event.key == "Escape" || event.key == "§") {
+      event.preventDefault();
+      loadGpxMenu.classList.add("invisible");
     }
   } else {
     for (let i = 1; i < 9; i++) {
@@ -1531,6 +1555,7 @@ async function loadData() {
 
   const el = document.createElement("option");
   el.textContent = "Välj uppladdning";
+  el.value = "0";
   selectUpload.replaceChildren(el);
 
   // document.getElementById("uploads").replaceChildren();
