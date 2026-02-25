@@ -229,6 +229,7 @@ const jole84TileLayer = new VectorTileLayer({
   source: new VectorTileSource({
     format: new MVT(),
     url: 'https://jole84.se/tiles/{z}/{x}/{y}.pbf',
+    // url: "https://jole84.se/phpReadFile.php?url=" + 'https://jole84.se/tiles/{z}/{x}/{y}.pbf',
     // transition: 0,
     minZoom: 6,
     maxZoom: 14,
