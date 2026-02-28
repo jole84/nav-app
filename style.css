@@ -303,6 +303,11 @@ html:fullscreen .infoGroup {
   font-weight: bold;
 }
 
+.sticky {
+  position: sticky;
+  bottom: 0;
+}
+
 @media (max-width: 550px) {
   #optionButtons {
     max-width: calc(100% - 10px);

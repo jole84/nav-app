@@ -1670,11 +1670,7 @@ async function loadItem(id) {
   gpxLayer.getSource().clear();
   newGeometry.forEach(element => {
     // console.log(element.getProperties())
-    if (!!element.get("routeLineString")) {
-      gpxLayer.getSource().addFeature(element);
-    } else if (!!element.get("poi")) {
-      gpxLayer.getSource().addFeature(element);
-    }
+    if (!!element.get("routeLineString") || !!element.get("poi") || !!element.get("gpxFeature")) gpxLayer.getSource().addFeature(element);
   });
 }
 
