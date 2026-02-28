@@ -181,7 +181,7 @@ document.getElementById("closeloadGpxMenu").onclick = function () {
 };
 
 document.getElementById("clearGpxSourceButton").onclick = function () {
-  gpxLayer.getSource().clear();
+  gpxSource.clear();
   selectedUpload = "";
   selectFile.value = "0"
   selectUpload.value = "0";
@@ -1602,7 +1602,7 @@ selectUpload.addEventListener("change", () => {
   if (selectUpload.value > 0) {
     loadItem(selectUpload.value);
   } else {
-    gpxLayer.getSource().clear();
+    gpxSource.clear();
   }
 });
 
@@ -1667,10 +1667,10 @@ async function loadItem(id) {
     featureProjection: "EPSG:3857",
   });
 
-  gpxLayer.getSource().clear();
+  gpxSource.clear();
   newGeometry.forEach(element => {
     // console.log(element.getProperties())
-    if (!!element.get("routeLineString") || !!element.get("poi") || !!element.get("gpxFeature")) gpxLayer.getSource().addFeature(element);
+    if (!!element.get("routeLineString") || !!element.get("poi") || !!element.get("gpxFeature")) gpxSource.addFeature(element);
   });
 }
 
