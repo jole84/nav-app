@@ -923,6 +923,65 @@ function routeMe() {
   });
 }
 
+function routeMeGeoapify() {
+  const coordsString = [];
+  destinationCoordinates.forEach((element) => {
+    console.log(element)
+    coordsString.push(element.toReversed());
+  });
+
+  // return
+  const requestOptions = {
+    method: "GET",
+    redirect: "follow"
+  };
+
+  const params = new URLSearchParams({
+    waypoints: coordsString.join("|"),
+    mode: "drive",
+    // mode: "truck",
+    // mode: "heavy_truck",
+    // mode: "long_truck",
+    // mode: "motorcycle",
+    apiKey: "37b5aef31feb4406b91a1ba40f718777",
+    // avoid: "highways",
+    lang: "sv",
+    // details: "instruction_details",
+    // traffic: "approximated",
+    // max_speed: 80,
+    // avoid: "location:57.893118,14.371427",
+    // type: "short",
+    // type: "less_maneuvers",
+  });
+
+  fetch('https://api.geoapify.com/v1/routing?' + params, requestOptions
+  ).then(response => {
+    return response.json();
+  }).then(result => {
+    console.log(result);
+    const format = new GeoJSON();
+    const newGeometry = format.readFeature((result.features[0].geometry), {
+      dataProjection: "EPSG:4326",
+      featureProjection: "EPSG:3857"
+    });
+
+    navigationSteps = [];
+
+    const totalLength = result.features[0].properties.distance / 1000; // track-length in km
+    const totalTime = result.features[0].properties.time * 1000;
+    getRemainingDistance(
+      newGeometry.getGeometry().getLineString().getCoordinates(),
+      speedKmh,
+      navigationSteps,
+      currentPosition
+    );
+
+    routeLineString.setCoordinates(newGeometry.getGeometry().getLineString().getCoordinates());
+    endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
+  });
+
+}
+
 map.on("singleclick", function (evt) {
   if (evt.originalEvent.ctrlKey) {
     const coordinate = toLonLat(evt.coordinate).reverse();
