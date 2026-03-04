@@ -206,8 +206,10 @@ openMenuButton.onclick = function () {
 };
 
 document.getElementById("clearSettings").onclick = function () {
-  localStorage.clear();
-  location.reload();
+  if (confirm("Radera inställningar?")) {
+    localStorage.clear();
+    location.reload();
+  }
 };
 
 localStorage.defaultZoom = prefferedZoomDiv.value =
