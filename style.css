@@ -262,7 +262,7 @@ kbd {
 
 .darkMode .ol-zoom,
 .darkMode #optionButtons,
-.darkMode #menuDiv {
+.darkMode .textbox {
   filter: invert(1) hue-rotate(180deg);
 }
 
