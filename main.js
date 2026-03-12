@@ -1137,6 +1137,7 @@ switchMap();
 // navigator.keyboard.lock(["Escape", "Enter"]);
 // add keyboard controls
 document.addEventListener("keydown", function (event) {
+  // remotek double press up = "k" (unused)
   if (menuDiv.checkVisibility()) {
     if (event.key == "Escape" || event.key == "§") {
       event.preventDefault();
@@ -1176,11 +1177,13 @@ document.addEventListener("keydown", function (event) {
         }
       }
     }
-    if (event.key == "c") {
+    if (event.key == "c" || event.key == "l") {
+      // remotek double press left
       event.preventDefault();
       centerFunction();
     }
-    if (event.key == "v") {
+    if (event.key == "v" || event.key == "m") {
+      // remotek double press right
       localStorage.mapMode = Number(localStorage.mapMode) + 1;
       switchMap();
     }
@@ -1191,6 +1194,7 @@ document.addEventListener("keydown", function (event) {
       view.adjustRotation(-0.2);
     }
     if (event.key == "n") {
+      // remotek double press down
       lastInteraction = Date.now();
       view.setRotation(0);
     }
