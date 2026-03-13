@@ -1137,7 +1137,7 @@ switchMap();
 // navigator.keyboard.lock(["Escape", "Enter"]);
 // add keyboard controls
 document.addEventListener("keydown", function (event) {
-  // remotek double press up = "k" (unused)
+  // remotek double press right || event.key == "m"
   if (menuDiv.checkVisibility()) {
     if (event.key == "Escape" || event.key == "§") {
       event.preventDefault();
@@ -1182,8 +1182,7 @@ document.addEventListener("keydown", function (event) {
       event.preventDefault();
       centerFunction();
     }
-    if (event.key == "v" || event.key == "m") {
-      // remotek double press right
+    if (event.key == "v") {
       localStorage.mapMode = Number(localStorage.mapMode) + 1;
       switchMap();
     }
@@ -1216,7 +1215,8 @@ document.addEventListener("keydown", function (event) {
       }
       view.adjustZoom(zoomStep);
     }
-    if (event.code == "Space") {
+    if (event.code == "Space" || event.key == "k") {
+      // remotek double press up = "k"
       event.preventDefault();
       focusTrafficWarning();
     }
