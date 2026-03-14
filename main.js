@@ -1334,7 +1334,7 @@ function focusTrafficWarning() {
   } else {
     closestAccidentPosition = currentPosition;
   }
-  const duration = 500;
+  const duration = 0;
   view.animate({
     center: closestAccidentPosition,
     duration: duration,
