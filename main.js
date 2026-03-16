@@ -80,6 +80,7 @@ let speed = 0;
 let speedKmh = 0;
 let timeOut;
 let trackLog = [];
+let navigationSteps = [];
 
 if (!!localStorage.trackLog) {
   document.getElementById("restoreTripButton").style.display = "unset";
@@ -403,6 +404,7 @@ fetch("https://jole84.se/filesList.php")
       selectFile.appendChild(el);
     }
   }).catch(function (err) {
+    setExtraInfo(["filesList error:", err]);
     console.log('error: ' + err);
   });
 
@@ -835,9 +837,60 @@ function setExtraInfo(infoText) {
   }, 10000);
 }
 
+function routeMe() {
+  try {
+    routeMeOSRM(); // default
+  } catch (error) {
+    setExtraInfo(["OSRM error:", error]);
+    routeMeOSR();
+  }
+}
+
+// OSRM routing
+async function routeMeOSRM() {
+  const requsetParams = new URLSearchParams({
+    geometries: 'geojson',
+    overview: 'full',
+    continue_straight: false,
+    generate_hints: false,
+    // skip_waypoints: true,
+    steps: true,
+  });
+
+  const response = await fetch(`https://router.project-osrm.org/route/v1/driving/${destinationCoordinates.join(";")}?` + requsetParams);
+  const result = await response.json();
+  navigationSteps = [];
+  result.routes[0].legs.forEach(leg => {
+    navigationSteps = navigationSteps.concat(leg.steps.filter(element => !["arrive", "depart", "new name"].includes(element.maneuver.type)));
+  });
+  navigationSteps.push(result.routes[0].legs[result.routes[0].legs.length - 1].steps[result.routes[0].legs[result.routes[0].legs.length - 1].steps.length - 1]);
+  destinationCoordinates[destinationCoordinates.length - 1] = result.waypoints[destinationCoordinates.length - 1].location;
+  const format = new GeoJSON();
+  const newGeometry = format.readFeature(result.routes[0].geometry, {
+    dataProjection: "EPSG:4326",
+    featureProjection: "EPSG:3857"
+  });
+
+  navigationSteps.forEach(step => {
+    step["stepIndex"] = findIndexOf(fromLonLat(step.maneuver.location), newGeometry.getGeometry().getCoordinates());
+  });
+
+  // const totalLength = result.routes[0].distance / 1000; // track-length in km
+  // const totalTime = result.routes[0].duration;
+  getRemainingDistance(
+    newGeometry.getGeometry().getCoordinates(),
+    speedKmh,
+    navigationSteps,
+    currentPosition
+  );
+
+  routeLineString.setCoordinates(newGeometry.getGeometry().getCoordinates());
+  endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
+}
+
 // Open Route Service routing
-function routeMeOSR() {
-  fetch(`https://api.openrouteservice.org/v2/directions/driving-car/geojson?`, {
+async function routeMeOSR() {
+  const requestParams = {
     method: "post",
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
@@ -852,136 +905,30 @@ function routeMeOSR() {
       // preference: "shortest",
       // preference: "fastest",
     })
-  }).then(response => {
-    return response.json();
-  }).then(result => {
-    console.log(result)
-    destinationCoordinates[destinationCoordinates.length - 1] = result.features[0].geometry.coordinates[result.features[0].geometry.coordinates.length - 1];
-    const format = new GeoJSON();
-    const newGeometry = format.readFeature(result.features[0].geometry, {
-      dataProjection: "EPSG:4326",
-      featureProjection: "EPSG:3857"
-    });
-
-    const totalLength = result.features[0].properties.summary.distance / 1000; // track-length in km
-    const totalTime = result.features[0].properties.summary.duration;
-    getRemainingDistance(
-      newGeometry.getGeometry().getCoordinates(),
-      speedKmh,
-      [],
-      currentPosition
-    );
-
-    routeLineString.setCoordinates(newGeometry.getGeometry().getCoordinates());
-    endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
-  });
-}
-
-let navigationSteps = [];
-
-// OSRM routing
-function routeMe() {
-  const params = new URLSearchParams({
-    geometries: 'geojson',
-    overview: 'full',
-    continue_straight: false,
-    generate_hints: false,
-    // skip_waypoints: true,
-    steps: true,
-  });
-  fetch(`https://router.project-osrm.org/route/v1/driving/${destinationCoordinates.join(";")}?` + params).then(response => {
-    return response.json();
-  }).then(result => {
-    navigationSteps = [];
-    result.routes[0].legs.forEach(leg => {
-      navigationSteps = navigationSteps.concat(leg.steps.filter(element => !["arrive", "depart", "new name"].includes(element.maneuver.type)));
-    });
-    navigationSteps.push(result.routes[0].legs[result.routes[0].legs.length - 1].steps[result.routes[0].legs[result.routes[0].legs.length - 1].steps.length - 1]);
-    destinationCoordinates[destinationCoordinates.length - 1] = result.waypoints[destinationCoordinates.length - 1].location;
-    const format = new GeoJSON();
-    const newGeometry = format.readFeature(result.routes[0].geometry, {
-      dataProjection: "EPSG:4326",
-      featureProjection: "EPSG:3857"
-    });
-
-    navigationSteps.forEach(step => {
-      step["stepIndex"] = findIndexOf(fromLonLat(step.maneuver.location), newGeometry.getGeometry().getCoordinates());
-    });
-
-    const totalLength = result.routes[0].distance / 1000; // track-length in km
-    const totalTime = result.routes[0].duration;
-    getRemainingDistance(
-      newGeometry.getGeometry().getCoordinates(),
-      speedKmh,
-      navigationSteps,
-      currentPosition
-    );
-
-    routeLineString.setCoordinates(newGeometry.getGeometry().getCoordinates());
-    endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
-  }).catch((error) => {
-    setExtraInfo(["OSRM error:", error]);
-    routeMeOSR();
-  });
-}
-
-function routeMeGeoapify() {
-  const coordsString = [];
-  destinationCoordinates.forEach((element) => {
-    console.log(element)
-    coordsString.push(element.toReversed());
-  });
-
-  // return
-  const requestOptions = {
-    method: "GET",
-    redirect: "follow"
   };
 
-  const params = new URLSearchParams({
-    waypoints: coordsString.join("|"),
-    mode: "drive",
-    // mode: "truck",
-    // mode: "heavy_truck",
-    // mode: "long_truck",
-    // mode: "motorcycle",
-    apiKey: "37b5aef31feb4406b91a1ba40f718777",
-    // avoid: "highways",
-    lang: "sv",
-    // details: "instruction_details",
-    // traffic: "approximated",
-    // max_speed: 80,
-    // avoid: "location:57.893118,14.371427",
-    // type: "short",
-    // type: "less_maneuvers",
+  const response = await fetch(`https://api.openrouteservice.org/v2/directions/driving-car/geojson?`, requestParams);
+  const result = await response.json();
+
+  console.log(result);
+  destinationCoordinates[destinationCoordinates.length - 1] = result.features[0].geometry.coordinates[result.features[0].geometry.coordinates.length - 1];
+  const format = new GeoJSON();
+  const newGeometry = format.readFeature(result.features[0].geometry, {
+    dataProjection: "EPSG:4326",
+    featureProjection: "EPSG:3857"
   });
 
-  fetch('https://api.geoapify.com/v1/routing?' + params, requestOptions
-  ).then(response => {
-    return response.json();
-  }).then(result => {
-    console.log(result);
-    const format = new GeoJSON();
-    const newGeometry = format.readFeature((result.features[0].geometry), {
-      dataProjection: "EPSG:4326",
-      featureProjection: "EPSG:3857"
-    });
+  // const totalLength = result.features[0].properties.summary.distance / 1000; // track-length in km
+  // const totalTime = result.features[0].properties.summary.duration;
+  getRemainingDistance(
+    newGeometry.getGeometry().getCoordinates(),
+    speedKmh,
+    [],
+    currentPosition
+  );
 
-    navigationSteps = [];
-
-    const totalLength = result.features[0].properties.distance / 1000; // track-length in km
-    const totalTime = result.features[0].properties.time * 1000;
-    getRemainingDistance(
-      newGeometry.getGeometry().getLineString().getCoordinates(),
-      speedKmh,
-      navigationSteps,
-      currentPosition
-    );
-
-    routeLineString.setCoordinates(newGeometry.getGeometry().getLineString().getCoordinates());
-    endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
-  });
-
+  routeLineString.setCoordinates(newGeometry.getGeometry().getCoordinates());
+  endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
 }
 
 map.on("singleclick", function (evt) {
@@ -1244,7 +1191,7 @@ function resetRotation() {
 }
 // <GTE name="Deviation.SeverityCode" value="2" /> 
 // <EQ name="Deviation.MessageCodeValue" value="roadClosed" />
-function getDeviations() {
+async function getDeviations() {
   let xmlRequest = `
     <REQUEST>
       <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
@@ -1275,53 +1222,53 @@ function getDeviations() {
       </QUERY>
     </REQUEST>
   `;
-  fetch(apiUrl, {
+
+  const response = await fetch(apiUrl, {
     method: "POST",
     headers: {
       "Content-Type": "text/xml",
     },
     body: xmlRequest,
-  })
-    .then((response) => response.json())
-    .then((result) => {
-      try {
-        trafficWarningSource.clear();
-        const resultRoadSituation = result.RESPONSE.RESULT[0].Situation;
-        resultRoadSituation.forEach(function (item) {
+  });
+  const result = await response.json();
+  try {
+    trafficWarningSource.clear();
+    const resultRoadSituation = result.RESPONSE.RESULT[0].Situation;
+    resultRoadSituation.forEach(function (item) {
 
-          // console.table(item.Deviation);
-          let IconId = item.Deviation[0].IconId;
-          item.Deviation.forEach(function (deviation) {
-            if (deviation.IconId == "roadClosed") {
-              IconId = "roadClosed";
-            }
-          });
+      // console.table(item.Deviation);
+      let IconId = item.Deviation[0].IconId;
+      item.Deviation.forEach(function (deviation) {
+        if (deviation.IconId == "roadClosed") {
+          IconId = "roadClosed";
+        }
+      });
 
-          const format = new WKT();
-          const position = format
-            .readGeometry(item.Deviation[0].Geometry.Point.WGS84)
-            .transform("EPSG:4326", "EPSG:3857");
-          const feature = new Feature({
-            geometry: position,
-            name:
-              breakSentence(
-                (item.Deviation[0].LocationDescriptor || item.Deviation[0].RoadNumber) + ": " +
-                // (item.Deviation[0].RoadNumber ? item.Deviation[0].RoadNumber + ": " : "") +
-                (item.Deviation[0].Message || item.Deviation[0].MessageCode || "?"),
-              ) +
-              "\nSluttid: " +
-              new Date(item.Deviation[0].EndTime).toLocaleString("sv-SE", { year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric" }),
-            roadNumber: item.Deviation[0].RoadNumber || "väg",
-            iconId: IconId,
-            messageCode: item.Deviation[0].MessageCode || "Tillbud",
-          });
-          trafficWarningSource.addFeature(feature);
-        });
-        getClosestAccident();
-      } catch (ex) {
-        console.log(ex);
-      }
+      const format = new WKT();
+      const position = format
+        .readGeometry(item.Deviation[0].Geometry.Point.WGS84)
+        .transform("EPSG:4326", "EPSG:3857");
+      const feature = new Feature({
+        geometry: position,
+        name:
+          breakSentence(
+            (item.Deviation[0].LocationDescriptor || item.Deviation[0].RoadNumber) + ": " +
+            // (item.Deviation[0].RoadNumber ? item.Deviation[0].RoadNumber + ": " : "") +
+            (item.Deviation[0].Message || item.Deviation[0].MessageCode || "?"),
+          ) +
+          "\nSluttid: " +
+          new Date(item.Deviation[0].EndTime).toLocaleString("sv-SE", { year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric" }),
+        roadNumber: item.Deviation[0].RoadNumber || "väg",
+        iconId: IconId,
+        messageCode: item.Deviation[0].MessageCode || "Tillbud",
+      });
+      trafficWarningSource.addFeature(feature);
     });
+    getClosestAccident();
+  } catch (ex) {
+    setExtraInfo(["getDeviations error:", ex]);
+    console.log(ex);
+  }
 }
 
 getDeviations();
@@ -1475,48 +1422,46 @@ document.getElementById("userName").addEventListener("change", function () {
 });
 
 setInterval(updateUserPosition, 15000);
-function updateUserPosition() {
-  if (!!localStorage.userName) {
-    const formData = new FormData();
-    formData.append("userName", localStorage.userName);
-    formData.append("timeStamp", Date.now());
-    formData.append("x", Math.round(geolocation.getPosition()[0]));
-    formData.append("y", Math.round(geolocation.getPosition()[1]));
-    formData.append("heading", (heading).toFixed(2));
-    formData.append("accuracy", Math.round(accuracy));
-    formData.append("speed", Math.floor(speedKmh));
-    fetch("https://jole84.se/locationHandler/sql-location-handler.php", {
-      method: "POST",
-      body: formData,
-    }).then((response) => response.json())
-      .then((userList) => {
-        userLocationLayer.getSource().clear();
-        for (let i = 0; i < userList.length; i++) {
-          // add the other users
-          const name = [
-            userList[i]["userName"],
-          ];
+async function updateUserPosition() {
+  if (!localStorage.userName) return; // stop function if userName missing
 
-          if (userList[i]["accuracy"] > 50) {
-            name.push("Osäker position (" + userList[i]["accuracy"] + "m)");
-          }
+  const formData = new FormData();
+  formData.append("userName", localStorage.userName);
+  formData.append("timeStamp", Date.now());
+  formData.append("x", Math.round(geolocation.getPosition()[0]));
+  formData.append("y", Math.round(geolocation.getPosition()[1]));
+  formData.append("heading", (heading).toFixed(2));
+  formData.append("accuracy", Math.round(accuracy));
+  formData.append("speed", Math.floor(speedKmh));
+  const response = await fetch("https://jole84.se/locationHandler/sql-location-handler.php", {
+    method: "POST",
+    body: formData,
+  });
+  const userList = await response.json();
 
-          if (Date.now() - userList[i]["timeStamp"] > 120000) {
-            name.push(msToTime(Date.now() - userList[i]["timeStamp"]));
-          }
+  userLocationLayer.getSource().clear();
+  for (let i = 0; i < userList.length; i++) {
+    // add the other users
+    const name = [
+      userList[i]["userName"],
+    ];
 
-          name.push((userList[i]["speed"] < 100 ? userList[i]["speed"] : "--") + "km/h");
+    if (userList[i]["accuracy"] > 50) {
+      name.push("Osäker position (" + userList[i]["accuracy"] + "m)");
+    }
 
-          const marker = new Feature({
-            geometry: new Point([userList[i]["x"], userList[i]["y"]]),
-            rotation: userList[i]["heading"],
-            name: name.join("\n"),
-          });
-          userLocationLayer.getSource().addFeature(marker);
-        }
-      }).catch((error) => {
-        console.log(error)
-      });
+    if (Date.now() - userList[i]["timeStamp"] > 120000) {
+      name.push(msToTime(Date.now() - userList[i]["timeStamp"]));
+    }
+
+    name.push((userList[i]["speed"] < 100 ? userList[i]["speed"] : "--") + "km/h");
+
+    const marker = new Feature({
+      geometry: new Point([userList[i]["x"], userList[i]["y"]]),
+      rotation: userList[i]["heading"],
+      name: name.join("\n"),
+    });
+    userLocationLayer.getSource().addFeature(marker);
   }
 }
 
@@ -1553,43 +1498,38 @@ function showTripLayer() {
   }
 }
 
-function fetchRoadCondition() {
+async function fetchRoadCondition() {
   roadConditionLayer.getSource().clear();
   const xmlRequest = `<REQUEST>
-        <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
-        <QUERY objecttype='RoadCondition' schemaversion='1.2' >
-        <FILTER>
-          <GTE name="ConditionCode" value="2" />
-          <NEAR name="Geometry.WGS84" value="${lonlat.join(" ")}" maxdistance="300000" />
-        </FILTER>
-        <INCLUDE>Geometry.WGS84</INCLUDE>
-        <INCLUDE>ConditionCode</INCLUDE>
-        </QUERY>
-        </REQUEST>`;
-  fetch(apiUrl, {
+    <LOGIN authenticationkey='fa68891ca1284d38a637fe8d100861f0' />
+    <QUERY objecttype='RoadCondition' schemaversion='1.2' >
+    <FILTER>
+      <GTE name="ConditionCode" value="2" />
+      <NEAR name="Geometry.WGS84" value="${lonlat.join(" ")}" maxdistance="300000" />
+    </FILTER>
+    <INCLUDE>Geometry.WGS84</INCLUDE>
+    <INCLUDE>ConditionCode</INCLUDE>
+    </QUERY>
+    </REQUEST>`;
+
+  const response = await fetch(apiUrl, {
     method: "Post",
     headers: {
       "Content-Type": "text/xml",
     },
     body: xmlRequest,
-  })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.json();
-    })
-    .then(result => {
-      const resultRoadCondition = result.RESPONSE.RESULT[0].RoadCondition;
-      var format = new WKT();
-      resultRoadCondition.forEach(function (item, index) {
-        var feature = new Feature({
-          geometry: format.readGeometry(item.Geometry.WGS84).transform("EPSG:4326", "EPSG:3857").simplify(500),
-          conditionCode: item.ConditionCode
-        });
-        roadConditionLayer.getSource().addFeature(feature);
-      });
+  });
+
+  const result = await response.json();
+  const resultRoadCondition = result.RESPONSE.RESULT[0].RoadCondition;
+  var format = new WKT();
+  resultRoadCondition.forEach(function (item) {
+    var feature = new Feature({
+      geometry: format.readGeometry(item.Geometry.WGS84).transform("EPSG:4326", "EPSG:3857").simplify(500),
+      conditionCode: item.ConditionCode
     });
+    roadConditionLayer.getSource().addFeature(feature);
+  });
 }
 
 fetchRoadCondition();
