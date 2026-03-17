@@ -420,9 +420,7 @@ selectFile.addEventListener("change", function () {
   console.log(selectFile.value)
   if (selectFile.value !== "välj gpxfil") {
     fetch("https://jole84.se/phpReadFile.php?url=" + selectFile.value, { mode: "cors" })
-      .then((response) => {
-        return response.text();
-      })
+      .then((response) => response.text())
       .then((response) => {
         gpxSourceLoader(new File([response], selectFile.value, { type: "application/gpx" }));
         setExtraInfo([selectFile.value.split("/").pop()]);
@@ -1073,9 +1071,7 @@ if (searchParams.has("gpxFile")) {
   const titleString = decodeURIComponent(gpxFile.split("/").pop());
   setExtraInfo([titleString]);
   fetch("https://jole84.se/phpReadFile.php?url=" + gpxFile, { mode: "cors" })
-    .then((response) => {
-      return response.text();
-    })
+    .then((response) => response.text())
     .then((response) => {
       gpxSourceLoader(new File([response], gpxFile, { type: "application/gpx" }));
     });
