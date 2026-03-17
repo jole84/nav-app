@@ -388,12 +388,9 @@ function gpxSourceLoader(gpxFile) {
     });
     for (let i = 0; i < gpxFeatures.length; i++) {
       if (gpxFeatures[i].get("routePointMarker")) {
-        destinationCoordinates[0] = lonlat;
-        destinationCoordinates.push(toLonLat(gpxFeatures[i].getGeometry().getCoordinates()))
-        routeMe();
-      } else {
-        gpxSource.addFeature(gpxFeatures[i]);
+        gpxFeatures[i].set("name", (gpxFeatures[i].getId() + 1));
       }
+      gpxSource.addFeature(gpxFeatures[i]);
     }
   };
 }
