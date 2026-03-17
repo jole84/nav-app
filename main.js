@@ -387,7 +387,13 @@ function gpxSourceLoader(gpxFile) {
       featureProjection: "EPSG:3857",
     });
     for (let i = 0; i < gpxFeatures.length; i++) {
-      gpxSource.addFeature(gpxFeatures[i]);
+      if (gpxFeatures[i].get("routePointMarker")) {
+        destinationCoordinates[0] = lonlat;
+        destinationCoordinates.push(toLonLat(gpxFeatures[i].getGeometry().getCoordinates()))
+        routeMe();
+      } else {
+        gpxSource.addFeature(gpxFeatures[i]);
+      }
     }
   };
 }
