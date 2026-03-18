@@ -386,11 +386,12 @@ function gpxSourceLoader(gpxFile) {
       dataProjection: "EPSG:4326",
       featureProjection: "EPSG:3857",
     });
-    for (let i = 0; i < gpxFeatures.length; i++) {
-      if (gpxFeatures[i].get("routePointMarker")) {
-        gpxFeatures[i].set("name", (gpxFeatures[i].getId() + 1));
+
+    for (const gpxFeature of gpxFeatures) {
+      if (gpxFeature.get("routePointMarker")) {
+        gpxFeature.set("name", (gpxFeature.getId() + 1));
       }
-      gpxSource.addFeature(gpxFeatures[i]);
+      gpxSource.addFeature(gpxFeature);
     }
   };
 }
@@ -840,7 +841,8 @@ function setExtraInfo(infoText) {
 
 function routeMe() {
   try {
-    routeMeOSRM(); // default
+    routeMeGoogle();
+    // routeMeOSRM(); // default
   } catch (error) {
     setExtraInfo(["OSRM error:", error]);
     routeMeOSR();
@@ -910,6 +912,7 @@ async function routeMeOSR() {
 
   const response = await fetch(`https://api.openrouteservice.org/v2/directions/driving-car/geojson?`, requestParams);
   const result = await response.json();
+  navigationSteps = [];
 
   console.log(result);
   destinationCoordinates[destinationCoordinates.length - 1] = result.features[0].geometry.coordinates[result.features[0].geometry.coordinates.length - 1];
@@ -932,7 +935,98 @@ async function routeMeOSR() {
   endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
 }
 
+import Polyline from 'ol/format/Polyline.js';
+async function routeMeGoogle() {
+  const points = destinationCoordinates.map(element => ({ latitude: element[1], longitude: element[0] }));
+  const origin = { location: { latLng: points[0] } };
+  const destination = { location: { latLng: points[points.length - 1] } };
+  const intermediates = points.slice(1, -1).map(p => ({ location: { latLng: p } }));
+
+  const FieldMask = 'routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline,routes.legs.steps.navigationInstruction,routes.legs.steps.distanceMeters,routes.legs.steps.startLocation'
+
+  const requestBody = {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+      // FieldMask determines the cost/data returned
+      'X-Goog-FieldMask': FieldMask,
+    },
+    body: JSON.stringify({
+      origin,
+      destination,
+      intermediates,
+      travelMode: 'DRIVE',
+      // routingPreference: 'TRAFFIC_AWARE',
+      routingPreference: 'TRAFFIC_UNAWARE',
+      units: 'METRIC',
+      languageCode: 'sv-SE',
+      routeModifiers: {
+        // avoidTolls: true,
+        // avoidFerries: true,
+        avoidHighways: false,
+      },
+    }),
+  };
+
+  // return;
+  const response = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', requestBody);
+  const result = await response.json();
+  console.log(result);
+
+  const format = new Polyline();
+  const newGeometry = format.readFeature(result.routes[0].polyline.encodedPolyline, {
+    dataProjection: "EPSG:4326",
+    featureProjection: "EPSG:3857"
+  });
+
+  routeLineString.setCoordinates(newGeometry.getGeometry().getCoordinates());
+  endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
+
+  navigationSteps = [];
+
+  result.routes[0].legs.forEach(leg => {
+    leg.steps.forEach(step => {
+      navigationSteps.push(step);
+    });
+  });
+
+  navigationSteps.forEach(step => {
+    const newMultiPoint = new MultiPoint(newGeometry.getGeometry().getCoordinates());
+    const closestPoint = newMultiPoint.getClosestPoint(fromLonLat([step.startLocation.latLng.longitude, step.startLocation.latLng.latitude]))
+    console.log(closestPoint)
+    step["stepIndex"] = findIndexOf(closestPoint, newGeometry.getGeometry().getCoordinates());
+  });
+}
+
 map.on("singleclick", function (evt) {
+  if (localStorage.testing) {
+    // for testing
+    trackLineString.appendCoordinate(evt.coordinate);
+    // console.log(navigationSteps);
+
+    const featureCoordinates = routeLineString.getCoordinates();
+    getRemainingDistance(
+      featureCoordinates,
+      50,
+      navigationSteps,
+      evt.coordinate
+    );
+
+    gpxSource.forEachFeature(function (feature) {
+      const featureType = feature.getGeometry().getType();
+      if (featureType == "LineString" || featureType == "MultiLineString") {
+        const featureCoordinates = featureType == "MultiLineString" ? feature.getGeometry().getLineString().getCoordinates() : feature.getGeometry().getCoordinates();
+        getRemainingDistance(
+          featureCoordinates,
+          speedKmh,
+          [],
+          evt.coordinate
+        );
+      }
+    });
+  }
+
   if (evt.originalEvent.ctrlKey) {
     const coordinate = toLonLat(evt.coordinate).reverse();
     window.open(
@@ -1564,17 +1658,6 @@ async function loadData() {
 
   // document.getElementById("uploads").replaceChildren();
   r.uploads.forEach(u => {
-    const is_public = u.is_public == 1;
-
-    // const elementText = document.createElement("strong");
-    // elementText.innerHTML = u.item_name + " " + (u.is_public ? '<span class="public">(Publik)</span>' : "(Privat)");
-    // document.getElementById("uploads").appendChild(elementText);
-
-    // const creatorText = document.createElement("small");
-    // creatorText.innerHTML = `By ${u.username} — ${new Date(u.created_at).toLocaleString()}<br>`;
-    // document.getElementById("uploads").appendChild(creatorText);
-
-    // selector
     const el = document.createElement("option");
     el.textContent = u.item_name + " " + (u.is_public ? '(Publik)' : "(Privat)") + ` (${u.username} ${new Date(u.created_at).toLocaleDateString()})`;
     el.value = u.id;
@@ -1582,21 +1665,6 @@ async function loadData() {
     selectUpload.appendChild(el);
 
     if (u.id == selectedUpload) selectUpload.value = u.id;
-    // ladda knapp
-    // const loadButton = document.createElement("button");
-    // loadButton.addEventListener("click", () => { loadItem(u.id) });
-    // loadButton.innerHTML = "ladda";
-    // elementText.appendChild(loadButton);
-    // if (!!localStorage.token && u.username == localStorage.username) {
-    //   // växla privat knapp
-    //   const makePublicButton = document.createElement("button");
-    //   makePublicButton.addEventListener("click", () => {
-    //     is_public ? makePrivate(u.id) : makePublic(u.id);
-    //   });
-    //   makePublicButton.innerHTML = is_public ? "Gör privat" : "Gör publik";
-    //   elementText.appendChild(makePublicButton);
-    // }
-
   });
 }
 
@@ -1625,37 +1693,6 @@ function showApp(username) {
   }
 }
 
-// document.getElementById("uploadButton").onclick = upload;
-async function upload() {
-  const name = prompt("Ange ruttnamn");
-
-  const newFeature = new Feature({
-    geometry: routeLineString
-  });
-  newFeature.set("routeLineString", true);
-  if (!name) return;
-  const geoJsonFile = new GeoJSON().writeFeature(newFeature, {
-    dataProjection: "EPSG:4326",
-    featureProjection: "EPSG:3857",
-    decimals: 5,
-  });
-  const text = btoa(encodeURIComponent(geoJsonFile));
-
-  await api("upload", { name, text });
-
-  const r = await api("list");
-  r.uploads.forEach(u => {
-    if (name == u.item_name) makePublic(u.id);
-  });
-}
-
-async function makePublic(id) {
-  await api("make_public", { id });
-}
-
-async function makePrivate(id) {
-  await api("make_private", { id });
-}
 
 async function loadItem(id) {
   const r = await api("get_item", { id });

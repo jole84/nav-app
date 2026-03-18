@@ -120,16 +120,42 @@ export function getRemainingDistance(featureCoordinates, speedKmh, navigationSte
   }
   remainingTime += `${minutes}<font class="infoFormat">min</font>`
   routeInfoRemainingTime.innerHTML = remainingTime;
-  
+
   // second row
   distanceToNextStep = distanceToNextStep > 1000 ?
     ((distanceToNextStep / 1000).toFixed(1) + '<font class="infoFormat">km</font>') :
     ((Math.round(distanceToNextStep / 25) * 25) + '<font class="infoFormat">m</font>');
-  routeInfoTurnHint.innerHTML = `${nextStep ? (createTurnHint(nextStep) + distanceToNextStep) : ""}`;
+  // routeInfoTurnHint.innerHTML = `${nextStep ? (createTurnHint(nextStep) + distanceToNextStep) : ""}`;
+  routeInfoTurnHint.innerHTML = translateArrayGoogle[nextStep.navigationInstruction.maneuver] + distanceToNextStep;
   routeInfoETA.innerHTML = `${ETA.getHours()}:${ETA.getMinutes().toString().padStart(2, "0")}<font class="infoFormat">ETA</font>`;
   // third row
-  routeInfoDestinations.innerHTML = nextStep ? (nextStep.destinations || nextStep.name || "") : "";
+  // routeInfoDestinations.innerHTML = nextStep ? (nextStep.destinations || nextStep.name || "") : "";
+  routeInfoDestinations.innerHTML = nextStep.navigationInstruction.instructions;
 }
+
+const translateArrayGoogle = {
+  "MANEUVER_UNSPECIFIED": "?",
+  "TURN_SLIGHT_LEFT": "⟵",
+  "TURN_SHARP_LEFT": "⟵",
+  "UTURN_LEFT": "↶",
+  "TURN_LEFT": "⟵",
+  "TURN_SLIGHT_RIGHT": "⟶",
+  "TURN_SHARP_RIGHT": "⟶",
+  "UTURN_RIGHT": "↷",
+  "TURN_RIGHT": "⟶",
+  "STRAIGHT": "↑",
+  "RAMP_LEFT": "↖⇈",
+  "RAMP_RIGHT": "⇈↗",
+  "MERGE": "⇈↖",
+  "FORK_LEFT": "↖",
+  "FORK_RIGHT": "↗",
+  "FERRY": "⇴",
+  "FERRY_TRAIN": "⇴",
+  "ROUNDABOUT_LEFT": "↻",
+  "ROUNDABOUT_RIGHT": "⟲",
+  "DEPART": "⬆",
+  "NAME_CHANGE": "↑",
+};
 
 const translateArray = {
   "turn": "sväng",
