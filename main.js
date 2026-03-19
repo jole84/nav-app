@@ -842,8 +842,8 @@ function setExtraInfo(infoText) {
 
 function routeMe() {
   try {
-    routeMeGoogle();
-    // routeMeOSRM(); // default router
+    // routeMeGoogle();
+    routeMeOSRM(); // default router
   } catch (error) {
     routeMeOSR(); // backup router
     setExtraInfo(["OSRM error:", error]);
