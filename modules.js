@@ -124,16 +124,15 @@ export function getRemainingDistance(featureCoordinates, speedKmh, navigationSte
   // second row
   distanceToNextStep = distanceToNextStep > 1000 ?
     ((distanceToNextStep / 1000).toFixed(1) + '<font class="infoFormat">km</font>') :
-    ((Math.round(distanceToNextStep / 25) * 25) + '<font class="infoFormat">m</font>');
-  // routeInfoTurnHint.innerHTML = `${nextStep ? (createTurnHint(nextStep) + distanceToNextStep) : ""}`;
-  routeInfoTurnHint.innerHTML = translateArrayGoogle[nextStep.navigationInstruction.maneuver] + distanceToNextStep;
+    ((Math.round(distanceToNextStep / 50) * 50) + '<font class="infoFormat">m</font>');
+  routeInfoTurnHint.innerHTML = nextStep ? translateArray[nextStep.maneuverType] + distanceToNextStep : "";
   routeInfoETA.innerHTML = `${ETA.getHours()}:${ETA.getMinutes().toString().padStart(2, "0")}<font class="infoFormat">ETA</font>`;
   // third row
-  // routeInfoDestinations.innerHTML = nextStep ? (nextStep.destinations || nextStep.name || "") : "";
-  routeInfoDestinations.innerHTML = nextStep.navigationInstruction.instructions;
+  routeInfoMessage.innerHTML = nextStep ? (nextStep.message || "") : "";
 }
 
-const translateArrayGoogle = {
+const translateArray = {
+  // google stuff
   "MANEUVER_UNSPECIFIED": "?",
   "TURN_SLIGHT_LEFT": "⟵",
   "TURN_SHARP_LEFT": "⟵",
@@ -155,9 +154,8 @@ const translateArrayGoogle = {
   "ROUNDABOUT_RIGHT": "⟲",
   "DEPART": "⬆",
   "NAME_CHANGE": "↑",
-};
 
-const translateArray = {
+  // osrm stuff
   "turn": "sväng",
   "new name": "↑", //?
   // "depart": "start",

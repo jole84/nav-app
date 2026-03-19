@@ -13,6 +13,7 @@ import MultiPoint from "ol/geom/MultiPoint.js";
 import MVT from 'ol/format/MVT.js';
 import OSM from "ol/source/OSM.js";
 import Point from "ol/geom/Point.js";
+import Polyline from 'ol/format/Polyline.js';
 import TileLayer from "ol/layer/Tile.js";
 import TileWMS from "ol/source/TileWMS.js";
 import VectorSource from "ol/source/Vector.js";
@@ -62,7 +63,7 @@ const routeInfoRemainingDistance = document.getElementById("routeInfoRemainingDi
 const routeInfoRemainingTime = document.getElementById("routeInfoRemainingTime");
 const routeInfoTurnHint = document.getElementById("routeInfoTurnHint");
 const routeInfoETA = document.getElementById("routeInfoETA");
-const routeInfoDestinations = document.getElementById("routeInfoDestinations");
+const routeInfoMessage = document.getElementById("routeInfoMessage");
 
 let accuracy = 5000;
 let altitude = 0;
@@ -655,7 +656,7 @@ function clearRouteInfo() {
   routeInfoRemainingTime.innerHTML = "";
   routeInfoTurnHint.innerHTML = "";
   routeInfoETA.innerHTML = "";
-  routeInfoDestinations.innerHTML = "";
+  routeInfoMessage.innerHTML = "";
 }
 
 // recenters the view by putting the given coordinates at 3/4 from the top of the screen
@@ -842,10 +843,10 @@ function setExtraInfo(infoText) {
 function routeMe() {
   try {
     routeMeGoogle();
-    // routeMeOSRM(); // default
+    // routeMeOSRM(); // default router
   } catch (error) {
+    routeMeOSR(); // backup router
     setExtraInfo(["OSRM error:", error]);
-    routeMeOSR();
   }
 }
 
@@ -862,11 +863,6 @@ async function routeMeOSRM() {
 
   const response = await fetch(`https://router.project-osrm.org/route/v1/driving/${destinationCoordinates.join(";")}?` + requsetParams);
   const result = await response.json();
-  navigationSteps = [];
-  result.routes[0].legs.forEach(leg => {
-    navigationSteps = navigationSteps.concat(leg.steps.filter(element => !["arrive", "depart", "new name"].includes(element.maneuver.type)));
-  });
-  navigationSteps.push(result.routes[0].legs[result.routes[0].legs.length - 1].steps[result.routes[0].legs[result.routes[0].legs.length - 1].steps.length - 1]);
   destinationCoordinates[destinationCoordinates.length - 1] = result.waypoints[destinationCoordinates.length - 1].location;
   const format = new GeoJSON();
   const newGeometry = format.readFeature(result.routes[0].geometry, {
@@ -874,12 +870,29 @@ async function routeMeOSRM() {
     featureProjection: "EPSG:3857"
   });
 
-  navigationSteps.forEach(step => {
-    step["stepIndex"] = findIndexOf(fromLonLat(step.maneuver.location), newGeometry.getGeometry().getCoordinates());
+
+  // adding navigationSteps
+  navigationSteps = [];
+  const newMultiPoint = new MultiPoint(newGeometry.getGeometry().getCoordinates());
+  result.routes[0].legs.forEach(leg => {
+    leg.steps.filter(element => !["arrive", "depart", "new name"].includes(element.maneuver.type)).forEach(step => {
+      const newStep = {};
+      const closestPoint = newMultiPoint.getClosestPoint(fromLonLat(step.maneuver.location))
+      newStep["stepIndex"] = findIndexOf(closestPoint, newGeometry.getGeometry().getCoordinates());
+      newStep["message"] = step.destinations || step.name || "";
+      newStep["maneuverType"] = step.maneuver.modifier;
+      console.log(newStep);
+      navigationSteps.push(newStep);
+    })
   });
 
-  // const totalLength = result.routes[0].distance / 1000; // track-length in km
-  // const totalTime = result.routes[0].duration;
+  // last step, arriving
+  navigationSteps.push({
+    stepIndex: newMultiPoint.getCoordinates().length,
+    message: "Ankomst",
+    maneuverType: "arrive",
+  })
+
   getRemainingDistance(
     newGeometry.getGeometry().getCoordinates(),
     speedKmh,
@@ -935,7 +948,6 @@ async function routeMeOSR() {
   endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
 }
 
-import Polyline from 'ol/format/Polyline.js';
 async function routeMeGoogle() {
   const points = destinationCoordinates.map(element => ({ latitude: element[1], longitude: element[0] }));
   const origin = { location: { latLng: points[0] } };
@@ -949,7 +961,6 @@ async function routeMeGoogle() {
     headers: {
       'Content-Type': 'application/json',
       'X-Goog-Api-Key': import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-      // FieldMask determines the cost/data returned
       'X-Goog-FieldMask': FieldMask,
     },
     body: JSON.stringify({
@@ -983,20 +994,35 @@ async function routeMeGoogle() {
   routeLineString.setCoordinates(newGeometry.getGeometry().getCoordinates());
   endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
 
-  navigationSteps = [];
 
+  // adding navigationSteps
+  navigationSteps = [];
+  const newMultiPoint = new MultiPoint(newGeometry.getGeometry().getCoordinates());
   result.routes[0].legs.forEach(leg => {
     leg.steps.forEach(step => {
-      navigationSteps.push(step);
-    });
+      const newStep = {};
+      const closestPoint = newMultiPoint.getClosestPoint(fromLonLat([step.startLocation.latLng.longitude, step.startLocation.latLng.latitude]));
+      newStep["stepIndex"] = findIndexOf(closestPoint, newGeometry.getGeometry().getCoordinates());
+      newStep["message"] = step.navigationInstruction.instructions.replace("\n", ". ");
+      newStep["maneuverType"] = step.navigationInstruction.maneuver;
+      console.log(newStep);
+      navigationSteps.push(newStep);
+    })
   });
 
-  navigationSteps.forEach(step => {
-    const newMultiPoint = new MultiPoint(newGeometry.getGeometry().getCoordinates());
-    const closestPoint = newMultiPoint.getClosestPoint(fromLonLat([step.startLocation.latLng.longitude, step.startLocation.latLng.latitude]))
-    console.log(closestPoint)
-    step["stepIndex"] = findIndexOf(closestPoint, newGeometry.getGeometry().getCoordinates());
-  });
+  // last step, arriving
+  navigationSteps.push({
+    stepIndex: newMultiPoint.getCoordinates().length,
+    message: "Ankomst",
+    maneuverType: "arrive",
+  })
+
+  getRemainingDistance(
+    newGeometry.getGeometry().getCoordinates(),
+    speedKmh,
+    navigationSteps,
+    currentPosition
+  );
 }
 
 map.on("singleclick", function (evt) {
