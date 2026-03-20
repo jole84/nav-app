@@ -32,6 +32,8 @@ import {
   styleRoadCondition,
 } from "./styleFuntions.js";
 import {
+  createOSRMTurnHint,
+  translateArray,
   getPixelDistance,
   breakSentence,
   msToTime,
@@ -842,8 +844,8 @@ function setExtraInfo(infoText) {
 
 function routeMe() {
   try {
-    // routeMeGoogle();
-    routeMeOSRM(); // default router
+    routeMeGoogle();
+    // routeMeOSRM(); // default router
   } catch (error) {
     routeMeOSR(); // backup router
     setExtraInfo(["OSRM error:", error]);
@@ -880,7 +882,7 @@ async function routeMeOSRM() {
       const closestPoint = newMultiPoint.getClosestPoint(fromLonLat(step.maneuver.location))
       newStep["stepIndex"] = findIndexOf(closestPoint, newGeometry.getGeometry().getCoordinates());
       newStep["message"] = step.destinations || step.name || "";
-      newStep["maneuverType"] = step.maneuver.modifier;
+      newStep["maneuverType"] = createOSRMTurnHint(step);
       console.log(newStep);
       navigationSteps.push(newStep);
     })
@@ -1004,7 +1006,7 @@ async function routeMeGoogle() {
       const closestPoint = newMultiPoint.getClosestPoint(fromLonLat([step.startLocation.latLng.longitude, step.startLocation.latLng.latitude]));
       newStep["stepIndex"] = findIndexOf(closestPoint, newGeometry.getGeometry().getCoordinates());
       newStep["message"] = step.navigationInstruction.instructions.replace("\n", ". ");
-      newStep["maneuverType"] = step.navigationInstruction.maneuver;
+      newStep["maneuverType"] = translateArray[step.navigationInstruction.maneuver];
       console.log(newStep);
       navigationSteps.push(newStep);
     })

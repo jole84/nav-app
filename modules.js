@@ -125,29 +125,29 @@ export function getRemainingDistance(featureCoordinates, speedKmh, navigationSte
   distanceToNextStep = distanceToNextStep > 1000 ?
     ((distanceToNextStep / 1000).toFixed(1) + '<font class="infoFormat">km</font>') :
     ((Math.round(distanceToNextStep / 50) * 50) + '<font class="infoFormat">m</font>');
-  routeInfoTurnHint.innerHTML = nextStep ? translateArray[nextStep.maneuverType] + distanceToNextStep : "";
+  routeInfoTurnHint.innerHTML = nextStep ? nextStep.maneuverType + distanceToNextStep : "";
   routeInfoETA.innerHTML = `${ETA.getHours()}:${ETA.getMinutes().toString().padStart(2, "0")}<font class="infoFormat">ETA</font>`;
   // third row
   routeInfoMessage.innerHTML = nextStep ? (nextStep.message || "") : "";
 }
 
-const translateArray = {
+export const translateArray = {
   // google stuff
   "MANEUVER_UNSPECIFIED": "?",
-  "TURN_SLIGHT_LEFT": "⟵",
-  "TURN_SHARP_LEFT": "⟵",
+  "TURN_SLIGHT_LEFT": "↖",
+  "TURN_SHARP_LEFT": "↰",
   "UTURN_LEFT": "↶",
-  "TURN_LEFT": "⟵",
-  "TURN_SLIGHT_RIGHT": "⟶",
-  "TURN_SHARP_RIGHT": "⟶",
+  "TURN_LEFT": "↰",
+  "TURN_SLIGHT_RIGHT": "↗",
+  "TURN_SHARP_RIGHT": "↱",
   "UTURN_RIGHT": "↷",
-  "TURN_RIGHT": "⟶",
+  "TURN_RIGHT": "↱",
   "STRAIGHT": "↑",
   "RAMP_LEFT": "↖⇈",
   "RAMP_RIGHT": "⇈↗",
   "MERGE": "⇈↖",
-  "FORK_LEFT": "↖",
-  "FORK_RIGHT": "↗",
+  "FORK_LEFT": "↑↖",
+  "FORK_RIGHT": "↗↑",
   "FERRY": "⇴",
   "FERRY_TRAIN": "⇴",
   "ROUNDABOUT_LEFT": "↻",
@@ -194,7 +194,7 @@ const translateArray = {
   5: "➎",
 };
 
-export function createTurnHint(routeStep) {
+export function createOSRMTurnHint(routeStep) {
   const destinations = routeStep.destinations;
   const maneuverType = routeStep.maneuver.type;
   const maneuverModifier = routeStep.maneuver.modifier;
