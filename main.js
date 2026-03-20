@@ -892,7 +892,7 @@ async function routeMeOSRM() {
   navigationSteps.push({
     stepIndex: newMultiPoint.getCoordinates().length,
     message: "Ankomst",
-    maneuverType: "arrive",
+    maneuverType: translateArray["arrive"],
   })
 
   getRemainingDistance(
@@ -1005,9 +1005,8 @@ async function routeMeGoogle() {
       const newStep = {};
       const closestPoint = newMultiPoint.getClosestPoint(fromLonLat([step.startLocation.latLng.longitude, step.startLocation.latLng.latitude]));
       newStep["stepIndex"] = findIndexOf(closestPoint, newGeometry.getGeometry().getCoordinates());
-      newStep["message"] = step.navigationInstruction.instructions.replace("\n", ". ");
+      newStep["message"] = step.navigationInstruction.instructions.replaceAll("\n", ". ").replaceAll('/', "/<wbr>");
       newStep["maneuverType"] = translateArray[step.navigationInstruction.maneuver];
-      console.log(newStep);
       navigationSteps.push(newStep);
     })
   });
@@ -1016,7 +1015,7 @@ async function routeMeGoogle() {
   navigationSteps.push({
     stepIndex: newMultiPoint.getCoordinates().length,
     message: "Ankomst",
-    maneuverType: "arrive",
+    maneuverType: translateArray["arrive"],
   })
 
   getRemainingDistance(
