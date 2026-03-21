@@ -72,7 +72,6 @@ let altitude = 0;
 let closestAccident;
 let closestAccidentPosition;
 let currentPosition = center;
-let destinationCoordinates = [];
 let distanceTraveled = 0;
 let heading = 0;
 let lastInteraction = Date.now() - interactionDelay;
@@ -84,6 +83,46 @@ let speedKmh = 0;
 let timeOut;
 let trackLog = [];
 let navigationSteps = [];
+
+const destinationCoordinates = {
+  coordinates: [],
+
+  push(coordinate) {
+    this.coordinates.push(coordinate);
+  },
+
+  pop() {
+    this.coordinates.pop();
+  },
+
+  clear() {
+    this.coordinates = [];
+  },
+
+  list() {
+    return this.coordinates;
+  },
+
+  getLength() {
+    return this.coordinates.length;
+  },
+
+  updateFirst(coordinate) {
+    this.coordinates[0] = coordinate;
+  },
+
+  updateLast(coordinate) {
+    this.coordinates[this.coordinates.length - 1] = coordinate;
+  },
+
+  getLastCoordinate() {
+    return fromLonLat(this.coordinates[this.coordinates.length - 1]);
+  },
+
+  getLastLonLat() {
+    return this.coordinates[this.coordinates.length - 1];
+  },
+}
 
 if (!!localStorage.trackLog) {
   document.getElementById("restoreTripButton").style.display = "unset";
@@ -523,10 +562,10 @@ geolocation.on("change", function () {
     }
 
     // recalculate route if > 300 m off route
-    if (destinationCoordinates.length == 2) {
+    if (destinationCoordinates.getLength() == 2) {
       const closestRoutePoint = routeLineString.getClosestPoint(currentPosition);
       if (getDistance(lonlat, toLonLat(closestRoutePoint)) > 300) {
-        destinationCoordinates[0] = lonlat;
+        destinationCoordinates.updateFirst(lonlat);
         routeMe();
       }
     }
@@ -863,9 +902,9 @@ async function routeMeOSRM() {
     steps: true,
   });
 
-  const response = await fetch(`https://router.project-osrm.org/route/v1/driving/${destinationCoordinates.join(";")}?` + requsetParams);
+  const response = await fetch(`https://router.project-osrm.org/route/v1/driving/${destinationCoordinates.list().join(";")}?` + requsetParams);
   const result = await response.json();
-  destinationCoordinates[destinationCoordinates.length - 1] = result.waypoints[destinationCoordinates.length - 1].location;
+  destinationCoordinates.updateLast(result.waypoints[destinationCoordinates.getLength() - 1].location);
   const format = new GeoJSON();
   const newGeometry = format.readFeature(result.routes[0].geometry, {
     dataProjection: "EPSG:4326",
@@ -883,7 +922,6 @@ async function routeMeOSRM() {
       newStep["stepIndex"] = findIndexOf(closestPoint, newGeometry.getGeometry().getCoordinates());
       newStep["message"] = step.destinations || step.name || "";
       newStep["maneuverType"] = createOSRMTurnHint(step);
-      console.log(newStep);
       navigationSteps.push(newStep);
     })
   });
@@ -903,7 +941,7 @@ async function routeMeOSRM() {
   );
 
   routeLineString.setCoordinates(newGeometry.getGeometry().getCoordinates());
-  endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
+  endMarker.setCoordinates(destinationCoordinates.getLastCoordinate());
 }
 
 // Open Route Service routing
@@ -916,7 +954,7 @@ async function routeMeOSR() {
       'Authorization': '5b3ce3597851110001cf62482ba2170071134e8a80497f7f4f2a0683'
     },
     body: JSON.stringify({
-      coordinates: destinationCoordinates,
+      coordinates: destinationCoordinates.list(),
       instructions: false,
       // maneuvers: true,
       // preference: "recommended",
@@ -930,7 +968,7 @@ async function routeMeOSR() {
   navigationSteps = [];
 
   console.log(result);
-  destinationCoordinates[destinationCoordinates.length - 1] = result.features[0].geometry.coordinates[result.features[0].geometry.coordinates.length - 1];
+  destinationCoordinates.updateLast(result.features[0].geometry.coordinates[result.features[0].geometry.coordinates.length - 1]);
   const format = new GeoJSON();
   const newGeometry = format.readFeature(result.features[0].geometry, {
     dataProjection: "EPSG:4326",
@@ -947,11 +985,11 @@ async function routeMeOSR() {
   );
 
   routeLineString.setCoordinates(newGeometry.getGeometry().getCoordinates());
-  endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
+  endMarker.setCoordinates(destinationCoordinates.getLastCoordinate());
 }
 
 async function routeMeGoogle() {
-  const points = destinationCoordinates.map(element => ({ latitude: element[1], longitude: element[0] }));
+  const points = destinationCoordinates.list().map(element => ({ longitude: element[0], latitude: element[1] }));
   const origin = { location: { latLng: points[0] } };
   const destination = { location: { latLng: points[points.length - 1] } };
   const intermediates = points.slice(1, -1).map(p => ({ location: { latLng: p } }));
@@ -994,7 +1032,7 @@ async function routeMeGoogle() {
   });
 
   routeLineString.setCoordinates(newGeometry.getGeometry().getCoordinates());
-  endMarker.setCoordinates(fromLonLat(destinationCoordinates[destinationCoordinates.length - 1]));
+  endMarker.setCoordinates(destinationCoordinates.getLastCoordinate());
 
 
   // adding navigationSteps
@@ -1068,7 +1106,7 @@ map.on("contextmenu", function (event) {
   lastInteraction = Date.now();
   const eventLonLat = toLonLat(event.coordinate);
   // set start position
-  destinationCoordinates[0] = lonlat;
+  destinationCoordinates.updateFirst(lonlat);
   const clickedOnCurrentPosition =
     getDistance(lonlat, eventLonLat) < 200 ||
     getPixelDistance(event.pixel, map.getPixelFromCoordinate(currentPosition)) < 50;
@@ -1087,7 +1125,7 @@ map.on("contextmenu", function (event) {
       },
     );
 
-  if (clickedOnCurrentPosition || (clickedOnEndMarker && destinationCoordinates.length <= 2)) {
+  if (clickedOnCurrentPosition || (clickedOnEndMarker && destinationCoordinates.getLength() <= 2)) {
     setExtraInfo([
       Math.round(getDistance(lonlat, eventLonLat)) +
       '<font class="infoFormat">m</font>',
@@ -1096,7 +1134,7 @@ map.on("contextmenu", function (event) {
     navigationSteps = [];
     routeLineString.setCoordinates([]);
     clearRouteInfo();
-    destinationCoordinates = [];
+    destinationCoordinates.clear();
   } else if (clickedOnEndMarker) {
     destinationCoordinates.pop();
   } else if (clickedOnWaypoint) {
@@ -1110,7 +1148,7 @@ map.on("contextmenu", function (event) {
   }
 
   // start routing
-  if (destinationCoordinates.length >= 2) {
+  if (destinationCoordinates.getLength() >= 2) {
     routeMe();
   }
 });
@@ -1126,11 +1164,11 @@ const searchParams = new URLSearchParams(window.location.search);
 if (searchParams.has("destinationPoints")) {
   const destinationPoints = JSON.parse(decodeURIComponent(searchParams.get("destinationPoints")));
   if (destinationPoints.length == 1) {
-    destinationCoordinates[0] = lonlat;
+    destinationCoordinates.updateFirst(lonlat);
     destinationCoordinates.push(destinationPoints[0]);
     routeMe();
   } else if (destinationPoints.length > 1) {
-    destinationCoordinates = destinationPoints;
+    destinationCoordinates.coordinates = destinationPoints;
     routeMe();
   }
 }
@@ -1138,11 +1176,11 @@ if (searchParams.has("destinationPoints")) {
 if (searchParams.has("destinationPoints64")) {
   const destinationPoints = JSON.parse(atob(searchParams.get("destinationPoints64")));
   if (destinationPoints.length == 1) {
-    destinationCoordinates[0] = lonlat;
+    destinationCoordinates.updateFirst(lonlat);
     destinationCoordinates.push(destinationPoints[0]);
     routeMe();
   } else if (destinationPoints.length > 1) {
-    destinationCoordinates = destinationPoints;
+    destinationCoordinates.coordinates = destinationPoints;
     routeMe();
   }
 }
@@ -1417,11 +1455,9 @@ function focusTrafficWarning() {
 }
 
 function focusDestination() {
-  if (destinationCoordinates.length > 1) {
+  if (destinationCoordinates.getLength() > 1) {
     lastInteraction = Date.now();
-    const coordinates = fromLonLat(
-      destinationCoordinates[destinationCoordinates.length - 1],
-    );
+    const coordinates = destinationCoordinates.getLastCoordinate();
 
     const duration = 500;
     view.animate({
@@ -1498,20 +1534,20 @@ function getClosestAccident() {
 }
 
 function recalculateRoute() {
-  if (destinationCoordinates.length >= 2) {
+  if (destinationCoordinates.getLength() >= 2) {
     if (
       getDistance(
         lonlat,
-        destinationCoordinates[destinationCoordinates.length - 1],
+        destinationCoordinates.getLastLonLat(),
       ) < 1000
     ) {
       clearRouteInfo();
       document.getElementById("extraInfo").innerHTML = "";
-      destinationCoordinates = [];
+      destinationCoordinates.clear();
       endMarker.setCoordinates([]);
       routeLineString.setCoordinates([]);
     } else {
-      destinationCoordinates = [lonlat, destinationCoordinates[destinationCoordinates.length - 1]];
+      destinationCoordinates.coordinates = [lonlat, destinationCoordinates.getLastLonLat()];
       routeMe();
     }
   }
