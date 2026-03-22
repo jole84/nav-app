@@ -237,8 +237,23 @@ const trackLog = {
   }
 };
 
-await trackLog.init();
+trackLog.init().then(() => {
+  checkIfOlderExists();
+});
 
+async function checkIfOlderExists() {
+  const olderExists = await trackLog.hasOlderThan(pageLoadTime);
+  if (olderExists) {
+    document.getElementById("restoreTripButton").style.display = "unset";
+  }
+}
+
+setTimeout(async () => {
+  if (!window.userChoseRestore) {
+    await trackLog.deleteOlderThan(pageLoadTime);
+    console.log("Old entries removed automatically");
+  }
+}, 5 * 60 * 1000);
 
 // const trackLog = {
 //   mainArray: [],
@@ -312,19 +327,6 @@ const destinationCoordinates = {
   },
 }
 
-const olderExists = await trackLog.hasOlderThan(pageLoadTime);
-
-if (olderExists) {
-  document.getElementById("restoreTripButton").style.display = "unset";
-}
-
-setTimeout(async () => {
-  if (!window.userChoseRestore) {
-    await trackLog.deleteOlderThan(pageLoadTime);
-    console.log("Old entries removed automatically");
-  }
-}, 5 * 60 * 1000);
-
 if (navigator.getBattery) {
   navigator.getBattery().then(function (battery) {
     document.getElementById("batteryLevel").innerHTML = Math.round(
@@ -380,7 +382,7 @@ trafficWarningDiv.onclick = focusTrafficWarning;
 document.getElementById("clearTripButton").onclick = clearTrip;
 document.getElementById("restoreTripButton").onclick = restoreTrip;
 document.getElementById("clickFileButton").onclick = () => customFileButton.click();
-setTimeout(function () { document.getElementById("restoreTripButton").style.display = "none" }, 30000);
+setTimeout(function () { document.getElementById("restoreTripButton").style.display = "none" }, 30 * 1000);
 
 infoGroup.addEventListener("dblclick", toggleFullscreen);
 function toggleFullscreen() {
@@ -758,7 +760,7 @@ geolocation.on("change", async function () {
     trackLog.push([lonlat, altitude, currentTime]);
     trackLineString.appendCoordinate(currentPosition);
 
-    // needs fixing
+    // needs fixing not needed anymore?
     // if (currentTime - startTime > 300000) { // wait 5 minutes before log backup
     //   localStorage.trackLog = JSON.stringify(trackLog.mainArray);
     // }
@@ -860,7 +862,6 @@ async function restoreTrip() {
   // read old route from localStorage
   // const oldRoute = JSON.parse(localStorage.trackLog);
   const oldRoute = await trackLog.getAllRaw();
-  console.log(oldRoute)
   distanceTraveled = 0;
   trackLineString.setCoordinates([]);
 
@@ -1019,6 +1020,7 @@ function switchMap() {
 // new saveLog function
 async function saveLog() {
   const oldRoute = await trackLog.getAllRaw();
+  setExtraInfo([oldRoute.length]);
   let gpxFile = `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <gpx version="1.1" creator="Jole84 Nav-app">
 <metadata>
