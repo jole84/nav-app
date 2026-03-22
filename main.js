@@ -81,8 +81,39 @@ let prevLonlat;
 let speed = 0;
 let speedKmh = 0;
 let timeOut;
-let trackLog = [];
 let navigationSteps = [];
+
+const trackLog = {
+  mainArray: [],
+
+  push(logItem) {
+    this.mainArray.push(logItem);
+  },
+
+  pop() {
+    this.mainArray.pop();
+  },
+
+  getLength() {
+    return this.mainArray.length;
+  },
+
+  getItem(index) {
+    return {
+      coordinates: this.mainArray[index][0],
+      altitude: this.mainArray[index][1],
+      timeStamp: this.mainArray[index][2],
+    }
+  },
+
+  getLastItem() {
+    return this.getItem(this.mainArray.length - 1);
+  },
+
+  getFirstItem() {
+    return this.getItem(0);
+  }
+}
 
 const destinationCoordinates = {
   coordinates: [],
@@ -549,17 +580,17 @@ geolocation.on("change", function () {
 
   // measure distance and push log if position change > 5 meters and accuracy is good and more than 3 seconds
   if (
-    getDistance(lonlat, trackLog[trackLog.length - 1][0]) > 5 &&
+    getDistance(lonlat, trackLog.getLastItem().coordinates) > 5 &&
     accuracy < 25 &&
-    currentTime - trackLog[trackLog.length - 1][2] > 3000
+    currentTime - trackLog.getLastItem().timeStamp > 3000
   ) {
     if (tripPointButton.checked) {
-      addTripPoint(lonlat, trackLog[trackLog.length - 1][0], altitude, distanceTraveled, currentTime, trackLog[trackLog.length - 1][2])
+      addTripPoint(lonlat, trackLog.getLastItem().coordinates, altitude, distanceTraveled, currentTime, trackLog.getLastItem().timeStamp)
     }
     trackLog.push([lonlat, altitude, currentTime]);
     trackLineString.appendCoordinate(currentPosition);
     if (currentTime - startTime > 300000) { // wait 5 minutes before log backup
-      localStorage.trackLog = JSON.stringify(trackLog);
+      localStorage.trackLog = JSON.stringify(trackLog.mainArray);
     }
 
     // recalculate route if > 300 m off route
@@ -663,7 +694,7 @@ function restoreTrip() {
   // restore line geometry
   for (let i = 0; i < oldRoute.length; i++) {
     trackLineString.appendCoordinate(fromLonLat(oldRoute[i][0]));
-    trackLog[i] = [oldRoute[i][0], oldRoute[i][1], oldRoute[i][2]];
+    trackLog.mainArray[i] = [oldRoute[i][0], oldRoute[i][1], oldRoute[i][2]];
     if (i == oldRoute.length - 1) {
       distanceTraveled += getDistance(lonlat, oldRoute[i][0]);
       trackLineString.appendCoordinate(currentPosition);
@@ -689,7 +720,7 @@ function clearTrip() {
   maxSpeed = 0;
   menuDiv.classList.add("ivisible");
   setExtraInfo(["Tripp nollställd"]);
-  trackLog = [[lonlat, altitude, Date.now()]];
+  trackLog.mainArray = [[lonlat, altitude, Date.now()]];
   trackPointLayer.getSource().clear();
 }
 
@@ -816,19 +847,19 @@ async function saveLog() {
 <gpx version="1.1" creator="Jole84 Nav-app">
 <metadata>
   <desc>GPX log created by Jole84 Nav-app</desc>
-  <time>${(new Date(trackLog[0][2])).toISOString()}</time>
+  <time>${(new Date(trackLog.getFirstItem().timeStamp)).toISOString()}</time>
 </metadata>
 <trk>
-  <name>${new Date(trackLog[0][2]).toLocaleString()}, max ${Math.floor(maxSpeed)} km/h, ${(
+  <name>${new Date(trackLog.getFirstItem().timeStamp).toLocaleString()}, max ${Math.floor(maxSpeed)} km/h, ${(
       distanceTraveled / 1000
-    ).toFixed(2)} km, ${toHHMMSS(trackLog[trackLog.length - 1][2] - trackLog[0][2])}</name>
+    ).toFixed(2)} km, ${toHHMMSS(trackLog.getLastItem().timeStamp - trackLog.getFirstItem().timeStamp)}</name>
   <trkseg>`;
 
-  for (let i = 0; i < trackLog.length; i++) {
-    const lon = trackLog[i][0][0].toFixed(6);
-    const lat = trackLog[i][0][1].toFixed(6);
-    const ele = trackLog[i][1].toFixed(2);
-    const isoTime = new Date(trackLog[i][2]).toISOString();
+  for (let i = 0; i < trackLog.getLength(); i++) {
+    const lon = trackLog.getItem(i).coordinates[0].toFixed(6);
+    const lat = trackLog.getItem(i).coordinates[1].toFixed(6);
+    const ele = trackLog.getItem(i).altitude.toFixed(2);
+    const isoTime = new Date(trackLog.getItem(i).timeStamp).toISOString();
     const trkpt = `
     <trkpt lat="${lat}" lon="${lon}"><ele>${ele}</ele><time>${isoTime}</time></trkpt>`;
     gpxFile += trkpt;
@@ -839,7 +870,7 @@ async function saveLog() {
 </trk>
 </gpx>`;
 
-  const filename = new Date(trackLog[0][2]).toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + "_" + (distanceTraveled / 1000).toFixed(2) + "km.gpx";
+  const filename = new Date(trackLog.getFirstItem().timeStamp).toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + "_" + (distanceTraveled / 1000).toFixed(2) + "km.gpx";
 
   let file = new Blob([gpxFile], { type: "application/gpx+xml" });
 
@@ -1069,6 +1100,11 @@ map.on("singleclick", function (evt) {
   if (localStorage.testing) {
     // for testing
     trackLineString.appendCoordinate(evt.coordinate);
+    trackLog.push([toLonLat(evt.coordinate), altitude, Date.now()]);
+      // addTripPoint(toLonLat(evt.coordinate), trackLog.getLastItem().coordinates, altitude, distanceTraveled, Date.now(), trackLog.getLastItem().timeStamp)
+    // console.log(trackLog.getLastItem())
+    // console.log(trackLog.getLength())
+    localStorage.trackLog = JSON.stringify(trackLog.mainArray);
     // console.log(navigationSteps);
 
     const featureCoordinates = routeLineString.getCoordinates();
@@ -1651,9 +1687,19 @@ function showTripLayer() {
   trackPointLayer.setVisible(tripPointButton.checked);
   if (tripPointButton.checked) {
     let newDistanceTraveled = 0;
-    for (var i = 0; i < trackLog.length - 1; i++) {
-      newDistanceTraveled += getDistance(trackLog[i][0], trackLog[i + 1][0]);
-      addTripPoint(trackLog[i][0], trackLog[i + 1][0], trackLog[i][1], newDistanceTraveled, trackLog[i + 1][2], trackLog[i][2]);
+    for (var i = 0; i < trackLog.getLength() - 1; i++) {
+      newDistanceTraveled += getDistance(
+        trackLog.getItem(i).coordinates,
+        trackLog.getItem(i + 1).coordinates
+      );
+      addTripPoint(
+        trackLog.getItem(i).coordinates,
+        trackLog.getItem(i + 1).coordinates,
+        trackLog.getItem(i).altitude,
+        newDistanceTraveled,
+        trackLog.getItem(i + 1).timeStamp,
+        trackLog.getItem(i).timeStamp
+      );
     }
   }
 }
