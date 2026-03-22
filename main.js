@@ -185,13 +185,14 @@ document.getElementById("restoreTripButton").onclick = restoreTrip;
 document.getElementById("clickFileButton").onclick = () => customFileButton.click();
 setTimeout(function () { document.getElementById("restoreTripButton").style.display = "none" }, 30000);
 
-infoGroup.addEventListener("dblclick", function () {
+infoGroup.addEventListener("dblclick", toggleFullscreen);
+function toggleFullscreen() {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen();
   } else if (document.exitFullscreen) {
     document.exitFullscreen();
   }
-});
+}
 
 infoGroup.addEventListener("click", function () {
   setExtraInfo([
@@ -1242,7 +1243,6 @@ switchMap();
 // navigator.keyboard.lock(["Escape", "Enter"]);
 // add keyboard controls
 document.addEventListener("keydown", function (event) {
-  // remotek double press right || event.key == "m"
   if (menuDiv.checkVisibility()) {
     if (event.key == "Escape" || event.key == "§") {
       event.preventDefault();
@@ -1301,6 +1301,10 @@ document.addEventListener("keydown", function (event) {
       // remotek double press down
       lastInteraction = Date.now();
       view.setRotation(0);
+    }
+    if (event.key == "m") {
+      // remotek double press right || event.key == "m"
+      toggleFullscreen();
     }
     if (event.key == "d") {
       focusDestination();
