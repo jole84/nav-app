@@ -101,12 +101,18 @@ function openDB() {
 
 const trackLog = {
   db: null,
+  ready: null,
 
   async init() {
-    this.db = await openDB();
+    this.ready = openDB().then(db => {
+      this.db = db;
+    });
+
+    return this.ready;
   },
 
   async push(logItem) {
+    await this.ready;
     const tx = this.db.transaction("log", "readwrite");
     const store = tx.objectStore("log");
 
@@ -122,6 +128,7 @@ const trackLog = {
   },
 
   async pop() {
+    await this.ready;
     const last = await this.getLastRaw();
     if (!last) return;
 
@@ -131,6 +138,7 @@ const trackLog = {
   },
 
   async getLength() {
+    await this.ready;
     return new Promise(resolve => {
       const tx = this.db.transaction("log", "readonly");
       const store = tx.objectStore("log");
@@ -141,6 +149,7 @@ const trackLog = {
   },
 
   async deleteOlderThan(timestamp) {
+    await this.ready;
     const tx = this.db.transaction("log", "readwrite");
     const store = tx.objectStore("log");
 
@@ -164,6 +173,7 @@ const trackLog = {
   },
 
   async hasOlderThan(timestamp) {
+    await this.ready;
     const tx = this.db.transaction("log", "readonly");
     const store = tx.objectStore("log");
 
@@ -188,6 +198,7 @@ const trackLog = {
   },
 
   async getItem(index) {
+    await this.ready;
     const all = await this.getAllRaw();
     const item = all[index];
     if (!item) return null;
@@ -200,10 +211,12 @@ const trackLog = {
   },
 
   async getFirstItem() {
+    await this.ready;
     return this.getItem(0);
   },
 
   async getLastItem() {
+    await this.ready;
     const len = await this.getLength();
     return this.getItem(len - 1);
   },
