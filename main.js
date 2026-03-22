@@ -752,7 +752,7 @@ geolocation.on("change", async function () {
   if (
     getDistance(lonlat, lastLogItem.coordinates) > 5 &&
     accuracy < 25 &&
-    currentTime - tracklastLogItem.timeStamp > 3000
+    currentTime - lastLogItem.timeStamp > 3000
   ) {
     if (tripPointButton.checked) {
       addTripPoint(lonlat, lastLogItem.coordinates, altitude, distanceTraveled, currentTime, lastLogItem.timeStamp)
@@ -896,6 +896,7 @@ function clearTrip() {
   setExtraInfo(["Tripp nollställd"]);
   trackLog.clear();
   // needs fixing
+  trackLog.push([lonlat, altitude, Date.now()]);
   // trackLog.mainArray = [[lonlat, altitude, Date.now()]];
   trackPointLayer.getSource().clear();
 }
