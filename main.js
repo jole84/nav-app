@@ -57,7 +57,7 @@ const preferredFontSizeDiv = document.getElementById("preferredFontSize");
 const prefferedZoomDiv = document.getElementById("prefferedZoom");
 const saveLogButton = document.getElementById("saveLogButton");
 const selectFile = document.getElementById("selectFile");
-const startTime = Date.now();
+const pageLoadTime = Date.now();
 const trafficWarningDiv = document.getElementById("trafficWarning");
 const tripPointButton = document.getElementById("tripPointButton");
 
@@ -83,37 +83,194 @@ let speedKmh = 0;
 let timeOut;
 let navigationSteps = [];
 
-const trackLog = {
-  mainArray: [],
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open("TrackLogDB", 1);
 
-  push(logItem) {
-    this.mainArray.push(logItem);
-  },
+    request.onupgradeneeded = event => {
+      const db = event.target.result;
 
-  pop() {
-    this.mainArray.pop();
-  },
+      // Store entries in order using autoIncrement
+      db.createObjectStore("log", { keyPath: "id", autoIncrement: true });
+    };
 
-  getLength() {
-    return this.mainArray.length;
-  },
-
-  getItem(index) {
-    return {
-      coordinates: this.mainArray[index][0],
-      altitude: this.mainArray[index][1],
-      timeStamp: this.mainArray[index][2],
-    }
-  },
-
-  getLastItem() {
-    return this.getItem(this.mainArray.length - 1);
-  },
-
-  getFirstItem() {
-    return this.getItem(0);
-  }
+    request.onsuccess = event => resolve(event.target.result);
+    request.onerror = () => reject("Failed to open DB");
+  });
 }
+
+const trackLog = {
+  db: null,
+
+  async init() {
+    this.db = await openDB();
+  },
+
+  async push(logItem) {
+    const tx = this.db.transaction("log", "readwrite");
+    const store = tx.objectStore("log");
+
+    // Convert your array into an object
+    const entry = {
+      coordinates: logItem[0],
+      altitude: logItem[1],
+      timestamp: logItem[2]
+    };
+
+    store.add(entry);
+    return tx.complete;
+  },
+
+  async pop() {
+    const last = await this.getLastRaw();
+    if (!last) return;
+
+    const tx = this.db.transaction("log", "readwrite");
+    tx.objectStore("log").delete(last.id);
+    return tx.complete;
+  },
+
+  async getLength() {
+    return new Promise(resolve => {
+      const tx = this.db.transaction("log", "readonly");
+      const store = tx.objectStore("log");
+      const req = store.count();
+      req.onsuccess = () => resolve(req.result);
+    });
+
+  },
+
+  async deleteOlderThan(timestamp) {
+    const tx = this.db.transaction("log", "readwrite");
+    const store = tx.objectStore("log");
+
+    return new Promise(resolve => {
+      const req = store.openCursor();
+
+      req.onsuccess = e => {
+        const cursor = e.target.result;
+        if (!cursor) {
+          resolve();
+          return;
+        }
+
+        const entry = cursor.value;
+        if (entry.timestamp < timestamp) {
+          cursor.delete();
+        }
+        cursor.continue();
+      };
+    });
+  },
+
+  async hasOlderThan(timestamp) {
+    const tx = this.db.transaction("log", "readonly");
+    const store = tx.objectStore("log");
+
+    return new Promise(resolve => {
+      const req = store.openCursor();
+
+      req.onsuccess = e => {
+        const cursor = e.target.result;
+        if (!cursor) {
+          resolve(false);
+          return;
+        }
+
+        if (cursor.value.timestamp < timestamp) {
+          resolve(true);
+          return;
+        }
+
+        cursor.continue();
+      };
+    });
+  },
+
+  async getItem(index) {
+    const all = await this.getAllRaw();
+    const item = all[index];
+    if (!item) return null;
+
+    return {
+      coordinates: item.coordinates,
+      altitude: item.altitude,
+      timeStamp: item.timestamp
+    };
+  },
+
+  async getFirstItem() {
+    return this.getItem(0);
+  },
+
+  async getLastItem() {
+    const len = await this.getLength();
+    return this.getItem(len - 1);
+  },
+
+  // Internal helpers
+  async getAllRaw() {
+    return new Promise(resolve => {
+      const tx = this.db.transaction("log", "readonly");
+      const store = tx.objectStore("log");
+      const req = store.getAll();
+      req.onsuccess = () => resolve(req.result);
+    });
+  },
+
+  async getLastRaw() {
+    return new Promise(resolve => {
+      const tx = this.db.transaction("log", "readonly");
+      const store = tx.objectStore("log");
+
+      // Open cursor in reverse order
+      const req = store.openCursor(null, "prev");
+      req.onsuccess = () => resolve(req.result?.value || null);
+    });
+  },
+
+  async clear() {
+    const tx = this.db.transaction("log", "readwrite");
+    const store = tx.objectStore("log");
+    store.clear();
+    return tx.complete;
+  }
+};
+
+await trackLog.init();
+
+
+// const trackLog = {
+//   mainArray: [],
+
+//   push(logItem) {
+//     this.mainArray.push(logItem);
+//   },
+
+//   pop() {
+//     this.mainArray.pop();
+//   },
+
+//   getLength() {
+//     return this.mainArray.length;
+//   },
+
+//   getItem(index) {
+//     return {
+//       coordinates: this.mainArray[index][0],
+//       altitude: this.mainArray[index][1],
+//       timeStamp: this.mainArray[index][2],
+//     }
+//   },
+
+//   getLastItem() {
+//     return this.getItem(this.mainArray.length - 1);
+//   },
+
+//   getFirstItem() {
+//     return this.getItem(0);
+//   }
+// }
 
 const destinationCoordinates = {
   coordinates: [],
@@ -155,9 +312,18 @@ const destinationCoordinates = {
   },
 }
 
-if (!!localStorage.trackLog) {
+const olderExists = await trackLog.hasOlderThan(pageLoadTime);
+
+if (olderExists) {
   document.getElementById("restoreTripButton").style.display = "unset";
 }
+
+setTimeout(async () => {
+  if (!window.userChoseRestore) {
+    await trackLog.deleteOlderThan(pageLoadTime);
+    console.log("Old entries removed automatically");
+  }
+}, 5 * 60 * 1000);
 
 if (navigator.getBattery) {
   navigator.getBattery().then(function (battery) {
@@ -566,7 +732,7 @@ geolocation.once("change", function () {
 // });
 
 // runs when position changes
-geolocation.on("change", function () {
+geolocation.on("change", async function () {
   currentPosition = geolocation.getPosition();
   accuracy = geolocation.getAccuracy();
   heading = geolocation.getHeading() || 0;
@@ -578,20 +744,24 @@ geolocation.on("change", function () {
   const currentTime = Date.now();
   positionMarkerPoint.setCoordinates(currentPosition);
 
+  const lastLogItem = await trackLog.getLastItem();
+
   // measure distance and push log if position change > 5 meters and accuracy is good and more than 3 seconds
   if (
-    getDistance(lonlat, trackLog.getLastItem().coordinates) > 5 &&
+    getDistance(lonlat, lastLogItem.coordinates) > 5 &&
     accuracy < 25 &&
-    currentTime - trackLog.getLastItem().timeStamp > 3000
+    currentTime - tracklastLogItem.timeStamp > 3000
   ) {
     if (tripPointButton.checked) {
-      addTripPoint(lonlat, trackLog.getLastItem().coordinates, altitude, distanceTraveled, currentTime, trackLog.getLastItem().timeStamp)
+      addTripPoint(lonlat, lastLogItem.coordinates, altitude, distanceTraveled, currentTime, lastLogItem.timeStamp)
     }
     trackLog.push([lonlat, altitude, currentTime]);
     trackLineString.appendCoordinate(currentPosition);
-    if (currentTime - startTime > 300000) { // wait 5 minutes before log backup
-      localStorage.trackLog = JSON.stringify(trackLog.mainArray);
-    }
+
+    // needs fixing
+    // if (currentTime - startTime > 300000) { // wait 5 minutes before log backup
+    //   localStorage.trackLog = JSON.stringify(trackLog.mainArray);
+    // }
 
     // recalculate route if > 300 m off route
     if (destinationCoordinates.getLength() == 2) {
@@ -685,21 +855,24 @@ positionMarker.setStyle(
   }),
 );
 
-function restoreTrip() {
+async function restoreTrip() {
+  window.userChoseRestore = true;
   // read old route from localStorage
-  const oldRoute = JSON.parse(localStorage.trackLog);
+  // const oldRoute = JSON.parse(localStorage.trackLog);
+  const oldRoute = await trackLog.getAllRaw();
+  console.log(oldRoute)
   distanceTraveled = 0;
   trackLineString.setCoordinates([]);
 
   // restore line geometry
   for (let i = 0; i < oldRoute.length; i++) {
-    trackLineString.appendCoordinate(fromLonLat(oldRoute[i][0]));
-    trackLog.mainArray[i] = [oldRoute[i][0], oldRoute[i][1], oldRoute[i][2]];
+    trackLineString.appendCoordinate(fromLonLat(oldRoute[i].coordinates));
+    // trackLog.mainArray[i] = [oldRoute[i].coordinates, oldRoute[i].altitude, oldRoute[i].timeStamp];
     if (i == oldRoute.length - 1) {
-      distanceTraveled += getDistance(lonlat, oldRoute[i][0]);
+      distanceTraveled += getDistance(lonlat, oldRoute[i].coordinates);
       trackLineString.appendCoordinate(currentPosition);
     } else {
-      distanceTraveled += getDistance(oldRoute[i][0], oldRoute[i + 1][0]);
+      distanceTraveled += getDistance(oldRoute[i].coordinates, oldRoute[i + 1].coordinates);
     }
   }
 
@@ -720,7 +893,9 @@ function clearTrip() {
   maxSpeed = 0;
   menuDiv.classList.add("ivisible");
   setExtraInfo(["Tripp nollställd"]);
-  trackLog.mainArray = [[lonlat, altitude, Date.now()]];
+  trackLog.clear();
+  // needs fixing
+  // trackLog.mainArray = [[lonlat, altitude, Date.now()]];
   trackPointLayer.getSource().clear();
 }
 
@@ -843,23 +1018,24 @@ function switchMap() {
 
 // new saveLog function
 async function saveLog() {
+  const oldRoute = await trackLog.getAllRaw();
   let gpxFile = `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <gpx version="1.1" creator="Jole84 Nav-app">
 <metadata>
   <desc>GPX log created by Jole84 Nav-app</desc>
-  <time>${(new Date(trackLog.getFirstItem().timeStamp)).toISOString()}</time>
+  <time>${(new Date(oldRoute[0].timestamp)).toISOString()}</time>
 </metadata>
 <trk>
-  <name>${new Date(trackLog.getFirstItem().timeStamp).toLocaleString()}, max ${Math.floor(maxSpeed)} km/h, ${(
+  <name>${new Date(oldRoute[0].timestamp).toLocaleString()}, max ${Math.floor(maxSpeed)} km/h, ${(
       distanceTraveled / 1000
-    ).toFixed(2)} km, ${toHHMMSS(trackLog.getLastItem().timeStamp - trackLog.getFirstItem().timeStamp)}</name>
+    ).toFixed(2)} km, ${toHHMMSS(oldRoute[oldRoute.length - 1].timestamp - oldRoute[0].timestamp)}</name>
   <trkseg>`;
 
-  for (let i = 0; i < trackLog.getLength(); i++) {
-    const lon = trackLog.getItem(i).coordinates[0].toFixed(6);
-    const lat = trackLog.getItem(i).coordinates[1].toFixed(6);
-    const ele = trackLog.getItem(i).altitude.toFixed(2);
-    const isoTime = new Date(trackLog.getItem(i).timeStamp).toISOString();
+  for (let i = 0; i < oldRoute.length; i++) {
+    const lon = oldRoute[i].coordinates[0].toFixed(6);
+    const lat = oldRoute[i].coordinates[1].toFixed(6);
+    const ele = oldRoute[i].altitude.toFixed(2);
+    const isoTime = new Date(oldRoute[i].timestamp).toISOString();
     const trkpt = `
     <trkpt lat="${lat}" lon="${lon}"><ele>${ele}</ele><time>${isoTime}</time></trkpt>`;
     gpxFile += trkpt;
@@ -870,7 +1046,7 @@ async function saveLog() {
 </trk>
 </gpx>`;
 
-  const filename = new Date(trackLog.getFirstItem().timeStamp).toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + "_" + (distanceTraveled / 1000).toFixed(2) + "km.gpx";
+  const filename = new Date(oldRoute[0].timestamp).toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + "_" + (distanceTraveled / 1000).toFixed(2) + "km.gpx";
 
   let file = new Blob([gpxFile], { type: "application/gpx+xml" });
 
@@ -1096,15 +1272,17 @@ async function routeMeGoogle() {
   );
 }
 
-map.on("singleclick", function (evt) {
+map.on("singleclick", async function (evt) {
   if (localStorage.testing) {
     // for testing
     trackLineString.appendCoordinate(evt.coordinate);
     trackLog.push([toLonLat(evt.coordinate), altitude, Date.now()]);
-      // addTripPoint(toLonLat(evt.coordinate), trackLog.getLastItem().coordinates, altitude, distanceTraveled, Date.now(), trackLog.getLastItem().timeStamp)
+    // addTripPoint(toLonLat(evt.coordinate), trackLog.getLastItem().coordinates, altitude, distanceTraveled, Date.now(), trackLog.getLastItem().timeStamp)
     // console.log(trackLog.getLastItem())
     // console.log(trackLog.getLength())
-    localStorage.trackLog = JSON.stringify(trackLog.mainArray);
+    const last = await trackLog.getLastItem()
+    console.log(last)
+    // localStorage.trackLog = JSON.stringify(trackLog.mainArray);
     // console.log(navigationSteps);
 
     const featureCoordinates = routeLineString.getCoordinates();
