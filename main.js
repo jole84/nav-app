@@ -450,6 +450,7 @@ openMenuButton.onclick = function () {
 
 document.getElementById("clearSettings").onclick = function () {
   if (confirm("Radera inställningar?")) {
+    indexedDB.deleteDatabase("TrackLogDB");
     localStorage.clear();
     location.reload();
   }
