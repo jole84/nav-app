@@ -89,8 +89,6 @@ function openDB() {
 
     request.onupgradeneeded = event => {
       const db = event.target.result;
-
-      // Store entries in order using autoIncrement
       db.createObjectStore("log", { keyPath: "id", autoIncrement: true });
     };
 
@@ -116,7 +114,6 @@ const trackLog = {
     const tx = this.db.transaction("log", "readwrite");
     const store = tx.objectStore("log");
 
-    // Convert your array into an object
     const entry = {
       coordinates: logItem[0],
       altitude: logItem[1],
@@ -125,27 +122,6 @@ const trackLog = {
 
     store.add(entry);
     return tx.complete;
-  },
-
-  async pop() {
-    await this.ready;
-    const last = await this.getLastRaw();
-    if (!last) return;
-
-    const tx = this.db.transaction("log", "readwrite");
-    tx.objectStore("log").delete(last.id);
-    return tx.complete;
-  },
-
-  async getLength() {
-    await this.ready;
-    return new Promise(resolve => {
-      const tx = this.db.transaction("log", "readonly");
-      const store = tx.objectStore("log");
-      const req = store.count();
-      req.onsuccess = () => resolve(req.result);
-    });
-
   },
 
   async deleteOlderThan(timestamp) {
@@ -197,31 +173,6 @@ const trackLog = {
     });
   },
 
-  async getItem(index) {
-    await this.ready;
-    const all = await this.getAllRaw();
-    const item = all[index];
-    if (!item) return null;
-
-    return {
-      coordinates: item.coordinates,
-      altitude: item.altitude,
-      timeStamp: item.timestamp
-    };
-  },
-
-  async getFirstItem() {
-    await this.ready;
-    return this.getItem(0);
-  },
-
-  async getLastItem() {
-    await this.ready;
-    const len = await this.getLength();
-    return this.getItem(len - 1);
-  },
-
-  // Internal helpers
   async getAllRaw() {
     return new Promise(resolve => {
       const tx = this.db.transaction("log", "readonly");
@@ -231,23 +182,70 @@ const trackLog = {
     });
   },
 
-  async getLastRaw() {
-    return new Promise(resolve => {
-      const tx = this.db.transaction("log", "readonly");
-      const store = tx.objectStore("log");
-
-      // Open cursor in reverse order
-      const req = store.openCursor(null, "prev");
-      req.onsuccess = () => resolve(req.result?.value || null);
-    });
-  },
-
   async clear() {
     const tx = this.db.transaction("log", "readwrite");
     const store = tx.objectStore("log");
     store.clear();
     return tx.complete;
   }
+
+  // unused
+  // async pop() {
+  //   await this.ready;
+  //   const last = await this.getLastRaw();
+  //   if (!last) return;
+
+  //   const tx = this.db.transaction("log", "readwrite");
+  //   tx.objectStore("log").delete(last.id);
+  //   return tx.complete;
+  // },
+
+  // async getLength() {
+  //   await this.ready;
+  //   return new Promise(resolve => {
+  //     const tx = this.db.transaction("log", "readonly");
+  //     const store = tx.objectStore("log");
+  //     const req = store.count();
+  //     req.onsuccess = () => resolve(req.result);
+  //   });
+
+  // },
+
+  // async getItem(index) {
+  //   await this.ready;
+  //   const all = await this.getAllRaw();
+  //   const item = all[index];
+  //   if (!item) return null;
+
+  //   return {
+  //     coordinates: item.coordinates,
+  //     altitude: item.altitude,
+  //     timeStamp: item.timestamp
+  //   };
+  // },
+
+  // async getFirstItem() {
+  //   await this.ready;
+  //   return this.getItem(0);
+  // },
+
+  // async getLastItem() {
+  //   await this.ready;
+  //   const len = await this.getLength();
+  //   return this.getItem(len - 1);
+  // },
+
+  // async getLastRaw() {
+  //   return new Promise(resolve => {
+  //     const tx = this.db.transaction("log", "readonly");
+  //     const store = tx.objectStore("log");
+
+  //     // Open cursor in reverse order
+  //     const req = store.openCursor(null, "prev");
+  //     req.onsuccess = () => resolve(req.result?.value || null);
+  //   });
+  // },
+
 };
 
 trackLog.init().then(() => {
@@ -267,38 +265,6 @@ setTimeout(async () => {
     console.log("Old entries removed automatically");
   }
 }, 5 * 60 * 1000);
-
-// const trackLog = {
-//   mainArray: [],
-
-//   push(logItem) {
-//     this.mainArray.push(logItem);
-//   },
-
-//   pop() {
-//     this.mainArray.pop();
-//   },
-
-//   getLength() {
-//     return this.mainArray.length;
-//   },
-
-//   getItem(index) {
-//     return {
-//       coordinates: this.mainArray[index][0],
-//       altitude: this.mainArray[index][1],
-//       timeStamp: this.mainArray[index][2],
-//     }
-//   },
-
-//   getLastItem() {
-//     return this.getItem(this.mainArray.length - 1);
-//   },
-
-//   getFirstItem() {
-//     return this.getItem(0);
-//   }
-// }
 
 const destinationCoordinates = {
   coordinates: [],
@@ -747,6 +713,7 @@ geolocation.once("change", function () {
 //   }
 // });
 
+let lastTimestamp = Date.now();
 // runs when position changes
 geolocation.on("change", async function () {
   currentPosition = geolocation.getPosition();
@@ -760,17 +727,16 @@ geolocation.on("change", async function () {
   const currentTime = Date.now();
   positionMarkerPoint.setCoordinates(currentPosition);
 
-  const lastLogItem = await trackLog.getLastItem();
-
   // measure distance and push log if position change > 5 meters and accuracy is good and more than 3 seconds
   if (
-    getDistance(lonlat, lastLogItem.coordinates) > 5 &&
+    getDistance(lonlat, prevLonlat) > 5 &&
     accuracy < 25 &&
-    currentTime - lastLogItem.timeStamp > 3000
+    currentTime - lastTimestamp > 3000
   ) {
     if (tripPointButton.checked) {
-      addTripPoint(lonlat, lastLogItem.coordinates, altitude, distanceTraveled, currentTime, lastLogItem.timeStamp)
+      addTripPoint(lonlat, prevLonlat, altitude, distanceTraveled, currentTime, lastTimestamp)
     }
+    lastTimestamp = currentTime;
     trackLog.push([lonlat, altitude, currentTime]);
     trackLineString.appendCoordinate(currentPosition);
 
@@ -873,8 +839,6 @@ positionMarker.setStyle(
 
 async function restoreTrip() {
   window.userChoseRestore = true;
-  // read old route from localStorage
-  // const oldRoute = JSON.parse(localStorage.trackLog);
   const oldRoute = await trackLog.getAllRaw();
   distanceTraveled = 0;
   trackLineString.setCoordinates([]);
@@ -882,7 +846,6 @@ async function restoreTrip() {
   // restore line geometry
   for (let i = 0; i < oldRoute.length; i++) {
     trackLineString.appendCoordinate(fromLonLat(oldRoute[i].coordinates));
-    // trackLog.mainArray[i] = [oldRoute[i].coordinates, oldRoute[i].altitude, oldRoute[i].timeStamp];
     if (i == oldRoute.length - 1) {
       distanceTraveled += getDistance(lonlat, oldRoute[i].coordinates);
       trackLineString.appendCoordinate(currentPosition);
@@ -909,9 +872,7 @@ function clearTrip() {
   menuDiv.classList.add("ivisible");
   setExtraInfo(["Tripp nollställd"]);
   trackLog.clear();
-  // needs fixing
   trackLog.push([lonlat, altitude, Date.now()]);
-  // trackLog.mainArray = [[lonlat, altitude, Date.now()]];
   trackPointLayer.getSource().clear();
 }
 
@@ -1295,13 +1256,6 @@ map.on("singleclick", async function (evt) {
     // for testing
     trackLineString.appendCoordinate(evt.coordinate);
     trackLog.push([toLonLat(evt.coordinate), altitude, Date.now()]);
-    // addTripPoint(toLonLat(evt.coordinate), trackLog.getLastItem().coordinates, altitude, distanceTraveled, Date.now(), trackLog.getLastItem().timeStamp)
-    // console.log(trackLog.getLastItem())
-    // console.log(trackLog.getLength())
-    const last = await trackLog.getLastItem()
-    console.log(last)
-    // localStorage.trackLog = JSON.stringify(trackLog.mainArray);
-    // console.log(navigationSteps);
 
     const featureCoordinates = routeLineString.getCoordinates();
     getRemainingDistance(
@@ -1865,8 +1819,8 @@ function addPoiMarker(coordinate, sourceLayer, name = "") {
   sourceLayer.addFeature(marker);
 }
 
-function addTripPoint(lonlat, lastPosition, altitude, distanceTraveled, timeStamp, lastTimeStamp) {
-  const segmentDistanceM = getDistance(lastPosition, lonlat);
+function addTripPoint(lonlat, lastLonlat, altitude, distanceTraveled, timeStamp, lastTimeStamp) {
+  const segmentDistanceM = getDistance(lastLonlat, lonlat);
   const segmentTimeMS = new Date(timeStamp) - new Date(lastTimeStamp);
   const speedKmh = (segmentDistanceM / segmentTimeMS) * 3600;
   addPoiMarker(
@@ -1878,23 +1832,26 @@ function addTripPoint(lonlat, lastPosition, altitude, distanceTraveled, timeStam
   );
 }
 
-function showTripLayer() {
+async function showTripLayer() {
+  let oldRoute = await trackLog.getAllRaw();
+  if (!window.userChoseRestore) oldRoute = oldRoute.filter(element => element.timestamp >= pageLoadTime);
+
   trackPointLayer.getSource().clear();
   trackPointLayer.setVisible(tripPointButton.checked);
   if (tripPointButton.checked) {
     let newDistanceTraveled = 0;
-    for (var i = 0; i < trackLog.getLength() - 1; i++) {
+    for (var i = 0; i < oldRoute.length - 1; i++) {
       newDistanceTraveled += getDistance(
-        trackLog.getItem(i).coordinates,
-        trackLog.getItem(i + 1).coordinates
+        oldRoute[i].coordinates,
+        oldRoute[i + 1].coordinates
       );
       addTripPoint(
-        trackLog.getItem(i).coordinates,
-        trackLog.getItem(i + 1).coordinates,
-        trackLog.getItem(i).altitude,
+        oldRoute[i].coordinates,
+        oldRoute[i + 1].coordinates,
+        oldRoute[i].altitude,
         newDistanceTraveled,
-        trackLog.getItem(i + 1).timeStamp,
-        trackLog.getItem(i).timeStamp
+        oldRoute[i + 1].timestamp,
+        oldRoute[i].timestamp
       );
     }
   }
