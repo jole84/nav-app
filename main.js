@@ -1035,7 +1035,7 @@ function switchMap() {
 // new saveLog function
 async function saveLog() {
   let oldRoute = await trackLog.getAllRaw();
-  oldRoute = oldRoute.filter(element => element.timestamp >= pageLoadTime);
+  if (!window.userChoseRestore) oldRoute = oldRoute.filter(element => element.timestamp >= pageLoadTime);
   setExtraInfo([oldRoute.length]);
   let gpxFile = `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <gpx version="1.1" creator="Jole84 Nav-app">
