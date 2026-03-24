@@ -737,14 +737,15 @@ geolocation.on("change", async function () {
       addTripPoint(lonlat, prevLonlat, altitude, distanceTraveled, currentTime, lastTimestamp)
     }
     lastTimestamp = currentTime;
+    prevLonlat = lonlat;
     trackLog.push([lonlat, altitude, currentTime]);
     trackLineString.appendCoordinate(currentPosition);
-
+    
     // needs fixing not needed anymore?
     // if (currentTime - startTime > 300000) { // wait 5 minutes before log backup
     //   localStorage.trackLog = JSON.stringify(trackLog.mainArray);
     // }
-
+    
     // recalculate route if > 300 m off route
     if (destinationCoordinates.getLength() == 2) {
       const closestRoutePoint = routeLineString.getClosestPoint(currentPosition);
@@ -754,17 +755,17 @@ geolocation.on("change", async function () {
       }
     }
   }
-
+  
   if (speed > 1) {
     // change marker if speed
     positionMarker.getStyle().getImage().setRotation(heading);
-
+    
     // change view if no interaction occurred last 10 seconds
     if (currentTime - lastInteraction > interactionDelay) {
       updateView();
     }
     distanceTraveled += getDistance(lonlat, prevLonlat);
-
+    
     // calculate remaing distance on gpx
     clearRouteInfo();
     gpxSource.forEachFeature(function (feature) {
@@ -779,7 +780,7 @@ geolocation.on("change", async function () {
         );
       }
     });
-
+    
     // calculate remaing distance on route
     if (routeLineString.getCoordinates().length > 0) {
       const featureCoordinates = routeLineString.getCoordinates();
@@ -791,12 +792,10 @@ geolocation.on("change", async function () {
       );
     }
   }
-
+  
   if (speedKmh > maxSpeed && accuracy < 25) {
     maxSpeed = speedKmh;
   }
-
-  prevLonlat = lonlat;
 
   // send text to info box
   document.getElementById("coordinatesDiv").innerHTML = lonlat[1].toFixed(5) + ", " + lonlat[0].toFixed(5);
