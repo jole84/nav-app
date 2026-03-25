@@ -2,7 +2,7 @@ import "./style.css";
 import { Feature, Map, View } from "ol";
 import { fromLonLat, toLonLat } from "ol/proj.js";
 import { GeoJSON } from "ol/format.js";
-import { getDistance } from "ol/sphere";
+import { getDistance, getLength } from "ol/sphere";
 import { Style, Icon } from "ol/style.js";
 import { styleStuff } from "./styleTileFunctions.js"
 import { Vector as VectorLayer } from "ol/layer.js";
@@ -740,12 +740,7 @@ geolocation.on("change", async function () {
     prevLonlat = lonlat;
     trackLog.push([lonlat, altitude, currentTime]);
     trackLineString.appendCoordinate(currentPosition);
-    
-    // needs fixing not needed anymore?
-    // if (currentTime - startTime > 300000) { // wait 5 minutes before log backup
-    //   localStorage.trackLog = JSON.stringify(trackLog.mainArray);
-    // }
-    
+
     // recalculate route if > 300 m off route
     if (destinationCoordinates.getLength() == 2) {
       const closestRoutePoint = routeLineString.getClosestPoint(currentPosition);
@@ -755,17 +750,17 @@ geolocation.on("change", async function () {
       }
     }
   }
-  
+
   if (speed > 1) {
     // change marker if speed
     positionMarker.getStyle().getImage().setRotation(heading);
-    
-    // change view if no interaction occurred last 10 seconds
+
+    // change view if no interaction occurred last 15 seconds
     if (currentTime - lastInteraction > interactionDelay) {
       updateView();
     }
-    distanceTraveled += getDistance(lonlat, prevLonlat);
-    
+    distanceTraveled = getLength(trackLineString);
+
     // calculate remaing distance on gpx
     clearRouteInfo();
     gpxSource.forEachFeature(function (feature) {
@@ -780,7 +775,7 @@ geolocation.on("change", async function () {
         );
       }
     });
-    
+
     // calculate remaing distance on route
     if (routeLineString.getCoordinates().length > 0) {
       const featureCoordinates = routeLineString.getCoordinates();
@@ -792,7 +787,7 @@ geolocation.on("change", async function () {
       );
     }
   }
-  
+
   if (speedKmh > maxSpeed && accuracy < 25) {
     maxSpeed = speedKmh;
   }
@@ -839,26 +834,16 @@ positionMarker.setStyle(
 async function restoreTrip() {
   window.userChoseRestore = true;
   const oldRoute = await trackLog.getAllRaw();
-  distanceTraveled = 0;
-  trackLineString.setCoordinates([]);
-
-  // restore line geometry
-  for (let i = 0; i < oldRoute.length; i++) {
-    trackLineString.appendCoordinate(fromLonLat(oldRoute[i].coordinates));
-    if (i == oldRoute.length - 1) {
-      distanceTraveled += getDistance(lonlat, oldRoute[i].coordinates);
-      trackLineString.appendCoordinate(currentPosition);
-    } else {
-      distanceTraveled += getDistance(oldRoute[i].coordinates, oldRoute[i + 1].coordinates);
-    }
-  }
-
-  document.getElementById("distanceTraveledDiv").innerHTML = (
-    distanceTraveled / 1000
-  ).toFixed(2);
+  trackLineString.setCoordinates(oldRoute.map(coordinate => fromLonLat(coordinate.coordinates)));
+  trackLineString.appendCoordinate(currentPosition);
 
   document.getElementById("restoreTripButton").style.display = "none";
   setExtraInfo(["Tripp återställd"]);
+
+  distanceTraveled = getLength(trackLineString);
+  document.getElementById("distanceTraveledDiv").innerHTML = (
+    distanceTraveled / 1000
+  ).toFixed(2);
 }
 
 function clearTrip() {
@@ -868,7 +853,7 @@ function clearTrip() {
   trackLineString.setCoordinates([]);
   localStorage.removeItem("trackLog");
   maxSpeed = 0;
-  menuDiv.classList.add("ivisible");
+  menuDiv.classList.add("invisible");
   setExtraInfo(["Tripp nollställd"]);
   trackLog.clear();
   trackLog.push([lonlat, altitude, Date.now()]);
@@ -1254,6 +1239,11 @@ map.on("singleclick", async function (evt) {
   if (localStorage.testing) {
     // for testing
     trackLineString.appendCoordinate(evt.coordinate);
+
+    distanceTraveled = getLength(trackLineString);
+    document.getElementById("distanceTraveledDiv").innerHTML = (
+      distanceTraveled / 1000
+    ).toFixed(2);
     trackLog.push([toLonLat(evt.coordinate), altitude, Date.now()]);
 
     const featureCoordinates = routeLineString.getCoordinates();
