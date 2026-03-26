@@ -1,7 +1,7 @@
 import "./style.css";
 import { Feature, Map, View } from "ol";
 import { fromLonLat, toLonLat } from "ol/proj.js";
-import { GeoJSON } from "ol/format.js";
+import { GeoJSON, GPX } from "ol/format.js";
 import { getDistance, getLength } from "ol/sphere";
 import { Style, Icon } from "ol/style.js";
 import { styleStuff } from "./styleTileFunctions.js"
@@ -9,6 +9,7 @@ import { Vector as VectorLayer } from "ol/layer.js";
 import Geolocation from "ol/Geolocation.js";
 import KeyboardZoom from 'ol/interaction/KeyboardZoom.js';
 import LineString from "ol/geom/LineString";
+import { MultiLineString } from "ol/geom.js";
 import MultiPoint from "ol/geom/MultiPoint.js";
 import MVT from 'ol/format/MVT.js';
 import OSM from "ol/source/OSM.js";
@@ -253,7 +254,7 @@ trackLog.init().then(() => {
 });
 
 async function checkIfOlderExists() {
-  const olderExists = await trackLog.hasOlderThan(pageLoadTime);
+  const olderExists = await trackLog.hasOlderThan(pageLoadTime - (5 * 60 * 1000));
   if (olderExists) {
     document.getElementById("restoreTripButton").style.display = "unset";
   }
@@ -704,15 +705,6 @@ geolocation.once("change", function () {
   updateUserPosition();
 });
 
-// const accuracyFeature = new Feature();
-// geolocation.on('change:accuracyGeometry', function () {
-//   if (accuracy < 20) {
-//     accuracyFeature.setGeometry();
-//   } else {
-//     accuracyFeature.setGeometry(geolocation.getAccuracyGeometry());
-//   }
-// });
-
 let lastTimestamp = Date.now();
 // runs when position changes
 geolocation.on("change", async function () {
@@ -981,41 +973,16 @@ function switchMap() {
 async function saveLog() {
   let oldRoute = await trackLog.getAllRaw();
   if (!window.userChoseRestore) oldRoute = oldRoute.filter(element => element.timestamp >= pageLoadTime);
-  setExtraInfo([oldRoute.length]);
-  let gpxFile = `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<gpx version="1.1" creator="Jole84 Nav-app">
-<metadata>
-  <desc>GPX log created by Jole84 Nav-app</desc>
-  <time>${(new Date(oldRoute[0].timestamp)).toISOString()}</time>
-</metadata>
-<trk>
-  <name>${new Date(oldRoute[0].timestamp).toLocaleString()}, max ${Math.floor(maxSpeed)} km/h, ${(
-      distanceTraveled / 1000
-    ).toFixed(2)} km, ${toHHMMSS(oldRoute[oldRoute.length - 1].timestamp - oldRoute[0].timestamp)}</name>
-  <trkseg>`;
-
-  for (let i = 0; i < oldRoute.length; i++) {
-    const lon = oldRoute[i].coordinates[0].toFixed(6);
-    const lat = oldRoute[i].coordinates[1].toFixed(6);
-    const ele = oldRoute[i].altitude.toFixed(2);
-    const isoTime = new Date(oldRoute[i].timestamp).toISOString();
-    const trkpt = `
-    <trkpt lat="${lat}" lon="${lon}"><ele>${ele}</ele><time>${isoTime}</time></trkpt>`;
-    gpxFile += trkpt;
-  }
-
-  gpxFile += `
-  </trkseg>
-</trk>
-</gpx>`;
-
   const filename = new Date(oldRoute[0].timestamp).toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + "_" + (distanceTraveled / 1000).toFixed(2) + "km.gpx";
 
-  let file = new Blob([gpxFile], { type: "application/gpx+xml" });
+  oldRoute = oldRoute.map(coordinate => ([coordinate.coordinates[0], coordinate.coordinates[1], coordinate.altitude || 1, coordinate.timestamp / 1000]));
+
+  const gpxFile = new GPX().writeFeatures([new Feature({ geometry: new MultiLineString([oldRoute]) })]);
+  let blob = new Blob([gpxFile], { type: "application/gpx+xml" });
 
   // tries to share text file
   if (window.showSaveFilePicker) {
-    saveFile(file, filename);
+    saveFile(blob, filename);
   } else {
     try {
       await navigator.share({
@@ -1027,9 +994,9 @@ async function saveLog() {
   }
 }
 
-async function saveFile(data, fileName) {
+async function saveFile(data, filename) {
   // create a new handle
-  const newHandle = await window.showSaveFilePicker({ suggestedName: fileName });
+  const newHandle = await window.showSaveFilePicker({ suggestedName: filename });
 
   // create a FileSystemWritableFileStream to write to
   const writableStream = await newHandle.createWritable();
@@ -1045,7 +1012,7 @@ async function saveFile(data, fileName) {
 
 function setExtraInfo(infoText) {
   window.clearTimeout(timeOut);
-  const extraInfo = infoText.join("<br />");
+  const extraInfo = infoText.join("<br>");
   document.getElementById("extraInfo").innerHTML = extraInfo;
   timeOut = setTimeout(function () {
     document.getElementById("extraInfo").innerHTML = "";
@@ -1911,7 +1878,6 @@ async function loadData() {
   el.value = "0";
   selectUpload.replaceChildren(el);
 
-  // document.getElementById("uploads").replaceChildren();
   r.uploads.forEach(u => {
     const el = document.createElement("option");
     el.textContent = u.item_name + " " + (u.is_public ? '(Publik)' : "(Privat)") + ` (${u.username} ${new Date(u.created_at).toLocaleDateString()})`;
