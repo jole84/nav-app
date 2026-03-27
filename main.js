@@ -254,7 +254,9 @@ trackLog.init().then(() => {
 });
 
 async function checkIfOlderExists() {
-  const olderExists = await trackLog.hasOlderThan(pageLoadTime - (5 * 60 * 1000));
+  // const olderExists = await trackLog.hasOlderThan(pageLoadTime - (5 * 60 * 1000));
+  const oldRoute = await trackLog.getAllRaw();
+  const olderExists = oldRoute.length > 5;
   if (olderExists) {
     document.getElementById("restoreTripButton").style.display = "unset";
   }
