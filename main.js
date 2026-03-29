@@ -613,6 +613,13 @@ function gpxSourceLoader(gpxFile) {
     });
 
     for (const gpxFeature of gpxFeatures) {
+      // loads gpx track to trackLog for testing
+      if (gpxFeature.getGeometry().getType() == "MultiLineString" && localStorage.testing) {
+        setExtraInfo(["testing mode active"]);
+        gpxFeature.getGeometry().getLineString().getCoordinates().forEach(coordinate => {
+            trackLog.push([toLonLat(coordinate), coordinate[2], coordinate[3] * 1000]);
+        })
+      }
       if (gpxFeature.get("routePointMarker")) {
         gpxFeature.set("name", (gpxFeature.getId() + 1));
       }
