@@ -4,7 +4,7 @@ import { fromLonLat, toLonLat } from "ol/proj.js";
 import { GeoJSON, GPX } from "ol/format.js";
 import { getDistance, getLength } from "ol/sphere";
 import { Style, Icon } from "ol/style.js";
-import { styleStuff } from "./styleTileFunctions.js"
+import { styleStuff } from "https://jole84.se/styleTileFunctions.js"
 import { Vector as VectorLayer } from "ol/layer.js";
 import Geolocation from "ol/Geolocation.js";
 import KeyboardZoom from 'ol/interaction/KeyboardZoom.js';
