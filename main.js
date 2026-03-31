@@ -708,7 +708,6 @@ geolocation.once("change", function () {
   if (currentTime - lastInteraction > interactionDelay) {
     centerFunction();
   }
-  trackLog.push([lonlat, altitude, currentTime]);
   trackLineString.appendCoordinate(currentPosition);
   getClosestAccident();
   updateUserPosition();
@@ -857,7 +856,6 @@ function clearTrip() {
   menuDiv.classList.add("invisible");
   setExtraInfo(["Tripp nollställd"]);
   trackLog.clear();
-  trackLog.push([lonlat, altitude, Date.now()]);
   trackPointLayer.getSource().clear();
 }
 

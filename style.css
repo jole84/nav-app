@@ -47,7 +47,6 @@ body,
   color: black;
   cursor: pointer;
   font-weight: bold;
-  margin-bottom: 5px;
 }
 
 #optionButtons {
@@ -65,7 +64,6 @@ body,
 
 #restoreTripButton {
   display: none;
-  margin-bottom: 5px;
   width: 100%;
 }
 
@@ -242,6 +240,7 @@ kbd {
   overflow: hidden;
   padding-left: 5px;
   padding-right: 5px;
+  padding-bottom: 5px;
   position: absolute;
   right: 5px;
   top: 5px;
@@ -285,6 +284,9 @@ html:fullscreen .infoGroup {
 }
 
 #speedDiv {
+  border: 2px solid;
+  border-radius: 5px;
+  padding: 0 5px;
   font-size: 120%;
   font-weight: 700;
 }
