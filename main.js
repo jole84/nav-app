@@ -481,7 +481,7 @@ const jole84TileLayer = new VectorTileLayer({
     minZoom: 6,
     maxZoom: 14,
   }),
-  style: styleStuff,
+  style: (feature, currentResolution) => styleStuff(feature, currentResolution, localStorage.mapMode),
   declutter: true,
   // updateWhileAnimating: true,
   // updateWhileInteracting: true,
