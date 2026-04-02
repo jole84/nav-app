@@ -1324,7 +1324,7 @@ if (searchParams.has("destinationPoints")) {
 }
 
 if (searchParams.has("destinationPoints64")) {
-  const destinationPoints = JSON.parse(atob(searchParams.get("destinationPoints64")));
+  const destinationPoints = JSON.parse(atob(searchParams.get("destinationPoints64")).replace('\n', ', '));
   if (destinationPoints.length == 1) {
     destinationCoordinates.updateFirst(lonlat);
     destinationCoordinates.push(destinationPoints[0]);
