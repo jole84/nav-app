@@ -149,31 +149,6 @@ const trackLog = {
     });
   },
 
-  async hasOlderThan(timestamp) {
-    await this.ready;
-    const tx = this.db.transaction("log", "readonly");
-    const store = tx.objectStore("log");
-
-    return new Promise(resolve => {
-      const req = store.openCursor();
-
-      req.onsuccess = e => {
-        const cursor = e.target.result;
-        if (!cursor) {
-          resolve(false);
-          return;
-        }
-
-        if (cursor.value.timestamp < timestamp) {
-          resolve(true);
-          return;
-        }
-
-        cursor.continue();
-      };
-    });
-  },
-
   async getAllRaw() {
     return new Promise(resolve => {
       const tx = this.db.transaction("log", "readonly");
@@ -190,7 +165,31 @@ const trackLog = {
     return tx.complete;
   }
 
-  // unused
+  // unused functions
+  //   async hasOlderThan(timestamp) {
+  //   await this.ready;
+  //   const tx = this.db.transaction("log", "readonly");
+  //   const store = tx.objectStore("log");
+
+  //   return new Promise(resolve => {
+  //     const req = store.openCursor();
+
+  //     req.onsuccess = e => {
+  //       const cursor = e.target.result;
+  //       if (!cursor) {
+  //         resolve(false);
+  //         return;
+  //       }
+
+  //       if (cursor.value.timestamp < timestamp) {
+  //         resolve(true);
+  //         return;
+  //       }
+
+  //       cursor.continue();
+  //     };
+  //   });
+  // },
   // async pop() {
   //   await this.ready;
   //   const last = await this.getLastRaw();
@@ -254,9 +253,9 @@ trackLog.init().then(() => {
 });
 
 async function checkIfOlderExists() {
-  // const olderExists = await trackLog.hasOlderThan(pageLoadTime - (5 * 60 * 1000));
-  const oldRoute = await trackLog.getAllRaw();
-  const olderExists = oldRoute.length > 5;
+  let oldRoute = await trackLog.getAllRaw();
+  oldRoute = oldRoute.filter(element => element.timestamp >= pageLoadTime - (24 * 60 * 60 * 1000));
+  const olderExists = oldRoute.length > 10;
   if (olderExists) {
     document.getElementById("restoreTripButton").style.display = "unset";
   }
