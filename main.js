@@ -617,7 +617,7 @@ function gpxSourceLoader(gpxFile) {
       if (gpxFeature.getGeometry().getType() == "MultiLineString" && localStorage.testing) {
         setExtraInfo(["testing mode active"]);
         gpxFeature.getGeometry().getLineString().getCoordinates().forEach(coordinate => {
-            trackLog.push([toLonLat(coordinate), coordinate[2], coordinate[3] * 1000]);
+            trackLog.push([toLonLat(coordinate).slice(0, 2), coordinate[2], coordinate[3] * 1000]);
         })
       }
       if (gpxFeature.get("routePointMarker")) {
