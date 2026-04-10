@@ -38,8 +38,8 @@ import {
   getPixelDistance,
   breakSentence,
   msToTime,
-  toHHMMSS,
   getRemainingDistance,
+  clearRouteInfo,
   fileFormats,
   findIndexOf,
 } from "./modules.js";
@@ -61,12 +61,6 @@ const selectFile = document.getElementById("selectFile");
 const pageLoadTime = Date.now();
 const trafficWarningDiv = document.getElementById("trafficWarning");
 const tripPointButton = document.getElementById("tripPointButton");
-
-const routeInfoRemainingDistance = document.getElementById("routeInfoRemainingDistance");
-const routeInfoRemainingTime = document.getElementById("routeInfoRemainingTime");
-const routeInfoTurnHint = document.getElementById("routeInfoTurnHint");
-const routeInfoETA = document.getElementById("routeInfoETA");
-const routeInfoMessage = document.getElementById("routeInfoMessage");
 
 let accuracy = 5000;
 let altitude = 0;
@@ -563,7 +557,7 @@ const trafficWarningIconLayer = new VectorLayer({
 const trafficWarningTextLayer = new VectorLayer({
   source: trafficWarningSource,
   style: trafficWarningTextStyleFunction,
-  minZoom: 13,
+  minZoom: 15,
 });
 
 const roadConditionLayer = new VectorLayer({
@@ -616,7 +610,7 @@ function gpxSourceLoader(gpxFile) {
       if (gpxFeature.getGeometry().getType() == "MultiLineString" && localStorage.testing) {
         setExtraInfo(["testing mode active"]);
         gpxFeature.getGeometry().getLineString().getCoordinates().forEach(coordinate => {
-            trackLog.push([toLonLat(coordinate).slice(0, 2), coordinate[2], coordinate[3] * 1000]);
+          trackLog.push([toLonLat(coordinate).slice(0, 2), coordinate[2], coordinate[3] * 1000]);
         })
       }
       if (gpxFeature.get("routePointMarker")) {
@@ -761,30 +755,23 @@ geolocation.on("change", async function () {
     }
     distanceTraveled = getLength(trackLineString);
 
-    // calculate remaing distance on gpx
-    clearRouteInfo();
+    let gpxGeometry;
     gpxSource.forEachFeature(function (feature) {
       const featureType = feature.getGeometry().getType();
       if (featureType == "LineString" || featureType == "MultiLineString") {
-        const featureCoordinates = featureType == "MultiLineString" ? feature.getGeometry().getLineString().getCoordinates() : feature.getGeometry().getCoordinates();
-        getRemainingDistance(
-          featureCoordinates,
-          speedKmh,
-          [],
-          currentPosition
-        );
+        gpxGeometry = featureType == "MultiLineString" ? feature.getGeometry().getLineString() : feature.getGeometry();
       }
     });
 
-    // calculate remaing distance on route
-    if (routeLineString.getCoordinates().length > 0) {
-      const featureCoordinates = routeLineString.getCoordinates();
+    try {
       getRemainingDistance(
-        featureCoordinates,
+        gpxGeometry || routeLineString,
         speedKmh,
         navigationSteps,
         currentPosition
       );
+    } catch (error) {
+      setExtraInfo([error]);
     }
   }
 
@@ -858,14 +845,6 @@ function clearTrip() {
   trackLog.clear();
   trackLog.push([lonlat, altitude, Date.now()]);
   trackPointLayer.getSource().clear();
-}
-
-function clearRouteInfo() {
-  routeInfoRemainingDistance.innerHTML = "";
-  routeInfoRemainingTime.innerHTML = "";
-  routeInfoTurnHint.innerHTML = "";
-  routeInfoETA.innerHTML = "";
-  routeInfoMessage.innerHTML = "";
 }
 
 // recenters the view by putting the given coordinates at 3/4 from the top of the screen
@@ -1080,7 +1059,7 @@ async function routeMeOSRM() {
   })
 
   getRemainingDistance(
-    newGeometry.getGeometry().getCoordinates(),
+    newGeometry.getGeometry(),
     speedKmh,
     navigationSteps,
     currentPosition
@@ -1124,7 +1103,7 @@ async function routeMeOSR() {
   // const totalLength = result.features[0].properties.summary.distance / 1000; // track-length in km
   // const totalTime = result.features[0].properties.summary.duration;
   getRemainingDistance(
-    newGeometry.getGeometry().getCoordinates(),
+    newGeometry.getGeometry(),
     speedKmh,
     [],
     currentPosition
@@ -1203,7 +1182,7 @@ async function routeMeGoogle() {
   })
 
   getRemainingDistance(
-    newGeometry.getGeometry().getCoordinates(),
+    newGeometry.getGeometry(),
     speedKmh,
     navigationSteps,
     currentPosition
@@ -1221,26 +1200,20 @@ map.on("singleclick", async function (evt) {
     ).toFixed(2);
     trackLog.push([toLonLat(evt.coordinate), altitude, Date.now()]);
 
-    const featureCoordinates = routeLineString.getCoordinates();
+    let gpxGeometry;
+    gpxSource.forEachFeature(function (feature) {
+      const featureType = feature.getGeometry().getType();
+      if (featureType == "LineString" || featureType == "MultiLineString") {
+        gpxGeometry = featureType == "MultiLineString" ? feature.getGeometry().getLineString() : feature.getGeometry();
+      }
+    });
+
     getRemainingDistance(
-      featureCoordinates,
+      gpxGeometry || routeLineString,
       50,
       navigationSteps,
       evt.coordinate
     );
-
-    gpxSource.forEachFeature(function (feature) {
-      const featureType = feature.getGeometry().getType();
-      if (featureType == "LineString" || featureType == "MultiLineString") {
-        const featureCoordinates = featureType == "MultiLineString" ? feature.getGeometry().getLineString().getCoordinates() : feature.getGeometry().getCoordinates();
-        getRemainingDistance(
-          featureCoordinates,
-          speedKmh,
-          [],
-          evt.coordinate
-        );
-      }
-    });
   }
 
   if (evt.originalEvent.ctrlKey) {
@@ -1519,7 +1492,7 @@ async function getDeviations() {
             <EQ name='Deviation.IconId' value='roadClosed'/>
             <ELEMENTMATCH>
               <EQ name="Deviation.MessageTypeValue" value="MaintenanceWorks" />
-              <EQ name="Deviation.SeverityCode" value="5" />
+              <GTE name="Deviation.SeverityCode" value="4" />
             </ELEMENTMATCH>
           </OR>
         </FILTER>
@@ -1599,7 +1572,7 @@ function focusTrafficWarning() {
     duration: duration,
   });
   view.animate({
-    zoom: closestAccident ? 13.1 : 10,
+    zoom: closestAccident ? 15.1 : 11,
     duration: duration,
   });
   view.animate({
@@ -1648,8 +1621,8 @@ function getClosestAccident() {
             feature => {
               return getDistance(
                 toLonLat(feature.getGeometry().getCoordinates()),
-                toLonLat(featureCoordinates[i])) < 100 &&
-                (feature.get("messageCode") == "Olycka" || feature.get("iconId") == "roadClosed");
+                toLonLat(featureCoordinates[i])) < 100
+              // && (feature.get("messageCode") == "Olycka" || feature.get("iconId") == "roadClosed");
             },
           );
       }
@@ -1695,7 +1668,6 @@ function recalculateRoute() {
         destinationCoordinates.getLastLonLat(),
       ) < 1000
     ) {
-      clearRouteInfo();
       document.getElementById("extraInfo").innerHTML = "";
       destinationCoordinates.clear();
       endMarker.setCoordinates([]);

@@ -36,7 +36,7 @@ export function trafficWarningIconStyleFunction(feature) {
                     feature.get("iconId") +
                     "?type=png32x32",
             }),
-            scale: 0.8,
+            // scale: 0.8,
         }),
     ];
 };

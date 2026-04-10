@@ -44,18 +44,30 @@ export function toHHMMSS(milliSecondsInt) {
   return hours + ":" + minutes + ":" + seconds;
 }
 
-export function getRemainingDistance(featureCoordinates, speedKmh, navigationSteps, currentPosition) {
-  // console.log(featureCoordinates, speedKmh, navigationSteps, currentPosition);
+
+export function clearRouteInfo() {
+  document.getElementById("routeInfoRemainingDistance").innerHTML = "";
+  document.getElementById("routeInfoRemainingTime").innerHTML = "";
+  document.getElementById("routeInfoTurnHint").innerHTML = "";
+  document.getElementById("routeInfoETA").innerHTML = "";
+  document.getElementById("routeInfoMessage").innerHTML = "";
+}
+
+export function getRemainingDistance(lineStringGeometry, speedKmh, navigationSteps, currentPosition) {
+  clearRouteInfo();
+  if (!lineStringGeometry) return;
+  const featureCoordinates = lineStringGeometry.getCoordinates();
   const newMultiPoint = new MultiPoint(featureCoordinates);
   const closestPoint = newMultiPoint.getClosestPoint(currentPosition);
-  const closeToRoute = getDistance(toLonLat(closestPoint), toLonLat(currentPosition)) < 500;
+  const closeToRoute = getDistance(
+    toLonLat(lineStringGeometry.getClosestPoint(currentPosition)),
+    toLonLat(currentPosition)
+  ) < 200;
   let nextStep;
   let nextStepIndex = 0;
   let distanceToNextStep = 0;
   let remainingDistance = 0;
-  if (!closeToRoute) {
-    return "";
-  }
+  if (!closeToRoute) return;
 
   const startPos = featureCoordinates.findIndex(element => element.toString() == closestPoint.toString());
   // measure route remaining distance
@@ -112,23 +124,23 @@ export function getRemainingDistance(featureCoordinates, speedKmh, navigationSte
   // infoTable.deleteRow(3)
 
   // first row
-  routeInfoRemainingDistance.innerHTML = `<font class="">⩡</font>${Number(remainingDistance / 1000).toFixed(1)}<font class="infoFormat">km</font>`;
+  document.getElementById("routeInfoRemainingDistance").innerHTML = `<font class="">⩡</font>${Number(remainingDistance / 1000).toFixed(1)}<font class="infoFormat">km</font>`;
 
   let remainingTime = ``;
   if (hours > 0) {
     remainingTime += `${hours}<font class="infoFormat">h</font> `;
   }
   remainingTime += `${minutes}<font class="infoFormat">min</font>`
-  routeInfoRemainingTime.innerHTML = remainingTime;
+  document.getElementById("routeInfoRemainingTime").innerHTML = remainingTime;
 
   // second row
   distanceToNextStep = distanceToNextStep > 1000 ?
     ((distanceToNextStep / 1000).toFixed(1) + '<font class="infoFormat">km</font>') :
     ((Math.round(distanceToNextStep / 50) * 50) + '<font class="infoFormat">m</font>');
-  routeInfoTurnHint.innerHTML = nextStep ? nextStep.maneuverType + distanceToNextStep : "";
-  routeInfoETA.innerHTML = `${ETA.getHours()}:${ETA.getMinutes().toString().padStart(2, "0")}<font class="infoFormat">ETA</font>`;
+  document.getElementById("routeInfoTurnHint").innerHTML = nextStep ? nextStep.maneuverType + distanceToNextStep : "";
+  document.getElementById("routeInfoETA").innerHTML = `${ETA.getHours()}:${ETA.getMinutes().toString().padStart(2, "0")}<font class="infoFormat">ETA</font>`;
   // third row
-  routeInfoMessage.innerHTML = nextStep ? (nextStep.message || "") : "";
+  document.getElementById("routeInfoMessage").innerHTML = nextStep ? (nextStep.message || "") : "";
 }
 
 export const translateArray = {
