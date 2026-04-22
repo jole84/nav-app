@@ -135,6 +135,7 @@ option:checked {
 
 #infoTable {
   border-collapse: collapse;
+  max-width: min-content;
 }
 
 #infoTable th,
@@ -236,7 +237,8 @@ kbd {
   font-weight: 500;
   font-size: 25px;
   max-height: calc(100% - 10px);
-  max-width: min(17rem, calc(100% - 20px));
+  max-width: calc(100% - 20px);
+  /* max-width: min(17rem, calc(100% - 20px)); */
   overflow: hidden;
   padding-left: 5px;
   padding-right: 5px;
@@ -317,9 +319,13 @@ html:fullscreen .infoGroup {
 }
 
 html:fullscreen .fullscreenHide {
-  display: none;
+  /* display: none; */
 }
 
-html:fullscreen #centerButton {
+/* html:fullscreen #centerButton {
+  filter: opacity(0.5);
+  } */
+
+html:fullscreen #optionButtons {
   filter: opacity(0.5);
 }
