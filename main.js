@@ -438,7 +438,7 @@ prefferedZoomDiv.addEventListener("change", function () {
   centerFunction();
 });
 
-localStorage.preferredFontSize = preferredFontSizeDiv.value = localStorage.preferredFontSize || "25px";
+localStorage.preferredFontSize = preferredFontSizeDiv.value = localStorage.preferredFontSize || "20px";
 
 preferredFontSizeDiv.addEventListener("change", function () {
   localStorage.preferredFontSize = preferredFontSizeDiv.value;
