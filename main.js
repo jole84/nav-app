@@ -1384,7 +1384,15 @@ document.addEventListener("keydown", function (event) {
       }
     }
     const zoomStep = 0.5;
-    if (event.key != "a" && event.key != "Escape" && event.key != "§" && event.key != "Enter") {
+    const lastInteractionFreeKeys = [
+      "a",
+      "Escape",
+      "§",
+      "Enter",
+      "+",
+      "-"
+    ]
+    if (!lastInteractionFreeKeys.includes(event.key)) {
       // store time of last interaction
       lastInteraction = Date.now();
     }
@@ -1422,7 +1430,6 @@ document.addEventListener("keydown", function (event) {
     }
     if (event.key == "n") {
       // remotek double press down
-      lastInteraction = Date.now();
       view.setRotation(0);
     }
     if (event.key == "m") {
