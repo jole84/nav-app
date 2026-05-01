@@ -1468,7 +1468,7 @@ document.addEventListener("keydown", function (event) {
 
 map.addInteraction(new KeyboardZoom({
   duration: 0,
-  // delta: 0.5,
+  delta: 0.5,
 }));
 
 const apiUrl = "https://api.trafikinfo.trafikverket.se/v2/data.json";
