@@ -1185,7 +1185,7 @@ const trafficWarningOverlay = new Overlay({
   element: document.getElementById('trafficWarningOverlay'),
   positioning: 'center-left',
   offset: [20, 0],
-  autoPan: {animation: {duration: 0}},
+  autoPan: {animation: {duration: 250}},
 });
 map.addOverlay(trafficWarningOverlay);
 
