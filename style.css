@@ -49,6 +49,19 @@ body,
   font-weight: bold;
 }
 
+#trafficWarningOverlay {
+  /* font-size: 14px; */
+  background-color: #fcd006;
+  border-radius: 5px;
+  border: 3px solid #ee293d;
+  color: black;
+  max-width: 15rem;
+}
+
+#trafficWarningOverlayRoadInfo {
+  font-weight: bold;
+}
+
 #optionButtons {
   bottom: 0px;
   display: flex;
@@ -318,9 +331,9 @@ html:fullscreen .infoGroup {
   }
 }
 
-html:fullscreen .fullscreenHide {
-  /* display: none; */
-}
+/* html:fullscreen .fullscreenHide {
+  display: none;
+} */
 
 /* html:fullscreen #centerButton {
   filter: opacity(0.5);

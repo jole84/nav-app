@@ -1,42 +1,17 @@
 import { Stroke, Style, Icon, Fill, Text } from "ol/style.js";
 
-export function trafficWarningTextStyleFunction(feature) {
-    //Function to determine style of icons
-    return [
-        new Style({
-            text: new Text({
-                text: feature.get("name"),
-                font: "13px Arial, Helvetica, sans-serif",
-                textAlign: "left",
-                textBaseline: "top",
-                offsetX: 20,
-                fill: new Fill({
-                    color: "black",
-                }),
-                backgroundFill: new Fill({
-                    color: [252, 208, 30, 0.9],
-                }),
-                backgroundStroke: new Stroke({
-                    color: [238, 41, 61, 0.9],
-                    width: 2,
-                }),
-                padding: [1, 1, 1, 1],
-            }),
-        }),
-    ];
-};
 export function trafficWarningIconStyleFunction(feature) {
     //Function to determine style of icons
     return [
         new Style({
             image: new Icon({
                 anchor: [0.5, 0.5],
+                // scale: (feature.get("severityCode") - 1),
                 src:
                     "https://api.trafikinfo.trafikverket.se/v2/icons/" +
                     feature.get("iconId") +
                     "?type=png32x32",
-            }),
-            // scale: 0.8,
+                }),
         }),
     ];
 };

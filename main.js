@@ -13,6 +13,7 @@ import { MultiLineString } from "ol/geom.js";
 import MultiPoint from "ol/geom/MultiPoint.js";
 import MVT from 'ol/format/MVT.js';
 import OSM from "ol/source/OSM.js";
+import Overlay from 'ol/Overlay.js';
 import Point from "ol/geom/Point.js";
 import Polyline from 'ol/format/Polyline.js';
 import TileLayer from "ol/layer/Tile.js";
@@ -23,7 +24,6 @@ import VectorTileSource from 'ol/source/VectorTile.js';
 import WKT from "ol/format/WKT.js";
 import XYZ from "ol/source/XYZ.js";
 import {
-  trafficWarningTextStyleFunction,
   trafficWarningIconStyleFunction,
   gpxStyleText,
   gpxStyle,
@@ -36,7 +36,6 @@ import {
   createOSRMTurnHint,
   translateArray,
   getPixelDistance,
-  breakSentence,
   msToTime,
   getRemainingDistance,
   clearRouteInfo,
@@ -554,12 +553,6 @@ const trafficWarningIconLayer = new VectorLayer({
   minZoom: 7,
 });
 
-const trafficWarningTextLayer = new VectorLayer({
-  source: trafficWarningSource,
-  style: trafficWarningTextStyleFunction,
-  minZoom: 15,
-});
-
 const roadConditionLayer = new VectorLayer({
   source: new VectorSource(),
   style: styleRoadCondition,
@@ -587,7 +580,6 @@ const map = new Map({
     trackPointLayer,
     userLocationLayer,
     trafficWarningIconLayer,
-    trafficWarningTextLayer,
   ],
   target: "map",
   view: view,
@@ -1189,7 +1181,30 @@ async function routeMeGoogle() {
   );
 }
 
-map.on("singleclick", async function (evt) {
+const trafficWarningOverlay = new Overlay({
+  element: document.getElementById('trafficWarningOverlay'),
+  positioning: 'center-left',
+  offset: [20, 0],
+  autoPan: {animation: {duration: 0}},
+});
+map.addOverlay(trafficWarningOverlay);
+
+function setTrafficOverlay(feature) {
+  document.getElementById("trafficWarningOverlayRoadInfo").innerHTML = feature.get("locationDescriptor");
+  document.getElementById("trafficWarningOverlayContent").innerHTML = feature.get("message");
+  document.getElementById("trafficWarningOverlayEndtime").innerHTML = feature.get("endTime");
+
+  trafficWarningOverlay.setPosition(feature.getGeometry().getCoordinates());
+}
+
+map.on("click", async function (evt) {
+  const closestClickAccident = trafficWarningSource.getClosestFeatureToCoordinate(
+    evt.coordinate,
+    feature => getPixelDistance(map.getPixelFromCoordinate(feature.getGeometry().getCoordinates()), map.getPixelFromCoordinate(evt.coordinate)) < 40
+  );
+  if (closestClickAccident) setTrafficOverlay(closestClickAccident);
+  else trafficWarningOverlay.setPosition();
+
   if (localStorage.testing) {
     // for testing
     trackLineString.appendCoordinate(evt.coordinate);
@@ -1510,7 +1525,7 @@ async function getDeviations() {
         <INCLUDE>Deviation.LocationDescriptor</INCLUDE>
         <INCLUDE>Deviation.EndTime</INCLUDE>
         <INCLUDE>Deviation.MessageCode</INCLUDE>
-
+        <INCLUDE>Deviation.SeverityCode</INCLUDE>
       </QUERY>
     </REQUEST>
   `;
@@ -1542,21 +1557,18 @@ async function getDeviations() {
         .transform("EPSG:4326", "EPSG:3857");
       const feature = new Feature({
         geometry: position,
-        name:
-          breakSentence(
-            (item.Deviation[0].LocationDescriptor || item.Deviation[0].RoadNumber) + ": " +
-            // (item.Deviation[0].RoadNumber ? item.Deviation[0].RoadNumber + ": " : "") +
-            (item.Deviation[0].Message || item.Deviation[0].MessageCode || "?"),
-          ) +
-          "\nSluttid: " +
-          new Date(item.Deviation[0].EndTime).toLocaleString("sv-SE", { year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric" }),
+        locationDescriptor: (item.Deviation[0].LocationDescriptor || item.Deviation[0].RoadNumber),
+        message: (item.Deviation[0].Message || item.Deviation[0].MessageCode || "?"),
+        endTime: "Sluttid: " + new Date(item.Deviation[0].EndTime).toLocaleString("sv-SE", { year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric" }),
         roadNumber: item.Deviation[0].RoadNumber || "väg",
         iconId: IconId,
         messageCode: item.Deviation[0].MessageCode || "Tillbud",
+        severityCode: item.Deviation[0].SeverityCode,
       });
       trafficWarningSource.addFeature(feature);
     });
     getClosestAccident();
+    trafficWarningOverlay.setPosition();
   } catch (ex) {
     setExtraInfo(["getDeviations error:", ex]);
     console.log(ex);
@@ -1570,6 +1582,8 @@ function focusTrafficWarning() {
   lastInteraction = Date.now();
   if (closestAccident != undefined) {
     closestAccidentPosition = closestAccident.getGeometry().getCoordinates();
+    closestAccidentPosition = [closestAccidentPosition[0] + 10000, closestAccidentPosition[1]];
+    setTrafficOverlay(closestAccident);
   } else {
     closestAccidentPosition = currentPosition;
   }
@@ -1579,7 +1593,7 @@ function focusTrafficWarning() {
     duration: duration,
   });
   view.animate({
-    zoom: closestAccident ? 15.1 : 11,
+    zoom: 11,
     duration: duration,
   });
   view.animate({
@@ -1639,8 +1653,8 @@ function getClosestAccident() {
         feature => {
           return getDistance(
             toLonLat(feature.getGeometry().getCoordinates()),
-            lonlat) < 30000 &&
-            (feature.get("messageCode") == "Olycka" || feature.get("iconId") == "roadClosed");
+            lonlat) < 30000
+          // && (feature.get("messageCode") == "Olycka" || feature.get("iconId") == "roadClosed");
         }
       );
       if (closestAccident) {
