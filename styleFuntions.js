@@ -1,12 +1,20 @@
 import { Stroke, Style, Icon, Fill, Text } from "ol/style.js";
 
+const trafficWarningScale = {
+    1: 0.4,
+    2: 0.6,
+    3: 0.7,
+    4: 0.9,
+    5: 1.5,
+}
+
 export function trafficWarningIconStyleFunction(feature) {
     //Function to determine style of icons
     return [
         new Style({
             image: new Icon({
                 anchor: [0.5, 0.5],
-                // scale: (feature.get("severityCode") - 1),
+                // scale: trafficWarningScale[feature.get("severityCode")],
                 src:
                     "https://api.trafikinfo.trafikverket.se/v2/icons/" +
                     feature.get("iconId") +
