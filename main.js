@@ -1185,7 +1185,7 @@ const trafficWarningOverlay = new Overlay({
   element: document.getElementById('trafficWarningOverlay'),
   positioning: 'center-left',
   offset: [20, 0],
-  autoPan: {animation: {duration: 250}},
+  autoPan: { animation: { duration: 250 } },
 });
 map.addOverlay(trafficWarningOverlay);
 
@@ -1514,7 +1514,7 @@ async function getDeviations() {
             <EQ name='Deviation.IconId' value='roadClosed'/>
             <ELEMENTMATCH>
               <EQ name="Deviation.MessageTypeValue" value="MaintenanceWorks" />
-              <GTE name="Deviation.SeverityCode" value="4" />
+              <GTE name="Deviation.SeverityCode" value="3" />
             </ELEMENTMATCH>
           </OR>
         </FILTER>
@@ -1643,6 +1643,7 @@ function getClosestAccident() {
               return getDistance(
                 toLonLat(feature.getGeometry().getCoordinates()),
                 toLonLat(featureCoordinates[i])) < 100
+                && (feature.get("iconId") != "roadwork" || feature.get("severityCode") >= 4)
               // && (feature.get("messageCode") == "Olycka" || feature.get("iconId") == "roadClosed");
             },
           );
@@ -1654,6 +1655,7 @@ function getClosestAccident() {
           return getDistance(
             toLonLat(feature.getGeometry().getCoordinates()),
             lonlat) < 30000
+            && (feature.get("iconId") != "roadwork")
           // && (feature.get("messageCode") == "Olycka" || feature.get("iconId") == "roadClosed");
         }
       );
