@@ -60,6 +60,7 @@ const selectFile = document.getElementById("selectFile");
 const pageLoadTime = Date.now();
 const trafficWarningDiv = document.getElementById("trafficWarning");
 const tripPointButton = document.getElementById("tripPointButton");
+const selectUpload = document.getElementById("selectUpload");
 
 let accuracy = 5000;
 let altitude = 0;
@@ -76,6 +77,7 @@ let speed = 0;
 let speedKmh = 0;
 let timeOut;
 let navigationSteps = [];
+let requestedUpload;
 
 function openDB() {
   return new Promise((resolve, reject) => {
@@ -399,7 +401,7 @@ document.getElementById("closeloadGpxMenu").onclick = function () {
 
 document.getElementById("clearGpxSourceButton").onclick = function () {
   gpxSource.clear();
-  selectedUpload = "";
+  requestedUpload = "";
   selectFile.value = "0"
   selectUpload.value = "0";
 };
@@ -1373,8 +1375,8 @@ if (searchParams.has("gpxFile")) {
 }
 
 if (searchParams.has("getId")) {
-  let getId = searchParams.get("getId");
-  loadItem(getId);
+  requestedUpload = searchParams.get("getId");
+  loadItem(requestedUpload);
 }
 switchMap();
 
@@ -1854,12 +1856,8 @@ fetchRoadCondition();
 setInterval(fetchRoadCondition, 1800000); // fetch every 30 min (30 * 60 * 1000)
 
 
-// load from storage
-
 document.getElementById("loginButton").onclick = login;
 document.getElementById("logoutButton").onclick = logout;
-
-const selectUpload = document.getElementById("selectUpload");
 
 async function api(action, data = {}) {
   const token = localStorage.getItem("token");
@@ -1887,16 +1885,15 @@ async function loadData() {
     el.value = u.id;
     el.title = `By ${u.username} — ${new Date(u.created_at).toLocaleString()}`;
     selectUpload.appendChild(el);
-
-    if (u.id == selectedUpload) selectUpload.value = u.id;
   });
+
+  selectUpload.value = requestedUpload || "0";
 }
 
-let selectedUpload;
 selectUpload.addEventListener("change", () => {
-  selectedUpload = selectUpload.value;
+  requestedUpload = selectUpload.value;
   if (selectUpload.value > 0) {
-    loadItem(selectUpload.value);
+    loadItem(requestedUpload);
   } else {
     gpxSource.clear();
   }
