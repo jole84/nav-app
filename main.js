@@ -44,7 +44,7 @@ import {
 } from "./modules.js";
 
 localStorage.mapMode = localStorage.mapMode || 0;
-const center = JSON.parse(localStorage.lastPosition || "[1600000, 8000000]");
+const center = JSON.parse(localStorage.lastPosition || "[1580000, 7920000]");
 const centerButton = document.getElementById("centerButton");
 const closeMenuButton = document.getElementById("closeMenuButton");
 const customFileButton = document.getElementById("customFileButton");
