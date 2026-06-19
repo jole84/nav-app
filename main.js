@@ -857,23 +857,25 @@ function getCenterWithHeading(position, rotation) {
 function centerFunction() {
   const duration = 500;
   const padding = 50;
+  view.setZoom(localStorage.defaultZoom);
   if (speed > 1) {
     lastInteraction = Date.now() - interactionDelay;
-    view.setZoom(localStorage.defaultZoom);
     updateView();
   } else {
-    view.animate({
-      center: currentPosition,
-      duration: duration,
-    });
-    view.animate({
-      zoom: localStorage.defaultZoom,
-      duration: duration,
-    });
-    view.animate({
-      rotation: 0,
-      duration: duration,
-    });
+    view.setCenter(currentPosition);
+    view.setRotation(0);
+    // view.animate({
+    //   center: currentPosition,
+    //   duration: duration,
+    // });
+    // view.animate({
+    //   zoom: localStorage.defaultZoom,
+    //   duration: duration,
+    // });
+    // view.animate({
+    //   rotation: 0,
+    //   duration: duration,
+    // });
   }
   acquireWakeLock();
 }
