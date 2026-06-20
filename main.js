@@ -605,7 +605,7 @@ function gpxSourceLoader(gpxFile) {
         setExtraInfo(["testing mode active"]);
         gpxFeature.getGeometry().getLineString().getCoordinates().forEach(coordinate => {
           trackLog.push([toLonLat(coordinate).slice(0, 2), coordinate[2], coordinate[3] * 1000]);
-        })
+        });
       }
       if (gpxFeature.get("routePointMarker")) {
         gpxFeature.set("name", (gpxFeature.getId() + 1));
@@ -619,16 +619,15 @@ function gpxSourceLoader(gpxFile) {
 fetch("https://jole84.se/filesList.php")
   .then((response) => response.json())
   .then((filesList) => {
-    for (var i = 0; i < filesList.length; i++) {
-      var opt = filesList[i];
-      var el = document.createElement("option");
+    for (let i = 0; i < filesList.length; i++) {
+      const opt = filesList[i];
+      const el = document.createElement("option");
       el.textContent = opt.split("/").pop();
       el.value = opt;
       selectFile.appendChild(el);
     }
-  }).catch(function (err) {
+  }).catch((err) => {
     setExtraInfo(["filesList error:", err]);
-    console.log('error: ' + err);
   });
 
 // load gpx file from selectFile in menuDiv
@@ -753,7 +752,7 @@ geolocation.on("change", async function () {
     gpxSource.forEachFeature(function (feature) {
       const featureType = feature.getGeometry().getType();
       if (featureType == "LineString" || featureType == "MultiLineString") {
-        gpxGeometry = featureType == "MultiLineString" ? feature.getGeometry().getLineString() : feature.getGeometry();
+        gpxGeometry = feature.getGeometry()?.getLineString() || feature.getGeometry();
       }
     });
 
@@ -1223,7 +1222,7 @@ map.on("click", async function (evt) {
     gpxSource.forEachFeature(function (feature) {
       const featureType = feature.getGeometry().getType();
       if (featureType == "LineString" || featureType == "MultiLineString") {
-        gpxGeometry = featureType == "MultiLineString" ? feature.getGeometry().getLineString() : feature.getGeometry();
+        gpxGeometry = feature.getGeometry()?.getLineString() || feature.getGeometry();
       }
     });
 
@@ -1584,7 +1583,7 @@ setInterval(getDeviations, 60000); // getDeviations interval
 
 function focusTrafficWarning() {
   lastInteraction = Date.now();
-  if (closestAccident != undefined) {
+  if (closestAccident) {
     closestAccidentPosition = closestAccident.getGeometry().getCoordinates();
     closestAccidentPosition = [closestAccidentPosition[0] + 10000, closestAccidentPosition[1]];
     setTrafficOverlay(closestAccident);
@@ -1671,7 +1670,7 @@ function getClosestAccident() {
       }
     }
 
-    if (!!closestAccident) {
+    if (closestAccident) {
       const closestAccidentRoadNumber = closestAccident.get("roadNumber");
       const messageCode = closestAccident.get("messageCode");
 
@@ -1933,7 +1932,6 @@ async function loadItem(id) {
 
   gpxSource.clear();
   newGeometry.forEach(element => {
-    // console.log(element.getProperties())
     if (!!element.get("routeLineString") || !!element.get("poi") || !!element.get("gpxFeature")) gpxSource.addFeature(element);
   });
 }
