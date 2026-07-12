@@ -339,8 +339,11 @@ const acquireWakeLock = async () => {
     try {
       wakeLock = await navigator.wakeLock.request("screen");
     } catch (err) {
+      setExtraInfo([err]);
       console.log(err);
     }
+  } else {
+    setExtraInfo(["wakeLock NA"]);
   }
 };
 acquireWakeLock();
