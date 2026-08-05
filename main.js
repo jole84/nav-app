@@ -1451,7 +1451,10 @@ document.addEventListener("keydown", function (event) {
     }
     if (event.key == "n") {
       // remotek double press down
-      view.setRotation(0);
+      // view.setRotation(0);
+      view.animate({
+        rotation: 0,
+      });
     }
     if (event.key == "m") {
       // remotek double press right || event.key == "m"
@@ -1593,19 +1596,22 @@ function focusTrafficWarning() {
   } else {
     closestAccidentPosition = currentPosition;
   }
-  const duration = 0;
-  view.animate({
-    center: closestAccidentPosition,
-    duration: duration,
-  });
-  view.animate({
-    zoom: 11,
-    duration: duration,
-  });
-  view.animate({
-    rotation: 0,
-    duration: duration,
-  });
+  view.setCenter(closestAccidentPosition);
+  view.setZoom(11);
+  view.setRotation(0);
+  // const duration = 0;
+  // view.animate({
+  //   center: closestAccidentPosition,
+  //   duration: duration,
+  // });
+  // view.animate({
+  //   zoom: 11,
+  //   duration: duration,
+  // });
+  // view.animate({
+  //   rotation: 0,
+  //   duration: duration,
+  // });
 }
 
 function focusDestination() {
