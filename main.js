@@ -1191,11 +1191,12 @@ const trafficWarningOverlay = new Overlay({
   element: document.getElementById('trafficWarningOverlay'),
   positioning: 'center-left',
   offset: [20, 0],
-  autoPan: { animation: { duration: 250 } },
+  // autoPan: { animation: { duration: 250 } },
 });
 map.addOverlay(trafficWarningOverlay);
 
 function setTrafficOverlay(feature) {
+  setTimeout(() => trafficWarningOverlay.setPosition(), 60000);
   document.getElementById("trafficWarningOverlayRoadInfo").innerHTML = feature.get("locationDescriptor");
   document.getElementById("trafficWarningOverlayContent").innerHTML = feature.get("message");
   document.getElementById("trafficWarningOverlayEndtime").innerHTML = feature.get("endTime");
@@ -1577,7 +1578,6 @@ async function getDeviations() {
       trafficWarningSource.addFeature(feature);
     });
     getClosestAccident();
-    trafficWarningOverlay.setPosition();
   } catch (ex) {
     setExtraInfo(["getDeviations error:", ex]);
     console.log(ex);
