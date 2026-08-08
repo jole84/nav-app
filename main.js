@@ -76,6 +76,7 @@ let prevLonlat;
 let speed = 0;
 let speedKmh = 0;
 let timeOut;
+let overlayTimeOut;
 let navigationSteps = [];
 let requestedUpload;
 
@@ -999,9 +1000,7 @@ function setExtraInfo(infoText) {
   window.clearTimeout(timeOut);
   const extraInfo = infoText.join("<br>");
   document.getElementById("extraInfo").innerHTML = extraInfo;
-  timeOut = setTimeout(function () {
-    document.getElementById("extraInfo").innerHTML = "";
-  }, 10000);
+  timeOut = setTimeout(() => document.getElementById("extraInfo").innerHTML = "", 10000);
 }
 
 function routeMe() {
@@ -1196,7 +1195,8 @@ const trafficWarningOverlay = new Overlay({
 map.addOverlay(trafficWarningOverlay);
 
 function setTrafficOverlay(feature) {
-  setTimeout(() => trafficWarningOverlay.setPosition(), 60000);
+  window.clearTimeout(overlayTimeOut);
+  overlayTimeOut = setTimeout(() => trafficWarningOverlay.setPosition(), 60000);
   document.getElementById("trafficWarningOverlayRoadInfo").innerHTML = feature.get("locationDescriptor");
   document.getElementById("trafficWarningOverlayContent").innerHTML = feature.get("message");
   document.getElementById("trafficWarningOverlayEndtime").innerHTML = feature.get("endTime");
