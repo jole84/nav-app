@@ -30,7 +30,7 @@ export function gpxStyleText(feature) {
         return new Style({
             text: new Text({
                 text: feature.get("name"),
-                font: "13px Arial, Helvetica, sans-serif",
+                font: "14px Arial, Helvetica, sans-serif",
                 placement: "line",
                 textAlign: "left",
                 textBaseline: "bottom",
@@ -45,7 +45,7 @@ export function gpxStyleText(feature) {
                     color: [0, 0, 0, 0.9],
                     width: 1.5,
                 }),
-                padding: [0, 0, 0, 1],
+                padding: [2, 1, 1, 2],
             }),
         });
     }
