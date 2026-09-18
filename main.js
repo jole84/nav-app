@@ -1767,11 +1767,11 @@ async function updateUserPosition() {
       name.push("Osäker position (" + userList[i]["accuracy"] + "m)");
     }
 
+    name.push((userList[i]["speed"] < 100 ? userList[i]["speed"] : "--") + "km/h");
+    
     if (Date.now() - userList[i]["timeStamp"] > 120000) {
       name.push(msToTime(Date.now() - userList[i]["timeStamp"]));
     }
-
-    name.push((userList[i]["speed"] < 100 ? userList[i]["speed"] : "--") + "km/h");
 
     const marker = new Feature({
       geometry: new Point([userList[i]["x"], userList[i]["y"]]),
