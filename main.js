@@ -957,25 +957,50 @@ function switchMap() {
 
 // new saveLog function
 async function saveLog() {
-  let oldRoute = await trackLog.getAllRaw();
-  if (!window.userChoseRestore) oldRoute = oldRoute.filter(element => element.timestamp >= pageLoadTime);
-  const filename = new Date(oldRoute[0].timestamp).toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + "_" + (distanceTraveled / 1000).toFixed(2) + "km.gpx";
+  if (confirm("Ladda upp rutt?") && localStorage.getItem("token")) {
+    let oldRoute = await trackLog.getAllRaw();
+    if (!window.userChoseRestore) oldRoute = oldRoute.filter(element => element.timestamp >= pageLoadTime);
+    const name = new Date(oldRoute[0].timestamp).toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + "_" + (distanceTraveled / 1000).toFixed(2) + "km";
 
-  oldRoute = oldRoute.map(coordinate => ([coordinate.coordinates[0], coordinate.coordinates[1], coordinate.altitude || 1, coordinate.timestamp / 1000]));
+    oldRoute = oldRoute.map(coordinate => ([
+      coordinate.coordinates[0],
+      coordinate.coordinates[1],
+      coordinate.altitude || 1,
+      coordinate.timestamp / 1000
+    ]));
 
-  const gpxFile = new GPX().writeFeatures([new Feature({ geometry: new MultiLineString([oldRoute]) })]);
-  let blob = new Blob([gpxFile], { type: "application/gpx+xml" });
+    const newFeature = new Feature({ geometry: new MultiLineString([oldRoute]) });
+    newFeature.set("routeLineString", true);
 
-  // tries to share text file
-  if (window.showSaveFilePicker) {
-    saveFile(blob, filename);
+    const geoJsonFile = new GeoJSON().writeFeature(newFeature);
+
+    console.log(geoJsonFile)
+    const text = btoa(encodeURIComponent(geoJsonFile));
+    await api("upload", { name, text });
   } else {
-    try {
-      await navigator.share({
-        files: [new File([gpxFile], filename + ".txt", { type: "text/plain" })],
-      });
-    } catch (error) {
-      setExtraInfo([error]);
+
+
+
+    let oldRoute = await trackLog.getAllRaw();
+    if (!window.userChoseRestore) oldRoute = oldRoute.filter(element => element.timestamp >= pageLoadTime);
+    const filename = new Date(oldRoute[0].timestamp).toLocaleString().replace(/ /g, "_").replace(/:/g, ".") + "_" + (distanceTraveled / 1000).toFixed(2) + "km.gpx";
+
+    oldRoute = oldRoute.map(coordinate => ([coordinate.coordinates[0], coordinate.coordinates[1], coordinate.altitude || 1, coordinate.timestamp / 1000]));
+
+    const gpxFile = new GPX().writeFeatures([new Feature({ geometry: new MultiLineString([oldRoute]) })]);
+    let blob = new Blob([gpxFile], { type: "application/gpx+xml" });
+
+    // tries to share text file
+    if (window.showSaveFilePicker) {
+      saveFile(blob, filename);
+    } else {
+      try {
+        await navigator.share({
+          files: [new File([gpxFile], filename + ".txt", { type: "text/plain" })],
+        });
+      } catch (error) {
+        setExtraInfo([error]);
+      }
     }
   }
 }
@@ -1768,7 +1793,7 @@ async function updateUserPosition() {
     }
 
     name.push((userList[i]["speed"] < 100 ? userList[i]["speed"] : "--") + "km/h");
-    
+
     if (Date.now() - userList[i]["timeStamp"] > 120000) {
       name.push(msToTime(Date.now() - userList[i]["timeStamp"]));
     }
@@ -1868,6 +1893,7 @@ setInterval(fetchRoadCondition, 1800000); // fetch every 30 min (30 * 60 * 1000)
 
 document.getElementById("loginButton").onclick = login;
 document.getElementById("logoutButton").onclick = logout;
+document.getElementById("createUserButton").onclick = createuser;
 
 async function api(action, data = {}) {
   const token = localStorage.getItem("token");
@@ -1967,4 +1993,23 @@ function logout() {
   localStorage.removeItem("username");
   showApp("");
   loadData();
+}
+
+async function createuser() {
+  const username = document.getElementById("newUsername").value.trim();
+  const password = document.getElementById("newUserPassword").value;
+  const verifyNewPassword = document.getElementById("verifyNewUserPassword").value;
+
+  if (!password || (password != verifyNewPassword)) return;
+
+  const r = await api("register", { username, password });
+
+  if (r.success) {
+    localStorage.setItem("token", r.token);
+    localStorage.setItem("username", r.username);
+    showApp(username);
+    loadData();
+  } else {
+    alert(r.error);
+  }
 }
