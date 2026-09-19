@@ -970,7 +970,7 @@ async function saveLog() {
     ]));
 
     const newFeature = new Feature({ geometry: new MultiLineString([oldRoute]) });
-    newFeature.set("routeLineString", true);
+    newFeature.set("gpxFeature", true);
 
     const geoJsonFile = new GeoJSON().writeFeature(newFeature);
 
