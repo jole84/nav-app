@@ -209,7 +209,7 @@
 
         <tr id="loginView">
           <td>
-            Login (Skapa användare på <a href="https://jole84.se/route-planner2/index.html">jole84 ruttplanerare</a>)<br><br>
+            Login (Skapa användare och ladda upp rutter, <a href="https://jole84.se/route-planner2/index.html">jole84 ruttplanerare</a>)<br><br>
             <input id="username" class="form-control" placeholder="Username"><br><br>
             <input id="password" class="form-control" type="password" placeholder="Password">
           </td>
@@ -230,17 +230,15 @@
 
         <tr>
           <td colspan="2">
-            <select class="form-select" id="selectFile">
-              <option value="0">välj gpxfil</option>
-              <option value="https://transeurotrail.org/wp-content/uploads/gpxsync/S.gpx">
-                TET Sverige</option>
-            </select>
+            <select class="form-select" id="selectUpload"></select>
+              <!-- <option value="0">välj gpxfil</option> -->
+              <!-- <option value="https://transeurotrail.org/wp-content/uploads/gpxsync/S.gpx">TET Sverige</option> -->
           </td>
         </tr>
 
         <tr>
           <td colspan="2">
-            <select class="form-select" id="selectUpload"></select>
+            <input id="searchInput" type="text" placeholder="Google text-sök 🔍" class="form-control fill-available">
           </td>
         </tr>
 
@@ -261,7 +259,7 @@
       </table>
     </div>
   </div>
-  
+
   <div id="trafficWarningOverlay">
     <div id="trafficWarningOverlayRoadInfo"></div>
     <div id="trafficWarningOverlayContent"></div>

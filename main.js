@@ -56,7 +56,7 @@ const openMenuButton = document.getElementById("openMenu");
 const preferredFontSizeDiv = document.getElementById("preferredFontSize");
 const prefferedZoomDiv = document.getElementById("prefferedZoom");
 const saveLogButton = document.getElementById("saveLogButton");
-const selectFile = document.getElementById("selectFile");
+// const selectFile = document.getElementById("selectFile");
 const pageLoadTime = Date.now();
 const trafficWarningDiv = document.getElementById("trafficWarning");
 const tripPointButton = document.getElementById("tripPointButton");
@@ -404,9 +404,10 @@ document.getElementById("closeloadGpxMenu").onclick = function () {
 };
 
 document.getElementById("clearGpxSourceButton").onclick = function () {
+  document.getElementById("searchInput").value = "";
   gpxSource.clear();
   requestedUpload = "";
-  selectFile.value = "0"
+  // selectFile.value = "0"
   selectUpload.value = "0";
 };
 
@@ -620,35 +621,35 @@ function gpxSourceLoader(gpxFile) {
 }
 
 // add selectFile options
-fetch("https://jole84.se/filesList.php")
-  .then((response) => response.json())
-  .then((filesList) => {
-    for (let i = 0; i < filesList.length; i++) {
-      const opt = filesList[i];
-      const el = document.createElement("option");
-      el.textContent = opt.split("/").pop();
-      el.value = opt;
-      selectFile.appendChild(el);
-    }
-  }).catch((err) => {
-    setExtraInfo(["filesList error:", err]);
-  });
+// fetch("https://jole84.se/filesList.php")
+//   .then((response) => response.json())
+//   .then((filesList) => {
+//     for (let i = 0; i < filesList.length; i++) {
+//       const opt = filesList[i];
+//       const el = document.createElement("option");
+//       el.textContent = opt.split("/").pop();
+//       el.value = opt;
+//       selectFile.appendChild(el);
+//     }
+//   }).catch((err) => {
+//     setExtraInfo(["filesList error:", err]);
+//   });
 
-// load gpx file from selectFile in menuDiv
-selectFile.addEventListener("change", function () {
-  gpxSource.clear();
-  console.log(selectFile.value)
-  if (selectFile.value !== "välj gpxfil") {
-    fetch("https://jole84.se/phpReadFile.php?url=" + selectFile.value, { mode: "cors" })
-      .then((response) => response.text())
-      .then((response) => {
-        gpxSourceLoader(new File([response], selectFile.value, { type: "application/gpx" }));
-        setExtraInfo([selectFile.value.split("/").pop()]);
-      });
-  } else {
-    setExtraInfo([]);
-  }
-});
+// // load gpx file from selectFile in menuDiv
+// selectFile.addEventListener("change", function () {
+//   gpxSource.clear();
+//   console.log(selectFile.value)
+//   if (selectFile.value !== "välj gpxfil") {
+//     fetch("https://jole84.se/phpReadFile.php?url=" + selectFile.value, { mode: "cors" })
+//       .then((response) => response.text())
+//       .then((response) => {
+//         gpxSourceLoader(new File([response], selectFile.value, { type: "application/gpx" }));
+//         setExtraInfo([selectFile.value.split("/").pop()]);
+//       });
+//   } else {
+//     setExtraInfo([]);
+//   }
+// });
 
 function handleFileSelect(evt) {
   customFileButton.blur();
@@ -1768,7 +1769,7 @@ async function updateUserPosition() {
     }
 
     name.push((userList[i]["speed"] < 100 ? userList[i]["speed"] : "--") + "km/h");
-    
+
     if (Date.now() - userList[i]["timeStamp"] > 120000) {
       name.push(msToTime(Date.now() - userList[i]["timeStamp"]));
     }
@@ -1968,3 +1969,57 @@ function logout() {
   showApp("");
   loadData();
 }
+
+document.getElementById("searchInput").addEventListener("change", async () => {
+
+  const searchString = document.getElementById("searchInput").value;
+  if (!searchString.trim()) return;
+
+  try {
+    const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+        'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.location',
+      },
+      body: JSON.stringify({
+        textQuery: searchString,
+        locationBias: {
+          circle: {
+            center: { latitude: lonlat[1], longitude: lonlat[0] },
+            radius: 5000.0 // 5km search radius
+          }
+        }
+      }),
+    });
+
+    const result = await response.json();
+
+    // Safety Check: If no places are found, the 'places' key won't exist
+    if (!result.places || result.places.length === 0) {
+      console.log("No results found");
+      return;
+    }
+
+    // Process results
+    for (const place of result.places) {
+      const resultCoordinate = fromLonLat([place.location.longitude, place.location.latitude]);
+      const name = place.displayName.text + "\n" + place.formattedAddress
+
+      addPoiMarker(resultCoordinate, gpxSource, name);
+    }
+
+    const extent = gpxSource.getExtent();
+    if (extent) {
+      view.fit(extent, {
+        maxZoom: 15,
+        padding: [100, 100, 100, 100],
+        duration: 0
+      });
+    }
+
+  } catch (error) {
+    console.error("Places API Search failed:", error);
+  }
+});

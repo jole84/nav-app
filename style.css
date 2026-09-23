@@ -285,6 +285,10 @@ kbd {
   filter: invert(1) hue-rotate(180deg);
 }
 
+.fill-available {
+  width: -webkit-fill-available;
+}
+
 html:fullscreen div.ol-zoom {
   margin-top: max(env(safe-area-inset-top), .5em);
 }
