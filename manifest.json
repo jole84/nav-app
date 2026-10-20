@@ -3,7 +3,7 @@
     "start_url": "https://jole84.se/nav-app/index.html",
     "display": "standalone",
     "description": "Jole84 navigationsapplikation",
-    "background_color": "white",
+    "background_color": "black",
     "theme_color": "black",
     "prefer_related_applications": false,
     "icons": [

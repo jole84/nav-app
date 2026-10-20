@@ -1634,63 +1634,64 @@ function focusDestination() {
 
 function getClosestAccident() {
   closestAccident = false;
-  if (trafficWarningSource.getFeatures().length > 0) {
-    const routeIsActive = routeLineString.getCoordinates().length > 0;
-    let distanceToAccident = 0;
-    if (routeIsActive) {
-      const featureCoordinates = routeLineString.getCoordinates();
-      const newMultiPoint = new MultiPoint(featureCoordinates);
-      const newMultiPointCurrentPosition = newMultiPoint.getClosestPoint(currentPosition);
-      const startIndex = findIndexOf(newMultiPointCurrentPosition, featureCoordinates);
+  if (trafficWarningSource.getFeatures().length == 0) {
+    trafficWarningDiv.innerHTML = "";
+    return;
+  }
 
-      for (let i = startIndex; (i < featureCoordinates.length - 1) && !closestAccident; i++) {
-        distanceToAccident += getDistance(
-          toLonLat(featureCoordinates[i]),
-          toLonLat(featureCoordinates[i + 1])
-        )
-        // addTestMarker(featureCoordinates[i], Math.round(distanceToAccident));
+  const routeIsActive = routeLineString.getCoordinates().length > 0;
+  let distanceToAccident = 0;
+  if (routeIsActive) {
+    const featureCoordinates = routeLineString.getCoordinates();
+    const newMultiPoint = new MultiPoint(featureCoordinates);
+    const newMultiPointCurrentPosition = newMultiPoint.getClosestPoint(currentPosition);
+    const startIndex = findIndexOf(newMultiPointCurrentPosition, featureCoordinates);
 
-        closestAccident =
-          trafficWarningSource.getClosestFeatureToCoordinate(featureCoordinates[i],
-            feature => {
-              return getDistance(
-                toLonLat(feature.getGeometry().getCoordinates()),
-                toLonLat(featureCoordinates[i])) < 100
-                && (feature.get("iconId") != "roadwork" || feature.get("severityCode") >= 4)
-              // && (feature.get("messageCode") == "Olycka" || feature.get("iconId") == "roadClosed");
-            },
-          );
-      }
-    } else {
-      closestAccident = trafficWarningSource.getClosestFeatureToCoordinate(
-        currentPosition,
-        feature => {
-          return getDistance(
-            toLonLat(feature.getGeometry().getCoordinates()),
-            lonlat) < 30000
-            && (feature.get("iconId") != "roadwork")
-          // && (feature.get("messageCode") == "Olycka" || feature.get("iconId") == "roadClosed");
-        }
-      );
-      if (closestAccident) {
-        distanceToAccident = getDistance(
-          toLonLat(closestAccident.getGeometry().getCoordinates()),
-          lonlat
+    for (let i = startIndex; (i < featureCoordinates.length - 1) && !closestAccident; i++) {
+      distanceToAccident += getDistance(
+        toLonLat(featureCoordinates[i]),
+        toLonLat(featureCoordinates[i + 1])
+      )
+      // addTestMarker(featureCoordinates[i], Math.round(distanceToAccident));
+
+      closestAccident =
+        trafficWarningSource.getClosestFeatureToCoordinate(featureCoordinates[i],
+          feature => {
+            return getDistance(
+              toLonLat(feature.getGeometry().getCoordinates()),
+              toLonLat(featureCoordinates[i])) < 100
+              && (feature.get("iconId") != "roadwork" || feature.get("severityCode") >= 3)
+            // && (feature.get("messageCode") == "Olycka" || feature.get("iconId") == "roadClosed");
+          },
         );
+    }
+  } else {
+    closestAccident = trafficWarningSource.getClosestFeatureToCoordinate(
+      currentPosition,
+      feature => {
+        return getDistance(
+          toLonLat(feature.getGeometry().getCoordinates()),
+          lonlat) < 30000
+          && (feature.get("iconId") != "roadwork")
+        // && (feature.get("messageCode") == "Olycka" || feature.get("iconId") == "roadClosed");
       }
-    }
-
+    );
     if (closestAccident) {
-      const closestAccidentRoadNumber = closestAccident.get("roadNumber");
-      const messageCode = closestAccident.get("messageCode");
-
-      trafficWarningDiv.innerHTML =
-        messageCode + ",<br>" +
-        closestAccidentRoadNumber.replace(/^V/, "v") +
-        " (" + Math.round(distanceToAccident / 1000) + "km)";
-    } else {
-      trafficWarningDiv.innerHTML = "";
+      distanceToAccident = getDistance(
+        toLonLat(closestAccident.getGeometry().getCoordinates()),
+        lonlat
+      );
     }
+  }
+
+  if (closestAccident) {
+    const closestAccidentRoadNumber = closestAccident.get("roadNumber");
+    const messageCode = closestAccident.get("messageCode");
+
+    trafficWarningDiv.innerHTML =
+      messageCode + ",<br>" +
+      closestAccidentRoadNumber.replace(/^V/, "v") +
+      " (" + Math.round(distanceToAccident / 1000) + "km)";
   } else {
     trafficWarningDiv.innerHTML = "";
   }
