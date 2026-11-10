@@ -939,7 +939,9 @@ function switchMap() {
     document.body.classList.add("darkMode");
     jole84TileLayer.setVisible(true);
     jole84TileLayer.getSource().refresh({ force: true });
-    jole84TileLayer.setMaxZoom(20);
+    ortofoto.setVisible(true);
+    jole84TileLayer.setMaxZoom(16);
+    ortofoto.setMinZoom(16);
   } else if (localStorage.mapMode == 3) {
     // mapMode 3: Openstreetmap
     osm.setVisible(true);
