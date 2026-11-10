@@ -905,11 +905,13 @@ if (!!window.chrome) {
 
 // switch map logic
 function switchMap() {
+  document.body.classList.remove("darkMode");
+  jole84TileLayer.getSource().refresh({ force: true });
+
   jole84TileLayer.setVisible(false);
   ortofoto.setVisible(false);
   topoweb.setVisible(false);
   osm.setVisible(false);
-  document.body.classList.remove("darkMode");
 
   if (localStorage.mapMode > 5) {
     localStorage.mapMode = 0;
@@ -920,14 +922,12 @@ function switchMap() {
   if (localStorage.mapMode == 0) {
     // mapMode 0: MVT Tärräng
     jole84TileLayer.setVisible(true);
-    jole84TileLayer.getSource().refresh({ force: true });
     ortofoto.setVisible(true);
     jole84TileLayer.setMaxZoom(17);
     ortofoto.setMinZoom(17);
   } else if (localStorage.mapMode == 1) {
     // mapMode 1: MVT Vägkarta
     jole84TileLayer.setVisible(true);
-    jole84TileLayer.getSource().refresh({ force: true });
     topoweb.setVisible(true);
     ortofoto.setVisible(true);
     jole84TileLayer.setMaxZoom(16);
@@ -938,7 +938,6 @@ function switchMap() {
     // mapMode 2: MVT Vägkarta + night mode
     document.body.classList.add("darkMode");
     jole84TileLayer.setVisible(true);
-    jole84TileLayer.getSource().refresh({ force: true });
     ortofoto.setVisible(true);
     jole84TileLayer.setMaxZoom(16);
     ortofoto.setMinZoom(16);
