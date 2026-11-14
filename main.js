@@ -1201,6 +1201,7 @@ function setTrafficOverlay(feature) {
   overlayTimeOut = setTimeout(() => trafficWarningOverlay.setPosition(), 60000);
   document.getElementById("trafficWarningOverlayRoadInfo").innerHTML = feature.get("locationDescriptor");
   document.getElementById("trafficWarningOverlayContent").innerHTML = feature.get("message");
+  document.getElementById("trafficWarningOverlaySeverityText").innerHTML = feature.get("severityText");
   document.getElementById("trafficWarningOverlayEndtime").innerHTML = feature.get("endTime");
 
   trafficWarningOverlay.setPosition(feature.getGeometry().getCoordinates());
@@ -1510,6 +1511,16 @@ function resetRotation() {
 }
 // <GTE name="Deviation.SeverityCode" value="2" /> 
 // <EQ name="Deviation.MessageCodeValue" value="roadClosed" />
+
+// "<OR>
+//   <EQ name='Deviation.MessageType' value='Olycka' />
+//   <IN name="Deviation.MessageTypeValue" value="AnimalPresenceObstruction,EnvironmentalObstruction,EquipmentOrSystemFault,GeneralInstructionOrMessageToRoadUsers,NonWeatherRelatedRoadConditions,ReroutingManagement,RoadsideAssistance,VehicleObstruction" />
+//   <EQ name='Deviation.IconId' value='roadClosed' />
+//   <ELEMENTMATCH>
+//     <EQ name="Deviation.MessageTypeValue" value="MaintenanceWorks" />
+//     <GTE name="Deviation.SeverityCode" value="3" />
+//   </ELEMENTMATCH>
+// </OR>"
 async function getDeviations() {
   let xmlRequest = `
     <REQUEST>
@@ -1520,15 +1531,7 @@ async function getDeviations() {
           <GTE name="Deviation.EndTime" value="$now"/>
           <NE name="Deviation.Suspended" value="true" />
           <NEAR name="Deviation.Geometry.WGS84" value="${lonlat.join(" ")}" maxdistance="300000" />
-          <OR>
-            <EQ name='Deviation.MessageType' value='Olycka' />
-            <IN name="Deviation.MessageTypeValue" value="AnimalPresenceObstruction,EnvironmentalObstruction,EquipmentOrSystemFault,GeneralInstructionOrMessageToRoadUsers,NonWeatherRelatedRoadConditions,ReroutingManagement,RoadsideAssistance,VehicleObstruction"/>
-            <EQ name='Deviation.IconId' value='roadClosed'/>
-            <ELEMENTMATCH>
-              <EQ name="Deviation.MessageTypeValue" value="MaintenanceWorks" />
-              <GTE name="Deviation.SeverityCode" value="3" />
-            </ELEMENTMATCH>
-          </OR>
+          
         </FILTER>
         <INCLUDE>Deviation.Message</INCLUDE>
         <INCLUDE>Deviation.IconId</INCLUDE>
@@ -1538,6 +1541,7 @@ async function getDeviations() {
         <INCLUDE>Deviation.EndTime</INCLUDE>
         <INCLUDE>Deviation.MessageCode</INCLUDE>
         <INCLUDE>Deviation.SeverityCode</INCLUDE>
+        <INCLUDE>Deviation.SeverityText</INCLUDE>
       </QUERY>
     </REQUEST>
   `;
@@ -1576,6 +1580,7 @@ async function getDeviations() {
         iconId: IconId,
         messageCode: item.Deviation[0].MessageCode || "Tillbud",
         severityCode: item.Deviation[0].SeverityCode,
+        severityText: item.Deviation[0].SeverityText,
       });
       trafficWarningSource.addFeature(feature);
     });

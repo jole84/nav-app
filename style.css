@@ -62,6 +62,10 @@ body,
   font-weight: bold;
 }
 
+#trafficWarningOverlaySeverityText {
+  font-weight: bold;
+}
+
 #optionButtons {
   bottom: 0px;
   display: flex;
